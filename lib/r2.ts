@@ -37,3 +37,13 @@ export async function getObjectUrl(key: string) {
 
   return getSignedUrl(r2, command, { expiresIn: 900 })
 }
+
+export async function uploadBuffer(key: string, buffer: Buffer, contentType: string) {
+  const command = new PutObjectCommand({
+    Bucket: process.env.R2_BUCKET_NAME ?? 'ar-frames',
+    Key: key,
+    Body: buffer,
+    ContentType: contentType,
+  })
+  await r2.send(command)
+}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import QRCode from 'qrcode'
 import { supabaseAdmin } from '@/lib/supabase'
-import { getPublicUrl } from '@/lib/r2'
+import { getPublicUrl, uploadBuffer } from '@/lib/r2'
 import { generateFrameId } from '@/lib/utils'
 import { sendQREmail } from '@/lib/resend'
 
@@ -25,7 +25,9 @@ export async function POST(req: NextRequest) {
       status: 'active',
       plan: 'single',
       scan_count: 0,
-      created_at: new Date().toISOString(),
+      created_at: new Date().toISOString(), 
+
+      
     }
 
     let insertedFrame = frame
@@ -56,17 +58,32 @@ export async function POST(req: NextRequest) {
     const fallbackProtocol = appUrl.startsWith('https') ? 'https' : 'http'
     const protocol = req.headers.get('x-forwarded-proto') ?? fallbackProtocol
     const arUrl = `${protocol}://${host}/ar?frame=${frameId}`
-    
+
     let qrDataUrl = ''
+    let qrUrl = ''
     try {
       qrDataUrl = await QRCode.toDataURL(arUrl, {
         width: 400,
         margin: 2,
         color: { dark: '#000000', light: '#FFFFFF' },
       })
+
+      // Strip the data URL prefix and upload the PNG to R2 alongside photo/video
+      const base64Data = qrDataUrl.replace(/^data:image\/png;base64,/, '')
+      const qrBuffer = Buffer.from(base64Data, 'base64')
+      const qrKey = `qr/${frameId}.png`
+      await uploadBuffer(qrKey, qrBuffer, 'image/png')
+      qrUrl = getPublicUrl(qrKey)
     } catch (qrError) {
       console.error('QR code generation error:', qrError)
       throw new Error('Failed to generate QR code')
+    }
+
+    // Persist qr_url — best-effort, don't fail the order if this update fails
+    try {
+      await supabaseAdmin.from('frames').update({ qr_url: qrUrl }).eq('frame_id', frameId)
+    } catch (dbError) {
+      console.error('Failed to save qr_url to DB:', dbError)
     }
 
     try {
@@ -75,7 +92,7 @@ export async function POST(req: NextRequest) {
       console.error('Email delivery failed', emailError)
     }
 
-    return NextResponse.json({ frameId, qrDataUrl, frame: insertedFrame })
+    return NextResponse.json({ frameId, frame: insertedFrame })
   } catch (error) {
     console.error('Frames API error:', error)
     return NextResponse.json({ error: error instanceof Error ? error.message : 'Unable to create the AR frame.' }, { status: 500 })

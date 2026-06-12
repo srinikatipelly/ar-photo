@@ -6,6 +6,10 @@
   <meta http-equiv="permissions-policy" content="camera=(self)" />
   <title>AR Frame</title>
 
+  <!-- Preload heavy scripts so the browser fetches them in parallel with page parse -->
+  <link rel="preload" as="script" crossorigin href="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.module.js">
+  <link rel="preload" as="script" crossorigin href="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-three.prod.js">
+
   <!--
     Import map: tells the browser where to find "three" when the MindAR
     ES module does  import { ... } from "three".
@@ -115,6 +119,7 @@
 
     async function loadFrame() {
       let mindarThree = null
+      let targetBlobUrl = null
 
       try {
         // ── 1. Fetch frame metadata ──────────────────────────────────────
@@ -130,17 +135,44 @@
 
         console.log('[AR] videoUrl:', videoUrl, 'targetUrl:', targetUrl)
 
-        // ── 2. Build MindARThree instance ────────────────────────────────
-        // This is the plain Three.js API — no A-Frame, no asset preloading.
-        // start() is a single async call: getUserMedia → fetch .mind →
-        // init TF.js → begin tracking.  It throws on any failure.
-        setStatus('Initializing AR…', 'Loading AR engine…')
+        // ── 2. Parallel fetch: target blob + video metadata ──────────────
+        // Kick both off immediately so they download while the user reads
+        // the camera permission dialog — saves 1–3 s on slow connections.
+        setStatus('Preparing AR…', 'Downloading assets…')
 
         const absoluteTargetUrl = new URL(targetUrl, window.location.href).href
 
+        const video = document.createElement('video')
+        video.src     = videoUrl
+        video.muted   = true
+        video.loop    = true
+        video.preload = 'auto'
+        video.setAttribute('playsinline', '')
+        video.setAttribute('webkit-playsinline', '')
+
+        const [targetBlob] = await Promise.all([
+          // Download the .mind target file as a blob so MindAR reads it from
+          // memory instead of re-fetching it over the network during start().
+          fetch(absoluteTargetUrl).then(r => {
+            if (!r.ok) throw new Error('Failed to fetch AR target')
+            return r.blob()
+          }),
+          // Load video metadata in parallel (gets dimensions, primes the buffer)
+          new Promise((resolve) => {
+            if (video.readyState >= 1) { resolve(); return }
+            const t = setTimeout(resolve, 5000)
+            video.addEventListener('loadedmetadata', () => { clearTimeout(t); resolve() }, { once: true })
+          }),
+        ])
+
+        targetBlobUrl = URL.createObjectURL(targetBlob)
+
+        // ── 3. Build MindARThree with pre-downloaded target ──────────────
+        setStatus('Initializing AR…', 'Starting camera…')
+
         mindarThree = new MindARThree({
           container:      sceneContainer,
-          imageTargetSrc: absoluteTargetUrl,
+          imageTargetSrc: targetBlobUrl,
           uiScanning:     'no',
           uiLoading:      'no',
         })
@@ -149,42 +181,22 @@
 
         scene.add(new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1))
 
-        // ── 3. Video texture plane ───────────────────────────────────────
-        const video = document.createElement('video')
-        video.src   = videoUrl
-        video.muted = true
-        video.loop  = true
-        video.setAttribute('playsinline', '')
-        video.setAttribute('webkit-playsinline', '')
-
-        // Wait for the video's pixel dimensions so the plane matches the video's
-        // own aspect ratio — portrait video → tall plane, landscape → wide plane.
-        // loadedmetadata fires as soon as the container header arrives (< 1 s
-        // on a local network); fall back to 16:9 landscape after 5 s.
-        await new Promise((resolve) => {
-          if (video.readyState >= 1) { resolve(); return }
-          const t = setTimeout(resolve, 5000)
-          video.addEventListener('loadedmetadata', () => { clearTimeout(t); resolve() }, { once: true })
-        })
-
+        // ── 4. Video texture plane ───────────────────────────────────────
         const vw = video.videoWidth  || 1280
         const vh = video.videoHeight || 720
-        // In MindAR, 1 unit = the width of the image target.
-        // Set the plane height so the video fills the target proportionally.
         const planeW = 1
-        const planeH = planeW * (vh / vw)   // e.g. 720×1280 → 1.78 (portrait)
+        const planeH = planeW * (vh / vw)
         console.log('[AR] Video dimensions:', vw, '×', vh, '→ plane', planeW, '×', planeH.toFixed(3))
 
-        const videoTex         = new THREE.VideoTexture(video)
-        videoTex.minFilter     = THREE.LinearFilter
-        videoTex.magFilter     = THREE.LinearFilter
+        const videoTex     = new THREE.VideoTexture(video)
+        videoTex.minFilter = THREE.LinearFilter
+        videoTex.magFilter = THREE.LinearFilter
 
         const plane = new THREE.Mesh(
           new THREE.PlaneGeometry(planeW, planeH),
           new THREE.MeshBasicMaterial({ map: videoTex, side: THREE.DoubleSide })
         )
 
-        // Anchor to image-target index 0 (the only target in the .mind file)
         const anchor = mindarThree.addAnchor(0)
         anchor.group.add(plane)
 
@@ -198,9 +210,7 @@
           hintEl.style.opacity = '1'
         }
 
-        // ── 4. Camera permission reminder ───────────────────────────────
-        setStatus('Initializing AR…', 'Requesting camera access…')
-
+        // ── 5. Camera permission reminder ───────────────────────────────
         const permReminder = setTimeout(() => {
           if (loadingEl.style.display !== 'none') {
             setStatus('Camera permission needed', 'Tap ALLOW on the camera dialog, then wait…')
@@ -213,7 +223,7 @@
           showError('AR timed out.', 'Camera or tracker took too long. Tap "Try again".')
         }, 120000)
 
-        // ── 5. Start — single awaitable call ────────────────────────────
+        // ── 6. Start — target already in memory, only camera init remains ─
         console.log('[AR] Calling mindarThree.start()…')
         await mindarThree.start()
 
@@ -225,12 +235,13 @@
         hintEl.style.display    = 'block'
         hintEl.style.opacity    = '1'
 
-        // ── 6. Render loop ───────────────────────────────────────────────
+        // ── 7. Render loop ───────────────────────────────────────────────
         renderer.setAnimationLoop(() => renderer.render(scene, camera))
 
       } catch (err) {
         console.error('[AR] loadFrame error:', err)
         if (mindarThree) mindarThree.stop().catch(() => {})
+        if (targetBlobUrl) URL.revokeObjectURL(targetBlobUrl)
 
         const msg = (err && err.message) ? err.message : String(err)
         if (/permission|notallowed|denied|camera/i.test(msg)) {

@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { compileImageTarget } from './compile'
-import { QRDisplay } from '@/components/QRDisplay'
 
 type Step = 'form' | 'compiling' | 'uploading' | 'done' | 'error'
 
@@ -18,7 +17,7 @@ export default function UploadPage() {
   const [video, setVideo] = useState<File | null>(null)
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
-  const [result, setResult] = useState<{ frameId: string; qrDataUrl: string } | null>(null)
+  const [result, setResult] = useState<{ frameId: string } | null>(null)
   const [error, setError] = useState('')
 
   const photoRef = useRef<HTMLInputElement>(null)
@@ -179,13 +178,6 @@ export default function UploadPage() {
               Once we confirm your payment, we'll email your QR code and dispatch your frame within 2–3 business days.
             </p>
           </section>
-
-          {/* QR preview + download */}
-          <QRDisplay qrDataUrl={result.qrDataUrl} frameId={result.frameId} />
-
-          <p className="text-center text-xs text-zinc-400">
-            We also sent a copy of your QR code to <strong>{email}</strong>.
-          </p>
 
           <div className="flex justify-center">
             <a href="/" className="rounded-full border border-zinc-200 px-6 py-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50">

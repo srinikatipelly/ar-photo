@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Read(//c/Users/latha/AppData/Local/Temp/**)"
+      "Read(//c/Users/latha/AppData/Local/Temp/**)",
+      "Skill(update-config)",
+      "Skill(update-config:*)",
+      "Read(//c/Users/latha/.claude/**)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\latha\\.claude"
     ]
   }
 }
