@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(taskkill /PID 14100 /F 2>&1)",
+      "PowerShell(netstat -ano)",
+      "PowerShell(netstat -ano | findstr \":3000 \" | findstr \"LISTENING\" | ForEach-Object { $_.Trim\\(\\).Split\\(\\)[-1] } | ForEach-Object { taskkill /PID $_ /F }; Start-Sleep -Seconds 2; cd c:\\\\aiprojects\\\\ar-photo; Start-Process -FilePath \"cmd.exe\" -ArgumentList \"/c npm run dev > C:\\\\Temp\\\\nextjs-https.log 2>&1\" -WindowStyle Hidden; Start-Sleep -Seconds 10; Get-Content C:\\\\Temp\\\\nextjs-https.log -Tail 6)",
+      "PowerShell(netstat -ano | findstr \":3000 \" | findstr \"LISTENING\" | ForEach-Object { \\($_.Trim\\(\\) -split '\\\\s+'\\)[-1] } | ForEach-Object { taskkill /PID $_ /F }; Start-Sleep -Seconds 2; cd c:\\\\aiprojects\\\\ar-photo; Start-Process -FilePath \"cmd.exe\" -ArgumentList \"/c npm run dev > C:\\\\Temp\\\\nextjs-https.log 2>&1\" -WindowStyle Hidden; Start-Sleep -Seconds 8; Get-Content C:\\\\Temp\\\\nextjs-https.log -Tail 6)",
+      "Skill(run)",
+      "Skill(run:*)"
+    ]
+  }
+}
