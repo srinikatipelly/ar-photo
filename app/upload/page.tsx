@@ -174,7 +174,7 @@ export default function UploadPage() {
             </div>
 
             <p className="mt-4 text-xs text-amber-700">
-              Once we confirm your payment, we'll email your QR code and dispatch your frame within 2–3 business days.
+              Once we confirm your payment, we'll dispatch your frame within 2–3 business days.
             </p>
           </section>
 
@@ -280,7 +280,7 @@ export default function UploadPage() {
       </section>
 
       <div className="mt-6 flex flex-wrap justify-center gap-6 text-xs text-zinc-400">
-        <span>✉️ QR code emailed once payment confirmed</span>
+        <span>✉️ Order confirmation sent to your email</span>
         <span>📦 Delivered in 2–3 business days</span>
       </div>
     </main>

@@ -3,7 +3,7 @@ import QRCode from 'qrcode'
 import { supabaseAdmin } from '@/lib/supabase'
 import { getPublicUrl, uploadBuffer } from '@/lib/r2'
 import { generateFrameId } from '@/lib/utils'
-import { sendQREmail } from '@/lib/resend'
+import { sendCustomerConfirmationEmail, sendAdminOrderNotification } from '@/lib/resend'
 
 export async function POST(req: NextRequest) {
   try {
@@ -87,7 +87,10 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      await sendQREmail({ to: customerEmail, name: customerName, frameId, qrDataUrl })
+      await Promise.all([
+        sendCustomerConfirmationEmail({ to: customerEmail, name: customerName ?? '', frameId }),
+        sendAdminOrderNotification({ frameId, customerName: customerName ?? '', customerEmail, qrDataUrl }),
+      ])
     } catch (emailError) {
       console.error('Email delivery failed', emailError)
     }
