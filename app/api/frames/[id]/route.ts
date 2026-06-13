@@ -7,7 +7,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const { data, error } = await supabaseAdmin
       .from('frames')
-      .select('video_url, target_url, customer_name, status, scan_count')
+      .select('video_url, target_url, photo_url, customer_name, status, scan_count')
       .eq('frame_id', id)
       .single()
 
@@ -43,10 +43,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       .eq('frame_id', id)
 
     return NextResponse.json({
-      // Both video and target are proxied through Next.js so the AR viewer
-      // fetches them from the same origin — R2 public buckets have no CORS headers.
-      videoUrl: `/api/video/${id}`,
-      targetUrl: `/api/target/${id}`,
+      // Serve directly from R2 — CORS is configured on the bucket for GET.
+      // This bypasses the Vercel proxy cold-start and re-stream overhead.
+      videoUrl:  data.video_url,
+      targetUrl: data.target_url,
+      photoUrl:  data.photo_url,
       name: data.customer_name,
     })
   } catch (error) {

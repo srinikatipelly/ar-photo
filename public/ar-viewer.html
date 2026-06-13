@@ -6,6 +6,10 @@
   <meta http-equiv="permissions-policy" content="camera=(self)" />
   <title>AR Frame</title>
 
+  <!-- Speed up connections to asset origins -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://pub-4bff56c624244a6f948d870f253a8b4c.r2.dev" crossorigin>
+
   <!-- Preload heavy scripts so the browser fetches them in parallel with page parse -->
   <link rel="preload" as="script" crossorigin href="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.module.js">
   <link rel="preload" as="script" crossorigin href="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-three.prod.js">
@@ -130,14 +134,14 @@
           const body = await res.json().catch(() => ({}))
           throw new Error(body.error || 'Frame not found (HTTP ' + res.status + ')')
         }
-        const { videoUrl, targetUrl } = await res.json()
+        const { videoUrl, targetUrl, photoUrl } = await res.json()
         if (!videoUrl || !targetUrl) throw new Error('Frame data is incomplete.')
 
         console.log('[AR] videoUrl:', videoUrl, 'targetUrl:', targetUrl)
 
-        // ── 2. Parallel fetch: target blob + video metadata ──────────────
-        // Kick both off immediately so they download while the user reads
-        // the camera permission dialog — saves 1–3 s on slow connections.
+        // ── 2. Parallel fetch: target blob + video metadata + photo dims ─
+        // All three kicked off immediately — photo dims fix the plane aspect
+        // ratio; target blob + video metadata prep assets before camera init.
         setStatus('Preparing AR…', 'Downloading assets…')
 
         const absoluteTargetUrl = new URL(targetUrl, window.location.href).href
@@ -150,6 +154,10 @@
         video.setAttribute('playsinline', '')
         video.setAttribute('webkit-playsinline', '')
 
+        // Load photo as Image to get its natural dimensions (no CORS needed).
+        const photoImg = new Image()
+        if (photoUrl) photoImg.src = photoUrl
+
         const [targetBlob] = await Promise.all([
           // Download the .mind target file as a blob so MindAR reads it from
           // memory instead of re-fetching it over the network during start().
@@ -157,11 +165,18 @@
             if (!r.ok) throw new Error('Failed to fetch AR target')
             return r.blob()
           }),
-          // Load video metadata in parallel (gets dimensions, primes the buffer)
+          // Load video metadata in parallel (primes the buffer)
           new Promise((resolve) => {
             if (video.readyState >= 1) { resolve(); return }
             const t = setTimeout(resolve, 5000)
             video.addEventListener('loadedmetadata', () => { clearTimeout(t); resolve() }, { once: true })
+          }),
+          // Load photo dimensions in parallel
+          new Promise((resolve) => {
+            if (!photoUrl || photoImg.complete) { resolve(); return }
+            const t = setTimeout(resolve, 5000)
+            photoImg.onload  = () => { clearTimeout(t); resolve() }
+            photoImg.onerror = () => { clearTimeout(t); resolve() }
           }),
         ])
 
@@ -182,11 +197,13 @@
         scene.add(new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1))
 
         // ── 4. Video texture plane ───────────────────────────────────────
-        const vw = video.videoWidth  || 1280
-        const vh = video.videoHeight || 720
+        // Plane must match the PHOTO's aspect ratio (the tracked image),
+        // not the video's — otherwise the overlay won't align with the frame.
+        const pw = photoImg.naturalWidth  || video.videoWidth  || 4
+        const ph = photoImg.naturalHeight || video.videoHeight || 3
         const planeW = 1
-        const planeH = planeW * (vh / vw)
-        console.log('[AR] Video dimensions:', vw, '×', vh, '→ plane', planeW, '×', planeH.toFixed(3))
+        const planeH = planeW * (ph / pw)
+        console.log('[AR] Photo dimensions:', pw, '×', ph, '→ plane', planeW, '×', planeH.toFixed(3))
 
         const videoTex     = new THREE.VideoTexture(video)
         videoTex.minFilter = THREE.LinearFilter
