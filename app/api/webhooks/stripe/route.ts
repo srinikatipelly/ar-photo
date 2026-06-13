@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import QRCode from 'qrcode'
 import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase'
-import { getPublicUrl } from '@/lib/r2'
+import { getPublicUrl, uploadBuffer } from '@/lib/r2'
 import { generateFrameId } from '@/lib/utils'
-import { sendOrderConfirmationEmail } from '@/lib/resend'
+import { sendCustomerConfirmationEmail, sendAdminOrderNotification } from '@/lib/resend'
 
 export async function POST(req: NextRequest) {
   const body = await req.text()
@@ -45,6 +45,13 @@ export async function POST(req: NextRequest) {
       color: { dark: '#000000', light: '#FFFFFF' },
     })
 
+    // Upload QR PNG to R2
+    const base64Data = qrDataUrl.replace(/^data:image\/png;base64,/, '')
+    const qrBuffer = Buffer.from(base64Data, 'base64')
+    const qrKey = `qr/${frameId}.png`
+    await uploadBuffer(qrKey, qrBuffer, 'image/png')
+    const qrUrl = getPublicUrl(qrKey)
+
     const frame = {
       frame_id: frameId,
       customer_email: customerEmail,
@@ -58,6 +65,7 @@ export async function POST(req: NextRequest) {
       payment_status: 'paid',
       stripe_session_id: session.id,
       price_paid: session.amount_total ?? 0,
+      qr_url: qrUrl,
       created_at: new Date().toISOString(),
     }
 
@@ -67,13 +75,10 @@ export async function POST(req: NextRequest) {
       // Don't return an error — still send the email so the customer isn't left hanging
     }
 
-    await sendOrderConfirmationEmail({
-      to: customerEmail,
-      name: customerName ?? '',
-      frameId,
-      qrDataUrl,
-      sessionId: session.id,
-    })
+    await Promise.all([
+      sendCustomerConfirmationEmail({ to: customerEmail, name: customerName ?? '', frameId }),
+      sendAdminOrderNotification({ frameId, customerName: customerName ?? '', customerEmail, qrDataUrl }),
+    ])
 
     return NextResponse.json({ received: true, frameId })
   } catch (error) {
