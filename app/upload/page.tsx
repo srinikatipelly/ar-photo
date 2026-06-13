@@ -93,16 +93,15 @@ export default function UploadPage() {
 
     const { uploadUrl, key } = await res.json()
 
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('uploadUrl', uploadUrl)
-    formData.append('key', key)
-
-    const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
+    // Upload directly from browser to R2 — bypasses Vercel's 4.5MB body limit
+    const uploadRes = await fetch(uploadUrl, {
+      method: 'PUT',
+      body: file,
+      headers: { 'Content-Type': file.type || 'application/octet-stream' },
+    })
 
     if (!uploadRes.ok) {
-      const payload = await uploadRes.json().catch(() => ({}))
-      throw new Error(payload.error || 'Upload failed. Please try again.')
+      throw new Error('Upload failed. Please try again.')
     }
 
     return key
