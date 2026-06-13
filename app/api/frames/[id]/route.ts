@@ -43,9 +43,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       .eq('frame_id', id)
 
     return NextResponse.json({
-      // Serve directly from R2 — CORS is configured on the bucket for GET.
-      // This bypasses the Vercel proxy cold-start and re-stream overhead.
-      videoUrl:  data.video_url,
+      // Video proxied through Next.js — WebGL VideoTexture requires same-origin
+      // or explicit crossOrigin, and we need the proxy's range-request support.
+      videoUrl:  `/api/video/${id}`,
+      // Target served directly from R2 — fetched as a blob (CORS configured),
+      // avoids re-streaming the large .mind file through Vercel.
       targetUrl: data.target_url,
       photoUrl:  data.photo_url,
       name: data.customer_name,
