@@ -1,17 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import QRCode from 'qrcode'
 import { supabaseAdmin } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase-server'
 import { getPublicUrl, uploadBuffer } from '@/lib/r2'
 import { generateFrameId } from '@/lib/utils'
 import { sendCustomerConfirmationEmail, sendAdminOrderNotification } from '@/lib/resend'
 
 export async function POST(req: NextRequest) {
   try {
-    const { photoKey, videoKey, targetKey, customerEmail, customerName, userId } = await req.json()
+    const { photoKey, videoKey, targetKey, customerEmail, customerName } = await req.json()
 
     if (!photoKey || !videoKey || !targetKey || !customerEmail) {
       return NextResponse.json({ error: 'photoKey, videoKey, targetKey and customerEmail are required.' }, { status: 400 })
     }
+
+    // Read session from cookie — works for logged-in B2B users, null for B2C
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const userId = user?.id ?? null
 
     const frameId = generateFrameId()
 
