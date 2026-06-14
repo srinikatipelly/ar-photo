@@ -7,7 +7,7 @@ import { sendCustomerConfirmationEmail, sendAdminOrderNotification } from '@/lib
 
 export async function POST(req: NextRequest) {
   try {
-    const { photoKey, videoKey, targetKey, customerEmail, customerName } = await req.json()
+    const { photoKey, videoKey, targetKey, customerEmail, customerName, userId } = await req.json()
 
     if (!photoKey || !videoKey || !targetKey || !customerEmail) {
       return NextResponse.json({ error: 'photoKey, videoKey, targetKey and customerEmail are required.' }, { status: 400 })
@@ -25,7 +25,8 @@ export async function POST(req: NextRequest) {
       status: 'active',
       plan: 'single',
       scan_count: 0,
-      created_at: new Date().toISOString(), 
+      user_id: userId ?? null,
+      created_at: new Date().toISOString(),
 
       
     }

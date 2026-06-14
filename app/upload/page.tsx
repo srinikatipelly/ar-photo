@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { compileImageTarget } from './compile'
+import { createClient } from '@/lib/supabase-browser'
 
 type Step = 'form' | 'compiling' | 'uploading' | 'done' | 'error'
 
@@ -58,11 +59,19 @@ export default function UploadPage() {
         uploadToR2(targetFile, 'target'),
       ])
 
+      // Attach userId if a B2B user is logged in
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
       setProgress('Creating your order…')
       const res = await fetch('/api/frames', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ photoKey, videoKey, targetKey, customerEmail: email, customerName: name }),
+        body: JSON.stringify({
+          photoKey, videoKey, targetKey,
+          customerEmail: email, customerName: name,
+          userId: user?.id ?? null,
+        }),
       })
 
       if (!res.ok) {
