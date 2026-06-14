@@ -59,9 +59,13 @@ export default function UploadPage() {
         uploadToR2(targetFile, 'target'),
       ])
 
-      // Attach userId if a B2B user is logged in
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      // Attach userId if a B2B user is logged in — safe to fail for B2C customers
+      let userId: string | null = null
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        userId = user?.id ?? null
+      } catch { /* not logged in or auth unreachable — continue as anonymous */ }
 
       setProgress('Creating your order…')
       const res = await fetch('/api/frames', {
@@ -70,7 +74,7 @@ export default function UploadPage() {
         body: JSON.stringify({
           photoKey, videoKey, targetKey,
           customerEmail: email, customerName: name,
-          userId: user?.id ?? null,
+          userId,
         }),
       })
 
