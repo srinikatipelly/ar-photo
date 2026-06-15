@@ -42,16 +42,26 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       })
       .eq('frame_id', id)
 
-    return NextResponse.json({
-      // Video proxied through Next.js — WebGL VideoTexture requires same-origin
-      // or explicit crossOrigin, and we need the proxy's range-request support.
-      videoUrl:  `/api/video/${id}`,
-      // Target served directly from R2 — fetched as a blob (CORS configured),
-      // avoids re-streaming the large .mind file through Vercel.
-      targetUrl: data.target_url,
-      photoUrl:  data.photo_url,
-      name: data.customer_name,
-    })
+    return NextResponse.json(
+      {
+        // Video proxied through Next.js — WebGL VideoTexture requires same-origin
+        // or explicit crossOrigin, and we need the proxy's range-request support.
+        videoUrl:  `/api/video/${id}`,
+        // Target served directly from R2 — fetched as a blob (CORS configured),
+        // avoids re-streaming the large .mind file through Vercel.
+        targetUrl: data.target_url,
+        photoUrl:  data.photo_url,
+        name: data.customer_name,
+      },
+      {
+        headers: {
+          // Cache at edge/CDN for 60 s, browser for 30 s.
+          // Short TTL so a newly activated frame appears quickly,
+          // but avoids a DB round-trip on every single QR scan.
+          'Cache-Control': 'public, s-maxage=60, max-age=30, stale-while-revalidate=120',
+        },
+      }
+    )
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : 'Unable to load this frame.' }, { status: 500 })
   }

@@ -4,20 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
   <meta http-equiv="permissions-policy" content="camera=(self)" />
-  <title>AR Frame</title>
-
-  <!-- Speed up connections to asset origins -->
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="preconnect" href="https://pub-4bff56c624244a6f948d870f253a8b4c.r2.dev" crossorigin>
-
-  <!-- Preload heavy scripts so the browser fetches them in parallel with page parse -->
-  <link rel="preload" as="script" crossorigin href="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.module.js">
-  <link rel="preload" as="script" crossorigin href="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-three.prod.js">
+  <title>AR Frame — The Golden Frame</title>
 
   <!--
-    Import map: tells the browser where to find "three" when the MindAR
-    ES module does  import { ... } from "three".
-    We use the exact version that MindAR 1.2.2 was built against.
+    Import map must appear first so modulepreload hints below can resolve
+    the "three" specifier when the browser pre-parses mind-ar's imports.
   -->
   <script type="importmap">
   {
@@ -28,25 +19,81 @@
   }
   </script>
 
+  <!--
+    modulepreload (not preload as="script") is the correct hint for ES modules.
+    It tells the browser to download AND parse/compile each module eagerly —
+    saving ~1-2s of compile time on mobile before the module script even runs.
+    Three.js first so mind-ar's internal import resolves from the pre-compiled cache.
+  -->
+  <link rel="modulepreload" crossorigin href="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.module.js">
+  <link rel="modulepreload" crossorigin href="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-three.prod.js">
+
+  <!-- Early connection to CDN and asset origins -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://pub-4bff56c624244a6f948d870f253a8b4c.r2.dev" crossorigin>
+
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { overflow: hidden; background: #000; font-family: Arial, Helvetica, sans-serif; }
+    body { overflow: hidden; background: #0a0a0a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
 
+    /* ── Loading screen ───────────────────────────────────────────── */
     #loading {
       position: fixed; inset: 0;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      background: #000; z-index: 10;
+      background: linear-gradient(160deg, #0a0a0a 0%, #1a1408 100%);
+      z-index: 10; padding: 32px;
     }
-    #loading p     { color: #fff; font-size: 16px; margin-top: 16px; }
-    #loading small { color: rgba(255,255,255,0.45); font-size: 12px; margin-top: 8px; }
 
-    .spinner {
-      width: 36px; height: 36px;
-      border: 3px solid rgba(255,255,255,0.2); border-top-color: #fff;
-      border-radius: 50%; animation: spin 0.8s linear infinite;
+    #loading-logo {
+      width: 56px; height: 56px; border-radius: 16px;
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; margin-bottom: 20px;
+      box-shadow: 0 0 32px rgba(251,191,36,0.25);
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
 
+    #loading-title {
+      color: #fff; font-size: 17px; font-weight: 600; letter-spacing: -0.01em;
+      margin-bottom: 4px;
+    }
+
+    #loading-sub {
+      color: rgba(255,255,255,0.45); font-size: 13px; margin-bottom: 28px;
+      min-height: 18px; transition: opacity 0.3s;
+    }
+
+    /* Step indicators */
+    #steps {
+      display: flex; flex-direction: column; gap: 10px;
+      width: 100%; max-width: 260px; margin-bottom: 28px;
+    }
+    .step {
+      display: flex; align-items: center; gap: 10px;
+      opacity: 0.3; transition: opacity 0.4s;
+    }
+    .step.active  { opacity: 1; }
+    .step.done    { opacity: 0.6; }
+    .step-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: rgba(255,255,255,0.2); flex-shrink: 0;
+      transition: background 0.4s;
+    }
+    .step.active .step-dot { background: #fbbf24; box-shadow: 0 0 6px #fbbf24; }
+    .step.done   .step-dot { background: #4ade80; }
+    .step-label { color: #fff; font-size: 13px; }
+
+    /* Progress bar */
+    #progress-track {
+      width: 100%; max-width: 260px; height: 3px;
+      background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;
+    }
+    #progress-fill {
+      height: 100%; width: 0%; border-radius: 2px;
+      background: linear-gradient(90deg, #f59e0b, #fbbf24);
+      transition: width 0.4s ease;
+    }
+
+    /* ── Unmute button ────────────────────────────────────────────── */
     #unmute-btn {
       display: none;
       position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
@@ -56,6 +103,7 @@
       backdrop-filter: blur(8px); border: none; cursor: pointer; white-space: nowrap;
     }
 
+    /* ── Scan hint ────────────────────────────────────────────────── */
     #hint {
       position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
       background: rgba(0,0,0,0.65); color: #fff; font-size: 14px;
@@ -63,34 +111,60 @@
       backdrop-filter: blur(8px); transition: opacity 0.5s; white-space: nowrap;
     }
 
+    /* ── Error screen ─────────────────────────────────────────────── */
     #error {
       position: fixed; inset: 0; display: none;
       flex-direction: column; align-items: center; justify-content: center;
-      background: #000; z-index: 20; padding: 32px;
+      background: linear-gradient(160deg, #0a0a0a 0%, #1a0808 100%);
+      z-index: 20; padding: 32px;
     }
-    #error p     { color: #fff; font-size: 16px; text-align: center; }
-    #error small { color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 12px; text-align: center; display: block; }
+    #error-icon { font-size: 40px; margin-bottom: 16px; }
+    #error p     { color: #fff; font-size: 16px; text-align: center; font-weight: 600; }
+    #error small { color: rgba(255,255,255,0.5); font-size: 13px; margin-top: 10px; text-align: center; display: block; line-height: 1.5; }
     #reload-btn  {
-      margin-top: 20px; padding: 10px 24px; border-radius: 999px;
-      background: #fff; color: #000; font-size: 14px; font-weight: 600;
+      margin-top: 24px; padding: 12px 28px; border-radius: 999px;
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      color: #000; font-size: 14px; font-weight: 700;
       border: none; cursor: pointer;
     }
 
-    /* MindAR renders its own canvas inside #scene-container */
+    /* MindAR renders its canvas inside #scene-container */
     #scene-container { position: fixed; inset: 0; }
   </style>
 </head>
 <body>
+
+  <!-- Loading screen -->
   <div id="loading">
-    <div class="spinner"></div>
-    <p id="loading-text">Loading AR frame…</p>
-    <small id="loading-sub"></small>
+    <div id="loading-logo">🖼️</div>
+    <div id="loading-title">Getting your AR experience ready…</div>
+    <div id="loading-sub"></div>
+
+    <div id="steps">
+      <div class="step" id="step-libs">
+        <div class="step-dot"></div>
+        <span class="step-label">Loading AR libraries</span>
+      </div>
+      <div class="step" id="step-frame">
+        <div class="step-dot"></div>
+        <span class="step-label">Downloading your frame</span>
+      </div>
+      <div class="step" id="step-camera">
+        <div class="step-dot"></div>
+        <span class="step-label">Starting camera</span>
+      </div>
+    </div>
+
+    <div id="progress-track">
+      <div id="progress-fill"></div>
+    </div>
   </div>
 
   <button id="unmute-btn">🔊 Tap to enable sound</button>
   <div id="hint" style="display:none; opacity:0;">Point your camera at the photo frame</div>
 
   <div id="error">
+    <div id="error-icon">⚠️</div>
     <p id="error-text">Something went wrong.</p>
     <small id="error-detail"></small>
     <button id="reload-btn" onclick="location.reload()">Try again</button>
@@ -98,18 +172,21 @@
 
   <div id="scene-container"></div>
 
-  <!--
-    type="module" — required to use ES import/export syntax.
-    The importmap above maps "three" so the MindAR bundle can resolve it.
-  -->
+  <!-- Register service worker as early as possible (classic script, no defer needed) -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/ar-sw.js', { scope: '/' }).catch(() => {})
+    }
+  </script>
+
   <script type="module">
     import { MindARThree } from 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-three.prod.js'
     import * as THREE from 'three'
 
     const frameId        = new URLSearchParams(location.search).get('frame')
     const loadingEl      = document.getElementById('loading')
-    const loadingText    = document.getElementById('loading-text')
     const loadingSub     = document.getElementById('loading-sub')
+    const progressFill   = document.getElementById('progress-fill')
     const hintEl         = document.getElementById('hint')
     const unmuteBtn      = document.getElementById('unmute-btn')
     const errorEl        = document.getElementById('error')
@@ -117,10 +194,17 @@
     const errorDetail    = document.getElementById('error-detail')
     const sceneContainer = document.getElementById('scene-container')
 
-    function setStatus(main, sub) {
-      loadingText.textContent = main
-      loadingSub.textContent  = sub || ''
-      console.log('[AR]', main, sub || '')
+    function setStep(id, state) {
+      // state: 'active' | 'done'
+      const el = document.getElementById(id)
+      if (!el) return
+      el.classList.remove('active', 'done')
+      el.classList.add(state)
+    }
+
+    function setProgress(pct, sub) {
+      progressFill.style.width = pct + '%'
+      if (sub !== undefined) loadingSub.textContent = sub
     }
 
     function showError(message, detail) {
@@ -133,12 +217,23 @@
     }
 
     async function loadFrame() {
-      let mindarThree = null
+      let mindarThree  = null
       let targetBlobUrl = null
 
       try {
-        // ── 1. Fetch frame metadata ──────────────────────────────────────
-        setStatus('Loading AR frame…', '')
+        // ── Step 1: AR libraries (already preloaded by modulepreload) ────
+        setStep('step-libs', 'active')
+        setProgress(10, 'AR libraries ready')
+        // By the time this module script runs, Three.js + MindAR are already
+        // downloaded and compiled by the modulepreload hints above.
+        setStep('step-libs', 'done')
+        setProgress(20)
+
+        // ── Step 2: Fetch frame metadata ─────────────────────────────────
+        setStep('step-frame', 'active')
+        setProgress(25, 'Loading your frame…')
+
+        if (!frameId) throw new Error('NO_FRAME_ID')
 
         const res = await fetch('/api/frames/' + frameId)
         if (!res.ok) {
@@ -148,13 +243,9 @@
         const { videoUrl, targetUrl, photoUrl } = await res.json()
         if (!videoUrl || !targetUrl) throw new Error('Frame data is incomplete.')
 
-        console.log('[AR] videoUrl:', videoUrl, 'targetUrl:', targetUrl)
+        setProgress(35, 'Downloading AR target…')
 
-        // ── 2. Parallel fetch: target blob + video metadata + photo dims ─
-        // All three kicked off immediately — photo dims fix the plane aspect
-        // ratio; target blob + video metadata prep assets before camera init.
-        setStatus('Preparing AR…', 'Downloading assets…')
-
+        // ── Step 3: Parallel asset fetch ─────────────────────────────────
         const absoluteTargetUrl = new URL(targetUrl, window.location.href).href
 
         const video = document.createElement('video')
@@ -165,24 +256,19 @@
         video.setAttribute('playsinline', '')
         video.setAttribute('webkit-playsinline', '')
 
-        // Load photo as Image to get its natural dimensions (no CORS needed).
         const photoImg = new Image()
         if (photoUrl) photoImg.src = photoUrl
 
         const [targetBlob] = await Promise.all([
-          // Download the .mind target file as a blob so MindAR reads it from
-          // memory instead of re-fetching it over the network during start().
           fetch(absoluteTargetUrl).then(r => {
             if (!r.ok) throw new Error('Failed to fetch AR target')
             return r.blob()
           }),
-          // Load video metadata in parallel (primes the buffer)
           new Promise((resolve) => {
             if (video.readyState >= 1) { resolve(); return }
             const t = setTimeout(resolve, 5000)
             video.addEventListener('loadedmetadata', () => { clearTimeout(t); resolve() }, { once: true })
           }),
-          // Load photo dimensions in parallel
           new Promise((resolve) => {
             if (!photoUrl || photoImg.complete) { resolve(); return }
             const t = setTimeout(resolve, 5000)
@@ -193,9 +279,10 @@
 
         targetBlobUrl = URL.createObjectURL(targetBlob)
 
-        // ── 3. Build MindARThree with pre-downloaded target ──────────────
-        setStatus('Initializing AR…', 'Starting camera…')
+        setStep('step-frame', 'done')
+        setProgress(60, 'Building AR scene…')
 
+        // ── Step 4: Build MindARThree ─────────────────────────────────────
         mindarThree = new MindARThree({
           container:      sceneContainer,
           imageTargetSrc: targetBlobUrl,
@@ -204,52 +291,45 @@
         })
 
         const { renderer, scene, camera } = mindarThree
-
         scene.add(new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1))
 
-        // ── 4. Video texture plane ───────────────────────────────────────
-        // Plane must match the PHOTO's aspect ratio (the tracked image),
-        // not the video's — otherwise the overlay won't align with the frame.
+        // ── Step 5: Video texture plane ───────────────────────────────────
         const pw = photoImg.naturalWidth  || video.videoWidth  || 4
         const ph = photoImg.naturalHeight || video.videoHeight || 3
-        const planeW = 1
-        const planeH = planeW * (ph / pw)
-        console.log('[AR] Photo dimensions:', pw, '×', ph, '→ plane', planeW, '×', planeH.toFixed(3))
+        const planeH = 1 * (ph / pw)
 
         const videoTex     = new THREE.VideoTexture(video)
         videoTex.minFilter = THREE.LinearFilter
         videoTex.magFilter = THREE.LinearFilter
 
         const plane = new THREE.Mesh(
-          new THREE.PlaneGeometry(planeW, planeH),
+          new THREE.PlaneGeometry(1, planeH),
           new THREE.MeshBasicMaterial({ map: videoTex, side: THREE.DoubleSide })
         )
+        mindarThree.addAnchor(0).group.add(plane)
 
-        const anchor = mindarThree.addAnchor(0)
-        anchor.group.add(plane)
-
-        anchor.onTargetFound = () => {
-          console.log('[AR] Target found')
+        mindarThree.anchors[0].onTargetFound = () => {
           video.muted = false
           video.play().catch(() => {
-            // Browser blocked unmuted autoplay — play muted then show tap-to-unmute
             video.muted = true
             video.play().catch(e => console.warn('[AR] Video play failed:', e))
             unmuteBtn.style.display = 'flex'
           })
           hintEl.style.opacity = '0'
         }
-        anchor.onTargetLost = () => {
-          console.log('[AR] Target lost')
+        mindarThree.anchors[0].onTargetLost = () => {
           hintEl.style.opacity = '1'
         }
 
-        // ── 5. Camera permission reminder ───────────────────────────────
+        // ── Step 6: Start camera ──────────────────────────────────────────
+        setStep('step-camera', 'active')
+        setProgress(70, 'Starting camera — tap Allow if prompted…')
+
         const permReminder = setTimeout(() => {
           if (loadingEl.style.display !== 'none') {
-            setStatus('Camera permission needed', 'Tap ALLOW on the camera dialog, then wait…')
+            setProgress(70, 'Waiting for camera permission…')
           }
-        }, 5000)
+        }, 4000)
 
         const hardTimeout = setTimeout(() => {
           clearTimeout(permReminder)
@@ -257,26 +337,24 @@
           showError('AR timed out.', 'Camera or tracker took too long. Tap "Try again".')
         }, 120000)
 
-        // ── 6. Start — target already in memory, only camera init remains ─
-        console.log('[AR] Calling mindarThree.start()…')
         await mindarThree.start()
 
         clearTimeout(hardTimeout)
         clearTimeout(permReminder)
-        console.log('[AR] start() resolved — tracking is live')
+
+        setStep('step-camera', 'done')
+        setProgress(100)
 
         loadingEl.style.display = 'none'
         hintEl.style.display    = 'block'
         hintEl.style.opacity    = '1'
 
-        // ── 7. Unmute button (shown only if browser blocked unmuted autoplay) ─
         unmuteBtn.addEventListener('click', () => {
           video.muted = false
           video.play().catch(() => {})
           unmuteBtn.style.display = 'none'
         })
 
-        // ── 8. Render loop ───────────────────────────────────────────────
         renderer.setAnimationLoop(() => renderer.render(scene, camera))
 
       } catch (err) {
@@ -285,7 +363,10 @@
         if (targetBlobUrl) URL.revokeObjectURL(targetBlobUrl)
 
         const msg = (err && err.message) ? err.message : String(err)
-        if (/permission|notallowed|denied|camera/i.test(msg)) {
+
+        if (msg === 'NO_FRAME_ID') {
+          showError('No frame found.', 'Please scan the QR code on the back of the frame.')
+        } else if (/permission|notallowed|denied|camera/i.test(msg)) {
           showError(
             'Camera access denied.',
             'Allow camera access in your browser settings and tap "Try again".'
@@ -296,11 +377,7 @@
       }
     }
 
-    if (!frameId) {
-      showError('No frame ID found.', 'Please scan the QR code on the back of the frame.')
-    } else {
-      loadFrame()
-    }
+    loadFrame()
   </script>
 </body>
 </html>
