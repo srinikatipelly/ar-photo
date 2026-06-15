@@ -13,3 +13,8 @@ suggest any new infrastructure for this phase2 implementation?
 Also I obsreved scanning the QR code -> prompt for camera and showing the video is taking bit of time , how it can be seem less and faster for the customer?To enhance the customer experience and ensure a seamless process, we can consider the following infrastructure and optimizations for phase 2 implementation?
 currenlty my application running in local host so how to host this?
 
+business name:
+The Golden Frame
+tage line:Where Memories Come Alive
+Where Moments Live Beyond the Frame
+More Than a Frame. A Living Memory.

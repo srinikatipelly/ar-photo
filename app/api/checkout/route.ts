@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
         customerEmail,
         customerName: customerName ?? '',
       },
+      allow_promotion_codes: true,
       success_url: `${appUrl}/order/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/upload?cancelled=1`,
     })

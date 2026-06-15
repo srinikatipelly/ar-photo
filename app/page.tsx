@@ -3,10 +3,16 @@ export default function Home() {
     <main className="flex min-h-screen flex-col bg-white">
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-5 sm:px-10">
-        <span className="text-lg font-semibold tracking-tight text-zinc-900">AR Frames</span>
+        {/* Logo placeholder — swap /logo.png in once the final asset is ready */}
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400 text-lg font-bold text-white">
+            G
+          </div>
+          <span className="text-lg font-semibold tracking-tight text-zinc-900">The Golden Frame</span>
+        </div>
         <a
           href="/upload"
-          className="rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-700"
+          className="rounded-full bg-amber-400 px-5 py-2.5 text-sm font-semibold text-zinc-900 transition hover:bg-amber-300"
         >
           Order Now
         </a>
@@ -26,9 +32,9 @@ export default function Home() {
         <div className="mt-9 flex flex-wrap justify-center gap-3">
           <a
             href="/upload"
-            className="rounded-full bg-zinc-950 px-7 py-3.5 text-sm font-semibold text-white transition hover:bg-zinc-700"
+            className="rounded-full bg-amber-400 px-7 py-3.5 text-sm font-semibold text-zinc-950 transition hover:bg-amber-300"
           >
-            Create Your AR Frame →
+            Create Your AR Experience →
           </a>
           <a
             href="#how-it-works"
@@ -39,7 +45,7 @@ export default function Home() {
         </div>
 
         {/* Hero card */}
-        <div className="mt-14 w-full max-w-2xl rounded-3xl border border-zinc-100 bg-gradient-to-br from-zinc-50 to-amber-50 p-8 shadow-sm sm:p-12">
+        <div className="mt-14 w-full max-w-2xl rounded-3xl border border-amber-100 bg-gradient-to-br from-amber-50 to-yellow-50 p-8 shadow-sm sm:p-12">
           <div className="flex flex-col items-center gap-2">
             <div className="text-5xl">🖼️</div>
             <p className="mt-3 text-lg font-semibold text-zinc-900">A photo frame that plays a video</p>
@@ -67,7 +73,7 @@ export default function Home() {
               {
                 step: '02',
                 title: 'We craft your frame',
-                body: 'We prepare your personalised AR frame and embed the magic QR code. Ready in 2–3 business days.',
+                body: 'We prepare your personalised AR frame and embed the magic QR code. Dispatched in 2–3 business days.',
               },
               {
                 step: '03',
@@ -96,7 +102,7 @@ export default function Home() {
               { icon: '🎁', title: 'Unique & personalised', body: 'No two frames are the same. Your memory, your video, your gift.' },
               { icon: '📱', title: 'No app needed', body: 'Scan the QR code with any phone camera. It just works.' },
               { icon: '✉️', title: 'Digital QR delivered instantly', body: 'Get your QR code by email as soon as payment clears.' },
-              { icon: '📦', title: 'Ships in 2–3 days', body: 'Carefully crafted and delivered to your door.' },
+              { icon: '📦', title: 'Dispatched in 2–3 days', body: 'Carefully crafted and delivered to your door.' },
             ].map(({ icon, title, body }) => (
               <div key={title} className="rounded-3xl border border-zinc-100 p-6 text-center">
                 <div className="text-3xl">{icon}</div>
@@ -119,14 +125,14 @@ export default function Home() {
             href="/upload"
             className="mt-8 inline-block rounded-full bg-amber-400 px-8 py-4 text-sm font-semibold text-zinc-950 transition hover:bg-amber-300"
           >
-            Create Your AR Frame →
+            Create Your AR Experience →
           </a>
         </div>
       </section>
 
       {/* Footer */}
       <footer className="border-t border-zinc-100 py-8 text-center text-sm text-zinc-400">
-        © {new Date().getFullYear()} AR Frames · All rights reserved
+        © {new Date().getFullYear()} The Golden Frame · All rights reserved
       </footer>
     </main>
   )
