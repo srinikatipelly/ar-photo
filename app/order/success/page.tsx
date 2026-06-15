@@ -71,7 +71,7 @@ export default function OrderSuccessPage() {
 
         <p className="mt-8 text-xs text-zinc-400">
           Didn&apos;t receive an email? Check your spam folder or{' '}
-          <a href="mailto:hello@arframes.com.au" className="underline underline-offset-2">
+          <a href="mailto:thegoldenframecreations@gmail.com" className="underline underline-offset-2">
             contact us
           </a>
           .

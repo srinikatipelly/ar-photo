@@ -8,6 +8,11 @@ type Step = 'form' | 'compiling' | 'uploading' | 'done' | 'error'
 const MAX_VIDEO_BYTES = 500 * 1024 * 1024 // 500 MB
 const MAX_VIDEO_SECONDS = 60              // 1 minute
 
+const PAYID        = process.env.NEXT_PUBLIC_PAYID        ?? ''
+const ACCOUNT_NAME = process.env.NEXT_PUBLIC_ACCOUNT_NAME ?? ''
+const BSB          = process.env.NEXT_PUBLIC_BSB          ?? ''
+const ACCOUNT_NUMBER = process.env.NEXT_PUBLIC_ACCOUNT_NUMBER ?? ''
+
 export default function UploadPage() {
   const [step, setStep] = useState<Step>('form')
   const [progress, setProgress] = useState('')
@@ -20,6 +25,8 @@ export default function UploadPage() {
   const [result, setResult] = useState<{ frameId: string } | null>(null)
   const [error, setError] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [consentUpload, setConsentUpload] = useState(false)
+  const [consentStore, setConsentStore] = useState(false)
 
   const photoRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLInputElement>(null)
@@ -76,6 +83,8 @@ export default function UploadPage() {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = 'Please enter a valid email address.'
     if (!photo) errs.photo = 'Please upload a frame photo.'
     if (!video) errs.video = fieldErrors.video ?? 'Please upload a video.'
+    if (!consentUpload) errs.consentUpload = 'You must consent to uploading your photo and video.'
+    if (!consentStore) errs.consentStore = 'You must give permission to store your files.'
     return errs
   }
 
@@ -178,14 +187,43 @@ export default function UploadPage() {
           <section className="rounded-3xl border border-amber-200 bg-amber-50 p-6">
             <h2 className="text-base font-semibold text-amber-900">Complete your payment</h2>
             <p className="mt-1 text-sm text-amber-700">
-              Reference your order ID so we can match your payment.
+              Transfer the exact amount using the details below. Include your Order ID as the reference so we can match your payment quickly.
             </p>
-            <div className="mt-4 rounded-2xl border border-amber-200 bg-white p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">Order ID</p>
-              <p className="mt-1 font-mono text-lg font-semibold text-zinc-900">{result.frameId}</p>
+
+            <div className="mt-4 space-y-3">
+              {/* Order reference */}
+              <div className="rounded-2xl border border-amber-200 bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">Payment reference (include this)</p>
+                <p className="mt-1 font-mono text-lg font-semibold text-zinc-900">{result.frameId}</p>
+              </div>
+
+              {/* PayID */}
+              {PAYID && (
+                <div className="rounded-2xl border border-amber-200 bg-white p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">PayID (fastest)</p>
+                  <p className="mt-1 text-lg font-semibold text-zinc-900">{PAYID}</p>
+                  <p className="mt-0.5 text-xs text-zinc-400">Open your banking app → Pay Anyone → PayID → enter the number above.</p>
+                </div>
+              )}
+
+              {/* BSB / Account */}
+              {(BSB || ACCOUNT_NUMBER) && (
+                <div className="rounded-2xl border border-amber-200 bg-white p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">Bank transfer</p>
+                  <div className="mt-2 grid grid-cols-2 gap-y-1.5 text-sm">
+                    {ACCOUNT_NAME && <><span className="text-zinc-500">Account name</span><span className="font-medium text-zinc-900">{ACCOUNT_NAME}</span></>}
+                    {BSB          && <><span className="text-zinc-500">BSB</span>          <span className="font-medium text-zinc-900">{BSB}</span></>}
+                    {ACCOUNT_NUMBER && <><span className="text-zinc-500">Account number</span><span className="font-medium text-zinc-900">{ACCOUNT_NUMBER}</span></>}
+                  </div>
+                </div>
+              )}
             </div>
+
             <p className="mt-4 text-xs text-amber-700">
-              Once payment is confirmed, we'll dispatch your frame within 2–3 business days.
+              Once we confirm your payment we'll dispatch your frame within 2–3 business days. Questions?{' '}
+              <a href="mailto:thegoldenframecreations@gmail.com" className="font-medium underline underline-offset-2">
+                thegoldenframecreations@gmail.com
+              </a>
             </p>
           </section>
 
@@ -348,9 +386,70 @@ export default function UploadPage() {
           {fieldErrors.video && <p className="mt-1 text-xs text-red-500">{fieldErrors.video}</p>}
         </div>
 
+        {/* Consent checkboxes */}
+        <div className="mt-8 space-y-4 rounded-2xl border border-zinc-100 bg-zinc-50 p-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Consent required</p>
+
+          <label className={`flex cursor-pointer items-start gap-3 ${fieldErrors.consentUpload ? 'text-red-700' : 'text-zinc-700'}`}>
+            <input
+              type="checkbox"
+              checked={consentUpload}
+              onChange={(e) => {
+                setConsentUpload(e.target.checked)
+                if (e.target.checked) setFieldErrors(prev => { const n = { ...prev }; delete n.consentUpload; return n })
+              }}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-zinc-300 accent-amber-500"
+            />
+            <span className="text-sm leading-6">
+              I consent to The Golden Frame collecting and processing my uploaded photo and video for the
+              purpose of creating my personalised AR frame.{' '}
+              <a
+                href="/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-amber-600 underline hover:text-amber-700"
+              >
+                See Terms &amp; Privacy Policy
+              </a>
+              <span className="ml-1 text-red-500">*</span>
+            </span>
+          </label>
+          {fieldErrors.consentUpload && (
+            <p className="ml-7 text-xs text-red-500">{fieldErrors.consentUpload}</p>
+          )}
+
+          <label className={`flex cursor-pointer items-start gap-3 ${fieldErrors.consentStore ? 'text-red-700' : 'text-zinc-700'}`}>
+            <input
+              type="checkbox"
+              checked={consentStore}
+              onChange={(e) => {
+                setConsentStore(e.target.checked)
+                if (e.target.checked) setFieldErrors(prev => { const n = { ...prev }; delete n.consentStore; return n })
+              }}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-zinc-300 accent-amber-500"
+            />
+            <span className="text-sm leading-6">
+              I give permission for The Golden Frame to store my photo and video on secure servers until
+              I request their deletion.{' '}
+              <a
+                href="/terms#6"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-amber-600 underline hover:text-amber-700"
+              >
+                Learn more
+              </a>
+              <span className="ml-1 text-red-500">*</span>
+            </span>
+          </label>
+          {fieldErrors.consentStore && (
+            <p className="ml-7 text-xs text-red-500">{fieldErrors.consentStore}</p>
+          )}
+        </div>
+
         <button
           onClick={handleSubmit}
-          className="mt-8 w-full rounded-full bg-zinc-950 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-amber-500 disabled:cursor-not-allowed disabled:bg-zinc-300"
+          className="mt-6 w-full rounded-full bg-zinc-950 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-amber-500 disabled:cursor-not-allowed disabled:bg-zinc-300"
         >
           Submit Order →
         </button>

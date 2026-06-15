@@ -131,8 +131,60 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-100 py-8 text-center text-sm text-zinc-400">
-        © {new Date().getFullYear()} The Golden Frame · All rights reserved
+      <footer className="border-t border-zinc-100 bg-white">
+        <div className="mx-auto max-w-5xl px-6 py-14 sm:px-10">
+          <div className="grid gap-10 sm:grid-cols-3">
+            {/* Brand */}
+            <div>
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400 text-lg font-bold text-white">G</div>
+                <span className="text-base font-semibold text-zinc-900">The Golden Frame</span>
+              </div>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-500">
+                Where memories come alive. Personalised AR photo frames handcrafted in Australia.
+              </p>
+            </div>
+
+            {/* Quick links */}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400">Quick links</p>
+              <ul className="mt-4 space-y-2.5 text-sm">
+                <li><a href="/" className="text-zinc-600 hover:text-amber-600">Home</a></li>
+                <li><a href="/upload" className="text-zinc-600 hover:text-amber-600">Order a frame</a></li>
+                <li><a href="#how-it-works" className="text-zinc-600 hover:text-amber-600">How it works</a></li>
+              </ul>
+            </div>
+
+            {/* Contact */}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400">Contact us</p>
+              <ul className="mt-4 space-y-3 text-sm">
+                <li className="flex items-start gap-2.5">
+                  <span className="mt-0.5 text-amber-500">📞</span>
+                  <a href="tel:+61468320987" className="text-zinc-600 hover:text-amber-600">+61 468 320 987</a>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="mt-0.5 text-amber-500">✉️</span>
+                  <a href="mailto:thegoldenframecreations@gmail.com" className="break-all text-zinc-600 hover:text-amber-600">
+                    thegoldenframecreations@gmail.com
+                  </a>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="mt-0.5 text-amber-500">💳</span>
+                  <div>
+                    <span className="font-medium text-zinc-700">PayID:</span>{' '}
+                    <span className="text-zinc-600">0468 320 987</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-zinc-100 pt-6 text-xs text-zinc-400 sm:flex-row">
+            <p>© {new Date().getFullYear()} The Golden Frame. All rights reserved.</p>
+            <p>Handcrafted in Australia 🇦🇺</p>
+          </div>
+        </div>
       </footer>
     </main>
   )
