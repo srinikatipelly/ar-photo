@@ -152,6 +152,7 @@ export default function Home() {
                 <li><a href="/" className="text-zinc-600 hover:text-amber-600">Home</a></li>
                 <li><a href="/upload" className="text-zinc-600 hover:text-amber-600">Order a frame</a></li>
                 <li><a href="#how-it-works" className="text-zinc-600 hover:text-amber-600">How it works</a></li>
+                <li><a href="/terms" className="text-zinc-600 hover:text-amber-600">Terms &amp; Privacy</a></li>
               </ul>
             </div>
 
