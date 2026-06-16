@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 
+const FRAME_PRICE_CENTS    = parseInt(process.env.FRAME_PRICE_CENTS    ?? '2900', 10)
+const DELIVERY_PRICE_CENTS = parseInt(process.env.DELIVERY_PRICE_CENTS ?? '995',  10)
+
 export async function POST(req: NextRequest) {
   try {
-    const { photoKey, videoKey, targetKey, customerEmail, customerName } = await req.json()
+    const {
+      photoKey, videoKey, targetKey,
+      customerEmail, customerName,
+      deliveryAddress, postalAddress,
+    } = await req.json()
 
     if (!photoKey || !videoKey || !targetKey || !customerEmail) {
       return NextResponse.json(
@@ -13,7 +20,14 @@ export async function POST(req: NextRequest) {
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://localhost:3000'
-    const priceAmount = parseInt(process.env.FRAME_PRICE_CENTS ?? '2999', 10)
+
+    // Format delivery address as a readable string for Stripe metadata (500-char limit)
+    const formatAddress = (a: Record<string, string> | undefined) => {
+      if (!a) return ''
+      const parts = [a.line1, a.line2, a.suburb, a.state, a.postcode, a.country]
+        .filter(Boolean)
+      return parts.join(', ')
+    }
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -23,10 +37,21 @@ export async function POST(req: NextRequest) {
         {
           price_data: {
             currency: 'aud',
-            unit_amount: priceAmount,
+            unit_amount: FRAME_PRICE_CENTS,
             product_data: {
-              name: 'Personalised AR Photo Frame',
-              description: 'Your photo frame with an embedded AR video experience. Delivered in 2–3 business days.',
+              name: 'Personalised AR Photo Frame (8×10)',
+              description: 'Your photo inside a frame with a hidden QR code — scan it to watch your video in AR.',
+            },
+          },
+          quantity: 1,
+        },
+        {
+          price_data: {
+            currency: 'aud',
+            unit_amount: DELIVERY_PRICE_CENTS,
+            product_data: {
+              name: 'Standard Delivery (Australia)',
+              description: 'Carefully packaged and dispatched within 2–3 business days.',
             },
           },
           quantity: 1,
@@ -38,10 +63,12 @@ export async function POST(req: NextRequest) {
         targetKey,
         customerEmail,
         customerName: customerName ?? '',
+        deliveryAddress: formatAddress(deliveryAddress),
+        postalAddress:   formatAddress(postalAddress),
       },
       allow_promotion_codes: true,
       success_url: `${appUrl}/order/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${appUrl}/upload?cancelled=1`,
+      cancel_url:  `${appUrl}/upload?cancelled=1`,
     })
 
     return NextResponse.json({ url: session.url })
