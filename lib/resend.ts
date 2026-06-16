@@ -81,8 +81,8 @@ export async function sendCustomerConfirmationEmail({
 
 // ── Admin: new order notification with QR ────────────────────────────────────
 export async function sendAdminOrderNotification({
-  frameId, customerName, customerEmail, qrDataUrl, deliveryAddress,
-}: { frameId: string; customerName: string; customerEmail: string; qrDataUrl: string; deliveryAddress?: string }) {
+  frameId, customerName, customerEmail, qrDataUrl,
+}: { frameId: string; customerName: string; customerEmail: string; qrDataUrl: string }) {
   const adminEmail = process.env.ADMIN_EMAIL
   if (!resend || !adminEmail) return
 
@@ -115,8 +115,7 @@ export async function sendAdminOrderNotification({
               <p style="margin:0 0 8px;font-size:14px;font-weight:600;color:#18181b;">Customer details</p>
               <p style="margin:0 0 4px;font-size:13px;color:#52525b;"><strong>Name:</strong> ${customerName || '—'}</p>
               <p style="margin:0 0 4px;font-size:13px;color:#52525b;"><strong>Email:</strong> ${customerEmail}</p>
-              <p style="margin:0 0 4px;font-size:13px;color:#52525b;"><strong>Frame ID:</strong> ${frameId}</p>
-              ${deliveryAddress ? `<p style="margin:4px 0 0;font-size:13px;color:#52525b;"><strong>Deliver to:</strong> ${deliveryAddress}</p>` : ''}
+              <p style="margin:0;font-size:13px;color:#52525b;"><strong>Frame ID:</strong> ${frameId}</p>
             </td></tr>
           </table>
 

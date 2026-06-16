@@ -25,11 +25,7 @@ export async function POST(req: NextRequest) {
   }
 
   const session = event.data.object
-  const {
-    photoKey, videoKey, targetKey,
-    customerEmail, customerName,
-    deliveryAddress, postalAddress,
-  } = session.metadata ?? {}
+  const { photoKey, videoKey, targetKey, customerEmail, customerName } = session.metadata ?? {}
 
   if (!photoKey || !videoKey || !targetKey || !customerEmail) {
     console.error('Missing metadata on checkout session', session.id)
@@ -69,8 +65,6 @@ export async function POST(req: NextRequest) {
       payment_status: 'paid',
       stripe_session_id: session.id,
       price_paid: session.amount_total ?? 0,
-      delivery_address: deliveryAddress ?? '',
-      postal_address: postalAddress ?? '',
       qr_url: qrUrl,
       created_at: new Date().toISOString(),
     }
@@ -83,7 +77,7 @@ export async function POST(req: NextRequest) {
 
     await Promise.all([
       sendCustomerConfirmationEmail({ to: customerEmail, name: customerName ?? '', frameId }),
-      sendAdminOrderNotification({ frameId, customerName: customerName ?? '', customerEmail, qrDataUrl, deliveryAddress: deliveryAddress ?? '' }),
+      sendAdminOrderNotification({ frameId, customerName: customerName ?? '', customerEmail, qrDataUrl }),
     ])
 
     return NextResponse.json({ received: true, frameId })
