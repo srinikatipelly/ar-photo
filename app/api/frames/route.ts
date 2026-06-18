@@ -7,7 +7,7 @@ import { sendCustomerConfirmationEmail, sendAdminOrderNotification } from '@/lib
 
 export async function POST(req: NextRequest) {
   try {
-    const { photoKey, videoKey, targetKey, customerEmail, customerName } = await req.json()
+    const { photoKey, videoKey, targetKey, customerEmail, customerName, mobile, deliveryAddress } = await req.json()
 
     if (!photoKey || !videoKey || !targetKey || !customerEmail) {
       return NextResponse.json({ error: 'photoKey, videoKey, targetKey and customerEmail are required.' }, { status: 400 })
@@ -83,7 +83,16 @@ export async function POST(req: NextRequest) {
     try {
       await Promise.all([
         sendCustomerConfirmationEmail({ to: customerEmail, name: customerName ?? '', frameId }),
-        sendAdminOrderNotification({ frameId, customerName: customerName ?? '', customerEmail, qrDataUrl }),
+        sendAdminOrderNotification({
+          frameId,
+          customerName: customerName ?? '',
+          customerEmail,
+          mobile: mobile ?? '',
+          deliveryAddress: deliveryAddress ?? '',
+          photoUrl: getPublicUrl(photoKey),
+          videoUrl: getPublicUrl(videoKey),
+          qrDataUrl,
+        }),
       ])
     } catch (emailError) {
       console.error('Email delivery failed', emailError)

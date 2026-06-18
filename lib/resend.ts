@@ -81,8 +81,17 @@ export async function sendCustomerConfirmationEmail({
 
 // ── Admin: new order notification with QR ────────────────────────────────────
 export async function sendAdminOrderNotification({
-  frameId, customerName, customerEmail, qrDataUrl,
-}: { frameId: string; customerName: string; customerEmail: string; qrDataUrl: string }) {
+  frameId, customerName, customerEmail, mobile, deliveryAddress, photoUrl, videoUrl, qrDataUrl,
+}: {
+  frameId: string
+  customerName: string
+  customerEmail: string
+  mobile: string
+  deliveryAddress: string
+  photoUrl: string
+  videoUrl: string
+  qrDataUrl: string
+}) {
   const adminEmail = process.env.ADMIN_EMAIL
   if (!resend || !adminEmail) return
 
@@ -102,7 +111,7 @@ export async function sendAdminOrderNotification({
 <body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 16px;">
     <tr><td align="center">
-      <table width="100%" style="max-width:520px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+      <table width="100%" style="max-width:560px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);">
 
         <tr><td style="background:#18181b;padding:28px 36px;">
           <p style="margin:0;color:#f59e0b;font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;">Admin — New Order</p>
@@ -110,21 +119,42 @@ export async function sendAdminOrderNotification({
         </td></tr>
 
         <tr><td style="padding:32px 36px 0;">
+
+          <!-- Customer details -->
           <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;border-radius:12px;padding:20px 24px;margin:0 0 24px;">
             <tr><td>
-              <p style="margin:0 0 8px;font-size:14px;font-weight:600;color:#18181b;">Customer details</p>
-              <p style="margin:0 0 4px;font-size:13px;color:#52525b;"><strong>Name:</strong> ${customerName || '—'}</p>
-              <p style="margin:0 0 4px;font-size:13px;color:#52525b;"><strong>Email:</strong> ${customerEmail}</p>
-              <p style="margin:0;font-size:13px;color:#52525b;"><strong>Frame ID:</strong> ${frameId}</p>
+              <p style="margin:0 0 12px;font-size:14px;font-weight:600;color:#18181b;">Customer details</p>
+              <p style="margin:0 0 6px;font-size:13px;color:#52525b;"><strong style="color:#18181b;">Name:</strong> ${customerName || '—'}</p>
+              <p style="margin:0 0 6px;font-size:13px;color:#52525b;"><strong style="color:#18181b;">Email:</strong> ${customerEmail}</p>
+              <p style="margin:0 0 6px;font-size:13px;color:#52525b;"><strong style="color:#18181b;">Mobile:</strong> ${mobile || '—'}</p>
+              <p style="margin:0 0 6px;font-size:13px;color:#52525b;"><strong style="color:#18181b;">Delivery Address:</strong> ${deliveryAddress || '—'}</p>
+              <p style="margin:0;font-size:13px;color:#52525b;"><strong style="color:#18181b;">Frame ID:</strong> ${frameId}</p>
             </td></tr>
           </table>
 
+          <!-- Files -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:20px 24px;margin:0 0 24px;">
+            <tr><td>
+              <p style="margin:0 0 12px;font-size:14px;font-weight:600;color:#18181b;">Customer files</p>
+              <p style="margin:0 0 8px;font-size:13px;color:#1e40af;">
+                <strong style="color:#18181b;">Photo:</strong>&nbsp;
+                <a href="${photoUrl}" style="color:#1d4ed8;word-break:break-all;">${photoUrl}</a>
+              </p>
+              <p style="margin:0;font-size:13px;color:#1e40af;">
+                <strong style="color:#18181b;">Video:</strong>&nbsp;
+                <a href="${videoUrl}" style="color:#1d4ed8;word-break:break-all;">${videoUrl}</a>
+              </p>
+            </td></tr>
+          </table>
+
+          <!-- QR code -->
           <p style="margin:0 0 12px;font-size:14px;font-weight:600;color:#18181b;">QR Code — print and stick to the back of the frame</p>
           <div style="text-align:center;margin:0 0 24px;">
             <img src="cid:qrcode" alt="QR Code"
               style="width:200px;height:200px;border-radius:12px;border:1px solid #e4e4e7;" />
           </div>
 
+          <!-- AR link -->
           <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 24px;margin:0 0 24px;">
             <tr><td>
               <p style="margin:0;font-size:13px;color:#166534;">

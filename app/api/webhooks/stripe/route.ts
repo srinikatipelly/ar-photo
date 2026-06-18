@@ -71,7 +71,16 @@ export async function POST(req: NextRequest) {
 
     await Promise.all([
       sendCustomerConfirmationEmail({ to: customerEmail, name: customerName ?? '', frameId }),
-      sendAdminOrderNotification({ frameId, customerName: customerName ?? '', customerEmail, qrDataUrl }),
+      sendAdminOrderNotification({
+        frameId,
+        customerName: customerName ?? '',
+        customerEmail,
+        mobile: '',
+        deliveryAddress: '',
+        photoUrl: getPublicUrl(photoKey),
+        videoUrl: getPublicUrl(videoKey),
+        qrDataUrl,
+      }),
     ])
 
     return NextResponse.json({ received: true, frameId })

@@ -153,6 +153,7 @@ export default function UploadPage() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName]   = useState('')
   const [email, setEmail]         = useState('')
+  const [mobile, setMobile]       = useState('')
   const [result, setResult]       = useState<{ frameId: string } | null>(null)
   const [error, setError]         = useState('')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
@@ -270,10 +271,22 @@ export default function UploadPage() {
       setProgress('Creating your order…')
 
       const customerName = `${firstName.trim()} ${lastName.trim()}`.trim()
+      const deliveryAddress = [
+        delivery.line1,
+        delivery.line2,
+        delivery.suburb,
+        `${delivery.state} ${delivery.postcode}`,
+        'Australia',
+      ].filter(Boolean).join(', ')
       const res = await fetch('/api/frames', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ photoKey, videoKey, targetKey, customerEmail: email, customerName }),
+        body: JSON.stringify({
+          photoKey, videoKey, targetKey,
+          customerEmail: email, customerName,
+          mobile: mobile.trim(),
+          deliveryAddress,
+        }),
       })
 
       if (!res.ok) {
@@ -534,6 +547,11 @@ export default function UploadPage() {
           <input type="email" value={email} onChange={e => setEmail(e.target.value)}
             placeholder="jane@example.com" className={inputCls('email')} />
           {fieldErrors.email && <p className="mt-1 text-xs text-red-500">{fieldErrors.email}</p>}
+        </div>
+        <div className="mt-4">
+          <label className="mb-1 block text-sm font-medium text-zinc-700">Mobile number</label>
+          <input type="tel" value={mobile} onChange={e => setMobile(e.target.value)}
+            placeholder="0412 345 678" className={inputCls('mobile')} />
         </div>
 
         <div className="my-6 border-t border-zinc-100" />
