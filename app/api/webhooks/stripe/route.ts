@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import QRCode from 'qrcode'
+import { generateQRWithLogo } from '@/lib/qr'
 import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase'
 import { getPublicUrl, uploadBuffer } from '@/lib/r2'
@@ -39,15 +39,9 @@ export async function POST(req: NextRequest) {
     const protocol = (process.env.NEXT_PUBLIC_APP_URL ?? '').startsWith('https') ? 'https' : 'http'
     const arUrl = `${protocol}://${host}/ar?frame=${frameId}`
 
-    const qrDataUrl = await QRCode.toDataURL(arUrl, {
-      width: 400,
-      margin: 2,
-      color: { dark: '#000000', light: '#FFFFFF' },
-    })
+    const { dataUrl: qrDataUrl, buffer: qrBuffer } = await generateQRWithLogo(arUrl)
 
     // Upload QR PNG to R2
-    const base64Data = qrDataUrl.replace(/^data:image\/png;base64,/, '')
-    const qrBuffer = Buffer.from(base64Data, 'base64')
     const qrKey = `qr/${frameId}.png`
     await uploadBuffer(qrKey, qrBuffer, 'image/png')
     const qrUrl = getPublicUrl(qrKey)

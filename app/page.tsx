@@ -3,12 +3,9 @@ export default function Home() {
     <main className="flex min-h-screen flex-col bg-white">
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-5 sm:px-10">
-        {/* Logo placeholder — swap /logo.png in once the final asset is ready */}
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400 text-lg font-bold text-white">
-            G
-          </div>
-          <span className="text-lg font-semibold tracking-tight text-zinc-900">The Golden Frame</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="The Golden Frame" className="h-10 w-auto" />
         </div>
         <a
           href="/upload"
@@ -137,8 +134,8 @@ export default function Home() {
             {/* Brand */}
             <div>
               <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400 text-lg font-bold text-white">G</div>
-                <span className="text-base font-semibold text-zinc-900">The Golden Frame</span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/logo.png" alt="The Golden Frame" className="h-10 w-auto" />
               </div>
               <p className="mt-3 text-sm leading-relaxed text-zinc-500">
                 Where memories come alive. Personalised AR photo frames handcrafted in Australia.

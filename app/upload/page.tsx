@@ -16,10 +16,10 @@ const ACCOUNT_NUMBER = process.env.NEXT_PUBLIC_ACCOUNT_NUMBER ?? ''
 
 // Pricing
 const FRAME_PRICE    = 29.00
-const FRAME_WAS      = 69.00
+const FRAME_WAS      = 79.00
 const DELIVERY_PRICE = 9.95
 const TOTAL          = (FRAME_PRICE + DELIVERY_PRICE).toFixed(2)   // 38.95
-const TOTAL_WAS      = (FRAME_WAS  + DELIVERY_PRICE).toFixed(2)    // 78.95
+const TOTAL_WAS      = (FRAME_WAS  + DELIVERY_PRICE).toFixed(2)    // 88.95
 
 // ── Address ───────────────────────────────────────────────────────────────────
 const AU_STATES = ['ACT', 'NSW', 'NT', 'QLD', 'SA', 'TAS', 'VIC', 'WA']
@@ -348,7 +348,7 @@ export default function UploadPage() {
               <div className="flex items-center justify-between">
                 <span className="text-zinc-600">AR Photo Frame 8×10 <span className="text-xs text-amber-600 font-medium">(Promotional price)</span></span>
                 <span className="font-medium text-zinc-900">
-                  $29.00 <span className="ml-1 text-xs text-zinc-400 line-through">$69.00</span>
+                  $29.00 <span className="ml-1 text-xs text-zinc-400 line-through">$79.00</span>
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -480,7 +480,7 @@ export default function UploadPage() {
             <p className="mt-0.5 text-sm text-zinc-700">
               AR Photo Frame 8×10 —{' '}
               <span className="text-lg font-bold text-zinc-900">$29.00</span>{' '}
-              <span className="text-sm text-zinc-400 line-through">$69.00</span>
+              <span className="text-sm text-zinc-400 line-through">$79.00</span>
             </p>
           </div>
           <div className="h-8 w-px bg-amber-200 hidden sm:block" />
