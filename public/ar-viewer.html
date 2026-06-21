@@ -298,9 +298,10 @@
         const ph = photoImg.naturalHeight || video.videoHeight || 3
         const planeH = 1 * (ph / pw)
 
-        const videoTex     = new THREE.VideoTexture(video)
-        videoTex.minFilter = THREE.LinearFilter
-        videoTex.magFilter = THREE.LinearFilter
+        const videoTex      = new THREE.VideoTexture(video)
+        videoTex.minFilter  = THREE.LinearFilter
+        videoTex.magFilter  = THREE.LinearFilter
+        videoTex.colorSpace = THREE.SRGBColorSpace
 
         const plane = new THREE.Mesh(
           new THREE.PlaneGeometry(1, planeH),
@@ -355,6 +356,7 @@
           unmuteBtn.style.display = 'none'
         })
 
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
         renderer.setAnimationLoop(() => renderer.render(scene, camera))
 
       } catch (err) {

@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { getPublicUrl, uploadBuffer } from '@/lib/r2'
 import { generateFrameId } from '@/lib/utils'
 import { sendCustomerConfirmationEmail, sendAdminOrderNotification } from '@/lib/resend'
+import { tasks } from '@trigger.dev/sdk/v3'
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,9 +26,8 @@ export async function POST(req: NextRequest) {
       status: 'active',
       plan: 'single',
       scan_count: 0,
-      created_at: new Date().toISOString(), 
-
-      
+      video_status: 'processing',
+      created_at: new Date().toISOString(),
     }
 
     let insertedFrame = frame
@@ -49,6 +49,16 @@ export async function POST(req: NextRequest) {
       }
     } else {
       insertedFrame = data
+    }
+
+    // Fire background transcode job — best-effort, never fails the order
+    try {
+      await tasks.trigger('transcode-video', {
+        frameId,
+        videoUrl: getPublicUrl(videoKey),
+      })
+    } catch (triggerErr) {
+      console.error('Trigger.dev job failed to queue:', triggerErr)
     }
 
     const host = req.headers.get('host') ?? 'localhost:3000'

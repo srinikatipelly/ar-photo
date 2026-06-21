@@ -6,7 +6,7 @@ import { compileImageTarget } from './compile'
 // ── Constants ────────────────────────────────────────────────────────────────
 type Step = 'form' | 'compiling' | 'uploading' | 'done' | 'error'
 
-const MAX_VIDEO_BYTES   = 500 * 1024 * 1024
+const MAX_VIDEO_BYTES   = 200 * 1024 * 1024
 const MAX_VIDEO_SECONDS = 60
 
 const PAYID          = process.env.NEXT_PUBLIC_PAYID          ?? ''
@@ -177,7 +177,7 @@ export default function UploadPage() {
       if (!file) { setVideo(null); return }
 
       if (file.size > MAX_VIDEO_BYTES) {
-        setFieldErrors(e => ({ ...e, video: 'Video must be under 500 MB.' }))
+        setFieldErrors(e => ({ ...e, video: 'Video must be under 200 MB.' }))
         setVideo(null)
         if (videoEl) videoEl.value = ''
         return
@@ -573,7 +573,7 @@ export default function UploadPage() {
 
         <div className="mt-4">
           <p className="text-sm font-medium text-zinc-700">Video to play in AR <span className="text-red-500">*</span></p>
-          <p className="mt-0.5 text-xs text-zinc-400">MP4 or MOV · max 1 minute · max 500 MB</p>
+          <p className="mt-0.5 text-xs text-zinc-400">MP4 or MOV · max 1 minute · max 200 MB</p>
           <label className={`mt-2 flex cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed px-4 py-5 transition hover:bg-zinc-50 ${fieldErrors.video ? 'border-red-300 bg-red-50' : 'border-zinc-200'}`}>
             <span className="text-2xl">{video ? '🎬' : '🎥'}</span>
             <span className="text-sm font-medium text-zinc-700">{video ? video.name : 'Click to choose a video'}</span>
@@ -677,7 +677,7 @@ export default function UploadPage() {
       <div className="mt-6 flex flex-wrap justify-center gap-6 text-xs text-zinc-400">
         <span>✉️ Confirmation sent to your email</span>
         <span>📦 Dispatched in 2–3 business days</span>
-        <span>🎥 Video: max 1 min · 500 MB</span>
+        <span>🎥 Video: max 1 min · 200 MB</span>
       </div>
     </main>
   )
