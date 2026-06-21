@@ -1,3 +1,10 @@
+import ws from 'ws'
+// Node.js 21 has no native WebSocket — polyfill before Supabase client initialises
+if (!globalThis.WebSocket) {
+  // @ts-ignore
+  globalThis.WebSocket = ws
+}
+
 import { task, logger } from '@trigger.dev/sdk/v3'
 import { createWriteStream, createReadStream } from 'node:fs'
 import { unlink, stat } from 'node:fs/promises'
