@@ -249,6 +249,7 @@
         const absoluteTargetUrl = new URL(targetUrl, window.location.href).href
 
         const video = document.createElement('video')
+        video.crossOrigin = 'anonymous'  // required for WebGL VideoTexture on direct R2 URL
         video.src     = videoUrl
         video.muted   = false
         video.loop    = true

@@ -34,21 +34,22 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Frame not active' }, { status: 403 })
     }
 
-    await supabaseAdmin
+    // Fire-and-forget — never block the response on an analytics write
+    supabaseAdmin
       .from('frames')
       .update({
         scan_count: (data.scan_count ?? 0) + 1,
         last_scanned: new Date().toISOString(),
       })
       .eq('frame_id', id)
+      .then(() => {}).catch(() => {})
 
     return NextResponse.json(
       {
-        // Video proxied through Next.js — WebGL VideoTexture requires same-origin
-        // or explicit crossOrigin, and we need the proxy's range-request support.
-        videoUrl:  `/api/video/${id}`,
-        // Target served directly from R2 — fetched as a blob (CORS configured),
-        // avoids re-streaming the large .mind file through Vercel.
+        // Serve video directly from R2 public URL — R2 sends CORS headers so
+        // the AR viewer can use crossOrigin="anonymous" with WebGL VideoTexture.
+        // Avoids the Vercel proxy hop on every scan.
+        videoUrl:  data.video_url,
         targetUrl: data.target_url,
         photoUrl:  data.photo_url,
         name: data.customer_name,
