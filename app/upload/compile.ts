@@ -45,12 +45,20 @@ function loadScript(src: string): Promise<void> {
     script.type = 'module'
     script.async = true
 
+    // Safety net: a module whose sub-import stalls never fires onload OR onerror,
+    // which would hang the spinner forever. Surface a retryable error instead.
+    const timer = setTimeout(() => {
+      reject(new Error('The AR engine took too long to load. Please check your connection and try again.'))
+    }, 30000)
+
     script.onload = () => {
+      clearTimeout(timer)
       script.dataset.loaded = 'true'
       resolve()
     }
 
     script.onerror = () => {
+      clearTimeout(timer)
       reject(new Error(`Unable to load ${src}`))
     }
 
@@ -78,7 +86,10 @@ function fileToImageElement(file: File): Promise<HTMLImageElement> {
 }
 
 export async function compileImageTarget(photoFile: File): Promise<ArrayBuffer> {
-  await loadScript('https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image.prod.js')
+  // Self-hosted from /public so it loads from our own domain — no dependency on
+  // a third-party CDN (jsDelivr 503s were hanging the compile on fresh origins).
+  // The 266-byte loader pulls its sibling chunks relative to this path.
+  await loadScript('/vendor/mind-ar/mindar-image.prod.js')
 
   if (!window.MINDAR?.IMAGE?.Compiler) {
     throw new Error('MindAR image compiler is not available in this browser.')
