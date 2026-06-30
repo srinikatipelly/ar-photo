@@ -42,7 +42,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         last_scanned: new Date().toISOString(),
       })
       .eq('frame_id', id)
-      .then(() => {}).catch(() => {})
+      .then(() => {}, () => {})
 
     return NextResponse.json(
       {

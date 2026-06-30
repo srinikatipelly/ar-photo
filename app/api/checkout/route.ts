@@ -3,7 +3,16 @@ import { stripe } from '@/lib/stripe'
 
 export async function POST(req: NextRequest) {
   try {
-    const { photoKey, videoKey, targetKey, customerEmail, customerName } = await req.json()
+    const {
+      photoKey,
+      videoKey,
+      targetKey,
+      customerEmail,
+      customerName,
+      mobile,
+      deliveryAddress,
+      postalAddress,
+    } = await req.json()
 
     if (!photoKey || !videoKey || !targetKey || !customerEmail) {
       return NextResponse.json(
@@ -13,7 +22,8 @@ export async function POST(req: NextRequest) {
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://localhost:3000'
-    const priceAmount = parseInt(process.env.FRAME_PRICE_CENTS ?? '2999', 10)
+    const framePrice = parseInt(process.env.FRAME_PRICE_CENTS ?? '2999', 10)
+    const deliveryPrice = parseInt(process.env.DELIVERY_PRICE_CENTS ?? '995', 10)
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -23,21 +33,35 @@ export async function POST(req: NextRequest) {
         {
           price_data: {
             currency: 'aud',
-            unit_amount: priceAmount,
+            unit_amount: framePrice,
             product_data: {
               name: 'Personalised AR Photo Frame',
-              description: 'Your photo frame with an embedded AR video experience. Delivered in 2–3 business days.',
+              description:
+                'Your photo frame with an embedded AR video experience. Delivered in 2–3 business days.',
             },
           },
           quantity: 1,
         },
+        {
+          price_data: {
+            currency: 'aud',
+            unit_amount: deliveryPrice,
+            product_data: { name: 'Standard delivery (Australia)' },
+          },
+          quantity: 1,
+        },
       ],
+      // Carry everything the webhook needs to create the frame + notify admin.
+      // Stripe metadata: max 50 keys, 500 chars per value — addresses fit fine.
       metadata: {
         photoKey,
         videoKey,
         targetKey,
         customerEmail,
-        customerName: customerName ?? '',
+        customerName: (customerName ?? '').slice(0, 200),
+        mobile: (mobile ?? '').slice(0, 40),
+        deliveryAddress: (deliveryAddress ?? '').slice(0, 500),
+        postalAddress: (postalAddress ?? '').slice(0, 500),
       },
       allow_promotion_codes: true,
       success_url: `${appUrl}/order/success?session_id={CHECKOUT_SESSION_ID}`,

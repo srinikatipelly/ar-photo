@@ -25,7 +25,8 @@ export async function POST(req: NextRequest) {
   }
 
   const session = event.data.object
-  const { photoKey, videoKey, targetKey, customerEmail, customerName } = session.metadata ?? {}
+  const { photoKey, videoKey, targetKey, customerEmail, customerName, mobile, deliveryAddress } =
+    session.metadata ?? {}
 
   if (!photoKey || !videoKey || !targetKey || !customerEmail) {
     console.error('Missing metadata on checkout session', session.id)
@@ -33,6 +34,18 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // Idempotency: Stripe may deliver this event more than once. If we've already
+    // processed this session, don't create a duplicate frame / re-send emails.
+    const { data: existing } = await supabaseAdmin
+      .from('frames')
+      .select('frame_id')
+      .eq('stripe_session_id', session.id)
+      .maybeSingle()
+
+    if (existing) {
+      return NextResponse.json({ received: true, frameId: existing.frame_id, duplicate: true })
+    }
+
     const frameId = generateFrameId()
 
     const host = new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://localhost:3000').host
@@ -75,8 +88,8 @@ export async function POST(req: NextRequest) {
         frameId,
         customerName: customerName ?? '',
         customerEmail,
-        mobile: '',
-        deliveryAddress: '',
+        mobile: mobile ?? '',
+        deliveryAddress: deliveryAddress ?? '',
         photoUrl: getPublicUrl(photoKey),
         videoUrl: getPublicUrl(videoKey),
         qrDataUrl,
