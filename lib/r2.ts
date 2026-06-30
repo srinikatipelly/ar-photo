@@ -1,4 +1,4 @@
-import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
 export const r2 = new S3Client({
@@ -36,6 +36,27 @@ export async function getObjectUrl(key: string) {
   })
 
   return getSignedUrl(r2, command, { expiresIn: 900 })
+}
+
+// Derive the storage key from a public URL (reverse of getPublicUrl).
+export function keyFromPublicUrl(url: string): string | null {
+  const base = (process.env.R2_PUBLIC_URL ?? '').replace(/\/$/, '')
+  if (base && url.startsWith(base + '/')) return url.slice(base.length + 1)
+  // Fallback: take the path after the host (handles custom CDN domains).
+  try {
+    return new URL(url).pathname.replace(/^\//, '') || null
+  } catch {
+    return null
+  }
+}
+
+export async function deleteObject(key: string) {
+  await r2.send(
+    new DeleteObjectCommand({
+      Bucket: process.env.R2_BUCKET_NAME ?? 'ar-frames',
+      Key: key,
+    }),
+  )
 }
 
 export async function uploadBuffer(key: string, buffer: Buffer, contentType: string) {

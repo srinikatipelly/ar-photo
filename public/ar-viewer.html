@@ -246,9 +246,30 @@
       console.error('[AR] ERROR:', message, detail || '')
     }
 
+    // Request the camera permission as early as possible, in parallel with asset
+    // downloads, then release the stream. By the time MindAR.start() runs the
+    // permission is already granted, so the camera opens instantly with no second
+    // prompt — the scan feels seamless instead of stalling at the end.
+    async function prewarmCamera() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' },
+        })
+        stream.getTracks().forEach((t) => t.stop())
+      } catch (e) {
+        // Denied / no camera — MindAR.start() will surface a friendly error later.
+        console.warn('[AR] camera prewarm failed:', e)
+      }
+    }
+
     async function loadFrame() {
       let mindarThree  = null
       let targetBlobUrl = null
+
+      // Fire the camera prompt up front (don't block asset loading on it).
+      setStep('step-camera', 'active')
+      const cameraPrewarm = prewarmCamera()
 
       try {
         // ── Step 1: AR libraries (already preloaded by modulepreload) ────
@@ -319,6 +340,15 @@
           imageTargetSrc: targetBlobUrl,
           uiScanning:     'no',
           uiLoading:      'no',
+          // ── Stability tuning ──────────────────────────────────────────
+          // Lower filterMinCF = more smoothing of the tracked pose (less jitter
+          // when the frame is held fairly still). filterBeta trades a little lag
+          // for responsiveness on movement. missTolerance keeps the video on
+          // screen through brief tracking dropouts so it doesn't flicker/pop out.
+          filterMinCF:     0.0001,
+          filterBeta:      0.001,
+          missTolerance:   8,
+          warmupTolerance: 3,
         })
 
         const { renderer, scene, camera } = mindarThree
@@ -327,7 +357,13 @@
         // ── Step 5: Video texture plane ───────────────────────────────────
         const pw = photoImg.naturalWidth  || video.videoWidth  || 4
         const ph = photoImg.naturalHeight || video.videoHeight || 3
-        const planeH = 1 * (ph / pw)
+
+        // Invisible safe-border: inset the video slightly inside the tracked
+        // photo so tracking jitter never lets the video edges spill outside the
+        // printed frame. The thin margin reads as a subtle border, not a glitch.
+        const INSET = 0.94
+        const planeW = 1 * INSET
+        const planeH = 1 * (ph / pw) * INSET
 
         const videoTex      = new THREE.VideoTexture(video)
         videoTex.minFilter  = THREE.LinearFilter
@@ -335,7 +371,7 @@
         videoTex.colorSpace = THREE.SRGBColorSpace
 
         const plane = new THREE.Mesh(
-          new THREE.PlaneGeometry(1, planeH),
+          new THREE.PlaneGeometry(planeW, planeH),
           new THREE.MeshBasicMaterial({ map: videoTex, side: THREE.DoubleSide })
         )
         mindarThree.addAnchor(0).group.add(plane)
@@ -355,24 +391,19 @@
 
         // ── Step 6: Start camera ──────────────────────────────────────────
         setStep('step-camera', 'active')
-        setProgress(70, 'Starting camera — tap Allow if prompted…')
-
-        const permReminder = setTimeout(() => {
-          if (loadingEl.style.display !== 'none') {
-            setProgress(70, 'Waiting for camera permission…')
-          }
-        }, 4000)
+        setProgress(70, 'Opening your camera…')
 
         const hardTimeout = setTimeout(() => {
-          clearTimeout(permReminder)
           if (mindarThree) mindarThree.stop().catch(() => {})
           showError('AR timed out.', 'Camera or tracker took too long. Tap "Try again".')
         }, 120000)
 
+        // Permission was already requested up front — this resolves immediately
+        // once the user has allowed access (or has previously allowed it).
+        await cameraPrewarm
         await mindarThree.start()
 
         clearTimeout(hardTimeout)
-        clearTimeout(permReminder)
 
         setStep('step-camera', 'done')
         setProgress(100)

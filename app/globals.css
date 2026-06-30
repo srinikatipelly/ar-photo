@@ -8,6 +8,12 @@
   --gold-light:  #fde68a; /* amber-200 */
   --gold-mid:    #fbbf24; /* amber-400 */
   --gold-deep:   #b45309; /* amber-700 */
+
+  /* Premium brand palette (new .com.au marketing site) */
+  --green-deep:  #0F3535; /* logo background green */
+  --green-mid:   #1c4a47;
+  --cream:       #F9E6C2; /* tagline cream */
+  --gold-brand:  #C9A24B; /* luxe metallic gold */
 }
 
 @theme inline {
@@ -15,10 +21,85 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter, ui-sans-serif, system-ui, sans-serif);
   --font-mono: ui-monospace, "Courier New", monospace;
+
+  /* Marketing-site fonts */
+  --font-body:    var(--font-montserrat, ui-sans-serif, system-ui, sans-serif);
+  --font-display: var(--font-display, ui-serif, Georgia, serif);
+
+  /* Marketing-site colours (usable as bg-green-deep, text-cream, etc.) */
+  --color-green-deep: var(--green-deep);
+  --color-green-mid:  var(--green-mid);
+  --color-cream:      var(--cream);
+  --color-gold-brand: var(--gold-brand);
 }
 
 body {
   background: radial-gradient(circle at top, #ffffff 0%, #fffbf0 42%, #fef9ec 100%);
   color: var(--foreground);
   font-family: var(--font-inter, ui-sans-serif, system-ui, sans-serif);
+}
+
+/* ── Premium marketing site (scoped to .site-shell) ─────────────────────────── */
+/* Applied on app/landing/* only, so the MVP pages are untouched. */
+.site-shell {
+  background: var(--green-deep);
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-weight: 300;          /* light Montserrat reads more premium for body */
+  letter-spacing: 0.005em;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Headings — high-contrast display serif, tight leading & subtle negative tracking */
+.site-shell h1,
+.site-shell h2,
+.site-shell h3,
+.site-shell .font-display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  line-height: 1.08;
+  letter-spacing: -0.005em;
+}
+
+/* Eyebrow / kicker label — Montserrat, uppercase, widely tracked, gold */
+.site-shell .eyebrow {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.32em;
+  color: var(--gold-brand);
+}
+
+/* Serif italic accent (e.g. the tagline) */
+.site-shell .tagline {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+/* Body copy default weight nudge for readability on dark green */
+.site-shell p {
+  font-weight: 300;
+}
+
+/* Buttons / nav stay in the sans family with a touch of tracking */
+.site-shell a,
+.site-shell button {
+  letter-spacing: 0.01em;
+}
+
+/* Offset anchor targets so sticky nav doesn't cover section headings */
+.site-shell :is(section[id], [id].anchor) {
+  scroll-margin-top: 6rem;
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .site-shell {
+    scroll-behavior: auto;
+  }
 }
