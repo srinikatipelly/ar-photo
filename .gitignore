@@ -34,6 +34,11 @@ yarn-error.log*
 .env*
 *.env
 
+# Remotion raw input (screen recording) — keep large source out of git; commit the rendered hero.mp4
+public/videos/ar-recording.mp4
+# Remotion render cache
+.remotion
+
 # vercel
 .vercel
 

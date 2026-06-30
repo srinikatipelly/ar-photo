@@ -150,21 +150,26 @@ export default function OrderPage() {
   // Prefill name + email from the signed-in account (Google / Supabase).
   useEffect(() => {
     const supabase = createBrowserSupabase()
-    supabase.auth.getUser().then(({ data }) => {
-      const user = data.user
-      if (!user) return
-      setSignedIn(true)
-      if (user.email) setEmail(user.email)
-      const full =
-        (user.user_metadata?.full_name as string) ||
-        (user.user_metadata?.name as string) ||
-        ''
-      if (full) {
-        const [first, ...rest] = full.trim().split(/\s+/)
-        setFirstName((v) => v || first)
-        setLastName((v) => v || rest.join(' '))
-      }
-    })
+    supabase.auth
+      .getUser()
+      .then(({ data }) => {
+        const user = data.user
+        if (!user) return
+        setSignedIn(true)
+        if (user.email) setEmail(user.email)
+        const full =
+          (user.user_metadata?.full_name as string) ||
+          (user.user_metadata?.name as string) ||
+          ''
+        if (full) {
+          const [first, ...rest] = full.trim().split(/\s+/)
+          setFirstName((v) => v || first)
+          setLastName((v) => v || rest.join(' '))
+        }
+      })
+      .catch(() => {
+        /* not signed in / network issue — leave fields blank */
+      })
   }, [])
 
   useEffect(() => {

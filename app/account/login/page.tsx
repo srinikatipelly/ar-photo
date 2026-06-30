@@ -15,6 +15,10 @@ function LoginForm() {
   const redirectTo =
     typeof window !== 'undefined' ? `${window.location.origin}/api/auth/callback` : undefined
 
+  // Only show the Google button once the Google provider is configured in Supabase.
+  // Set NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=true in Vercel after enabling it there.
+  const googleEnabled = process.env.NEXT_PUBLIC_ENABLE_GOOGLE_AUTH === 'true'
+
   async function sendMagicLink(e: React.FormEvent) {
     e.preventDefault()
     setError('')
@@ -95,19 +99,23 @@ function LoginForm() {
         </button>
       </form>
 
-      <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-widest text-cream/40">
-        <span className="h-px flex-1 bg-cream/15" /> or <span className="h-px flex-1 bg-cream/15" />
-      </div>
+      {googleEnabled && (
+        <>
+          <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-widest text-cream/40">
+            <span className="h-px flex-1 bg-cream/15" /> or <span className="h-px flex-1 bg-cream/15" />
+          </div>
 
-      <button
-        onClick={signInWithGoogle}
-        className="flex w-full items-center justify-center gap-3 rounded-full border border-cream/25 px-5 py-3.5 text-sm font-semibold text-cream transition hover:border-gold-brand hover:text-gold-brand"
-      >
-        <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
-          <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.9 1.5l2.7-2.6C17 1.9 14.7.9 12 .9 6.5.9 2 5.3 2 11.9s4.5 11 10 11c5.8 0 9.6-4.1 9.6-9.8 0-.7-.1-1.2-.2-1.7H12z" />
-        </svg>
-        Continue with Google
-      </button>
+          <button
+            onClick={signInWithGoogle}
+            className="flex w-full items-center justify-center gap-3 rounded-full border border-cream/25 px-5 py-3.5 text-sm font-semibold text-cream transition hover:border-gold-brand hover:text-gold-brand"
+          >
+            <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+              <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.9 1.5l2.7-2.6C17 1.9 14.7.9 12 .9 6.5.9 2 5.3 2 11.9s4.5 11 10 11c5.8 0 9.6-4.1 9.6-9.8 0-.7-.1-1.2-.2-1.7H12z" />
+            </svg>
+            Continue with Google
+          </button>
+        </>
+      )}
 
       <p className="mt-6 text-center text-xs text-cream/50">
         We&apos;ll only use your email to show your orders. No password needed.
