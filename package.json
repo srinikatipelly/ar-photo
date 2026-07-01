@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "create-test-coupon": "npx tsx scripts/create-test-coupon.ts",
+    "setup-r2-cors": "npx tsx --env-file=.env.local scripts/setup-r2-cors.ts",
     "trigger:dev": "npx trigger.dev@latest dev",
     "trigger:deploy": "npx trigger.dev@latest deploy",
     "video:studio": "remotion studio video/index.ts",

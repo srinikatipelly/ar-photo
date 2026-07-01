@@ -17,3 +17,14 @@ and `three.js` from **jsDelivr**. On a fresh device during a jsDelivr blip, a cu
 - Verify on a real phone scan.
 
 **Impact:** removes the last third-party-CDN dependency from the customer-facing scan flow.
+
+Bugs: ✅ all fixed (2026-07-02)
+Bug #1: ✅ Order page now shows a visible red error banner for submission/validation
+  failures and scrolls it into view — `app/landing/order/page.tsx`.
+Bug #2: ✅ Submitting the order form now scrolls to top when moving to the
+  loading/error screen — `app/landing/order/page.tsx` (`handleSubmit`).
+Bug #3: ✅ Nav is now auth-aware — shows "My Account" instead of "Sign in" when a
+  session exists — `components/site/Nav.tsx`.
+
+Quick Fixes: ✅ done (2026-07-02)
+1. ✅ Header logo enlarged (`h-14 sm:h-16` → `h-16 sm:h-20`) — `components/site/Nav.tsx`.

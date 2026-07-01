@@ -14,7 +14,7 @@ export async function sendCustomerConfirmationEmail({
 
   const shortOrder = frameId.slice(-8).toUpperCase()
 
-  await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: `${fromName()} <${fromEmail()}>`,
     to,
     subject: `We've received your order! (#${shortOrder})`,
@@ -77,6 +77,11 @@ export async function sendCustomerConfirmationEmail({
 </body>
 </html>`,
   })
+
+  // Resend returns { error } instead of throwing on API failures (unverified
+  // sending domain, bad key, rate limit). Surface it so the caller can log it
+  // instead of the send failing silently.
+  if (error) throw new Error(`Resend customer email failed: ${error.name} — ${error.message}`)
 }
 
 // ── Admin: new order notification with QR ────────────────────────────────────
@@ -100,7 +105,7 @@ export async function sendAdminOrderNotification({
   const shortOrder = frameId.slice(-8).toUpperCase()
   const arUrl      = `${appUrl()}/ar?frame=${frameId}`
 
-  await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: `${fromName()} <${fromEmail()}>`,
     to: adminEmail,
     subject: `New order #${shortOrder} — ${customerName || customerEmail}`,
@@ -175,9 +180,13 @@ export async function sendAdminOrderNotification({
 </body>
 </html>`,
     attachments: [
-      { filename: `qr-${frameId}.png`, content: buffer },
+      // inlineContentId makes the QR render inline via <img src="cid:qrcode">
+      // (above), and it's still downloadable as an attachment.
+      { filename: `qr-${frameId}.png`, content: buffer, inlineContentId: 'qrcode' },
     ],
   })
+
+  if (error) throw new Error(`Resend admin email failed: ${error.name} — ${error.message}`)
 }
 
 // Legacy alias kept for any existing callers
