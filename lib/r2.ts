@@ -8,6 +8,11 @@ export const r2 = new S3Client({
     accessKeyId: process.env.R2_ACCESS_KEY_ID ?? '',
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? '',
   },
+  // AWS SDK v3 (>= ~3.729) defaults to "WHEN_SUPPORTED", which injects a
+  // CRC32 checksum into presigned PUT URLs. R2 rejects that placeholder
+  // checksum, breaking browser uploads. Only send checksums when required.
+  requestChecksumCalculation: 'WHEN_REQUIRED',
+  responseChecksumValidation: 'WHEN_REQUIRED',
 })
 
 export async function getUploadUrl(key: string, contentType: string) {
@@ -15,10 +20,6 @@ export async function getUploadUrl(key: string, contentType: string) {
     Bucket: process.env.R2_BUCKET_NAME ?? 'ar-frames',
     Key: key,
     ContentType: contentType,
-    // Add CORS headers to allow browser uploads
-    Metadata: {
-      'Cache-Control': 'max-age=3600',
-    },
   })
 
   return getSignedUrl(r2, command, { expiresIn: 900 })

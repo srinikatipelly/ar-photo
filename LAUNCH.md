@@ -47,10 +47,41 @@ One Next.js app serves **both** domains from a single Vercel deployment:
    `public/ar-viewer.html` line ~33).
 4. Confirm the bucket has public read + CORS (it already serves the viewer).
 
-## 3. Resend (email) 🧑‍💻
-1. **Verify the sending domain** `thegoldenframe.com.au` in Resend (DNS records).
+## 3. Email 🧑‍💻
+
+**Sending and receiving are separate systems.** Resend only sends *outbound app email*
+(it gives you no inbox). To receive customer replies you need inbound forwarding. Set up
+all three below — total extra cost is **$0** (Resend free tier + Cloudflare Email Routing).
+
+> ⚠️ The app now **throws** on Resend API errors (see `lib/resend.ts`) so failures show up
+> in Vercel function logs instead of failing silently. If order emails stop arriving, check
+> the logs first — an unverified `EMAIL_FROM_ADDRESS` domain is the usual cause.
+
+### 3a. Sending — app → customer/admin (Resend)
+1. **Verify the sending domain** `thegoldenframe.com.au` in Resend → Domains (add the
+   DKIM/SPF/DMARC DNS records it shows). These coexist with the inbound MX records in 3b —
+   Resend signs from a subdomain, so no conflict.
 2. Set `EMAIL_FROM_ADDRESS=hello@thegoldenframe.com.au`, `EMAIL_FROM_NAME=The Golden Frame`,
    `ADMIN_EMAIL=` (where admin order notifications go).
+   - Until `.com.au` is verified, you can point `EMAIL_FROM_ADDRESS` at the already-verified
+     `hello@thegoldenframe.co` so app emails keep working.
+3. Smoke test from any env: `npx tsx --env-file=.env.local scripts/test-email.ts you@example.com`
+   — prints Resend's `{ error }` so you see the real failure reason.
+
+### 3b. Receiving — customer → you (Cloudflare Email Routing, free)
+Forwards `hello@thegoldenframe.com.au` into an existing Gmail. Requires the domain's DNS on Cloudflare.
+1. Cloudflare → `thegoldenframe.com.au` zone → **Email → Email Routing → Enable**
+   (auto-adds MX + SPF records).
+2. **Routing rules** → `hello@thegoldenframe.com.au` → destination `thegoldenframecreations@gmail.com`
+   (a catch-all `*@…` rule is worth adding so nothing is lost).
+3. Click the verification link Cloudflare emails to the destination address.
+
+### 3c. Replying manually as `hello@…` (Gmail "Send mail as", optional)
+Cloudflare Routing can't send, so to reply from Gmail branded as `hello@thegoldenframe.com.au`:
+1. Gmail → Settings → **Accounts and Import → Send mail as → Add another email address**.
+2. Name `The Golden Frame`, email `hello@thegoldenframe.com.au`, **uncheck** "Treat as alias".
+3. SMTP `smtp.resend.com`, port `465` (SSL), username `resend`, password = your Resend API key.
+4. Confirm via the link Gmail sends (arrives through the 3b forwarding).
 
 ## 4. Stripe (payments) 🧑‍💻
 1. Switch to **live keys**: `STRIPE_SECRET_KEY=sk_live_…` (+ `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
@@ -104,7 +135,8 @@ One Next.js app serves **both** domains from a single Vercel deployment:
 ## 7. DNS 🧑‍💻
 - `thegoldenframe.com.au` → Vercel (apex A/ALIAS per Vercel) ; `www` → CNAME to Vercel.
 - `cdn.thegoldenframe.com.au` → Cloudflare R2 custom domain (section 2).
-- Email DNS (Resend SPF/DKIM) for `thegoldenframe.com.au`.
+- Email DNS for `thegoldenframe.com.au`: **outbound** = Resend SPF/DKIM/DMARC (section 3a);
+  **inbound** = Cloudflare Email Routing MX + SPF (section 3b). Both coexist.
 
 ## 8. Post-deploy smoke test 🧑‍💻
 1. `https://www.thegoldenframe.com.au/` → loads the premium landing (apex rewrite to `/landing`).

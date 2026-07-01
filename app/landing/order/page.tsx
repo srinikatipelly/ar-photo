@@ -277,9 +277,18 @@ export default function OrderPage() {
 
   async function handleSubmit() {
     const errs = validate()
-    if (Object.keys(errs).length) { setFieldErrors(errs); return }
+    if (Object.keys(errs).length) {
+      setFieldErrors(errs)
+      // Scroll up so the error summary + highlighted fields are visible (they're
+      // usually above the submit button the user just clicked at the bottom).
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
 
     setStep('compiling')
+    // The loading screen replaces the form; jump to top so it isn't rendered
+    // off-screen while the page is still scrolled to the submit button.
+    window.scrollTo({ top: 0 })
     setError('')
     setFieldErrors({})
 
@@ -328,6 +337,8 @@ export default function OrderPage() {
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Unknown error')
       setStep('error')
+      // Bring the error banner (rendered at the top of the form) into view.
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
@@ -399,6 +410,12 @@ export default function OrderPage() {
 
       {step === 'error' && error && (
         <div className="mt-6 rounded-2xl border border-red-400/40 bg-red-500/10 p-4 text-sm text-red-200">{error}</div>
+      )}
+
+      {step === 'form' && Object.keys(fieldErrors).length > 0 && (
+        <div className="mt-6 rounded-2xl border border-red-400/40 bg-red-500/10 p-4 text-sm font-medium text-red-200">
+          Please fix the highlighted fields below before continuing.
+        </div>
       )}
 
       <section className="mt-6 rounded-3xl border border-cream/15 bg-green-mid/30 p-6 sm:p-8">

@@ -1,17 +1,32 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { brand, navItems } from '@/lib/site-content'
+import { createBrowserSupabase } from '@/lib/supabase/client'
 
 export function Nav() {
   const [open, setOpen] = useState(false)
+  const [signedIn, setSignedIn] = useState(false)
+
+  // Detect an existing account session so we can swap "Sign in" for "My Account".
+  useEffect(() => {
+    const supabase = createBrowserSupabase()
+    supabase.auth
+      .getUser()
+      .then(({ data }) => setSignedIn(!!data.user))
+      .catch(() => {
+        /* not signed in / network issue — leave as signed out */
+      })
+  }, [])
+
+  const accountLabel = signedIn ? 'My Account' : 'Sign in'
 
   return (
     <header className="sticky top-0 z-50 border-b border-cream/10 bg-green-deep/90 backdrop-blur">
       <nav className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-6 py-3.5 sm:px-10">
         <a href="/landing" className="flex shrink-0 items-center gap-2.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-mark.png" alt={brand.name} className="h-14 w-auto sm:h-16" />
+          <img src="/logo-mark.png" alt={brand.name} className="h-16 w-auto sm:h-20" />
         </a>
 
         {/* Desktop links — centred and evenly spaced between logo and CTA */}
@@ -32,7 +47,7 @@ export function Nav() {
             href="/account"
             className="hidden text-sm font-medium text-cream/80 transition hover:text-gold-brand sm:inline"
           >
-            Sign in
+            {accountLabel}
           </a>
           <a
             href={brand.orderUrl}
@@ -73,7 +88,7 @@ export function Nav() {
               onClick={() => setOpen(false)}
               className="rounded-xl px-3 py-2.5 text-sm font-medium text-cream/80 transition hover:bg-green-mid hover:text-gold-brand"
             >
-              Sign in
+              {accountLabel}
             </a>
             <a
               href={brand.orderUrl}
