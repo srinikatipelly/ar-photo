@@ -1,4 +1,4 @@
-import { brand, services, pricingTiers, testimonials, landingHeroVideo } from '@/lib/site-content'
+import { brand, services, pricingTiers, testimonials, landingHeroVideo, landingHeroPoster } from '@/lib/site-content'
 import { Section, Eyebrow } from '@/components/site/Section'
 import { Steps } from '@/components/site/Steps'
 import { ServiceCard } from '@/components/site/ServiceCard'
@@ -10,15 +10,15 @@ import { WhatsAppButton } from '@/components/site/WhatsAppButton'
 export default function LandingHome() {
   return (
     <>
-      {/* ── Hero ─────────────────────────────────────────────────────────────── */}
+      {/* ── Hero — copy left, large framed showcase video right ──────────────── */}
       <section className="relative overflow-hidden px-6 sm:px-10">
         {/* Static luxe gradient backdrop */}
         <div
           aria-hidden="true"
           className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-10%,#1c4a47_0%,#0F3535_55%,#082020_100%)]"
         />
-        {/* Fills the first screen (viewport minus the ~5rem nav) and centres content */}
-        <div className="relative z-10 mx-auto grid min-h-[calc(100svh-6rem)] max-w-6xl items-center gap-10 py-10 lg:grid-cols-2 lg:gap-14">
+        {/* Fills the first screen (viewport minus the ~6rem nav) and centres content */}
+        <div className="relative z-10 mx-auto grid min-h-[calc(100svh-6rem)] max-w-7xl items-center gap-10 py-14 lg:grid-cols-[1fr_1.15fr] lg:gap-16">
           {/* Copy */}
           <div className="text-center lg:text-left">
             <Eyebrow>Living memories in augmented reality</Eyebrow>
@@ -47,9 +47,18 @@ export default function LandingHome() {
             </div>
           </div>
 
-          {/* 16:9 hero showcase video */}
-          <div className="mx-auto w-full max-w-xl lg:max-w-none">
-            <VideoFrame src={landingHeroVideo} fallbackLabel="Showcase video coming soon" />
+          {/* Large 16:9 showcase video — fills its column (no width cap) */}
+          <div className="relative w-full">
+            {/* Warm gold halo so the cream video melts into the green page */}
+            <div
+              aria-hidden="true"
+              className="absolute -inset-6 -z-10 rounded-[2rem] bg-[radial-gradient(circle_at_50%_50%,rgba(201,162,75,0.28)_0%,transparent_70%)] blur-2xl"
+            />
+            <VideoFrame
+              src={landingHeroVideo}
+              poster={landingHeroPoster}
+              fallbackLabel="Showcase video coming soon"
+            />
           </div>
         </div>
       </section>
@@ -109,7 +118,11 @@ export default function LandingHome() {
               Watch the Demo →
             </a>
           </div>
-          <VideoFrame src={landingHeroVideo} fallbackLabel="Demo video coming soon" />
+          <VideoFrame
+            src={landingHeroVideo}
+            poster={landingHeroPoster}
+            fallbackLabel="Demo video coming soon"
+          />
         </div>
       </Section>
 

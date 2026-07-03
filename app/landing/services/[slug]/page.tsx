@@ -63,7 +63,11 @@ export default async function ServicePage({
 
         {/* 16:9 category hero video */}
         <div className="mx-auto mt-12 max-w-4xl">
-          <VideoFrame src={service.heroVideo} fallbackLabel={`${service.name} demo coming soon`} />
+          <VideoFrame
+            src={service.heroVideo}
+            poster={service.heroPoster}
+            fallbackLabel={`${service.name} demo coming soon`}
+          />
         </div>
       </Section>
 

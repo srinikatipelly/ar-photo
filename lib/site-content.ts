@@ -92,7 +92,8 @@ export const services: Service[] = [
     ],
     cta: 'Create your wedding frame',
     ctaHref: '/upload',
-    heroVideo: '/videos/weddings.mp4',
+    heroVideo: '/videos/hero.mp4',
+    heroPoster: '/videos/hero-poster.jpg',
   },
   {
     slug: 'birthdays',
@@ -149,6 +150,13 @@ export const services: Service[] = [
 
 /** 16:9 hero/showcase video on the landing page (placeholder until supplied). */
 export const landingHeroVideo = '/videos/hero.mp4'
+/** Still frame shown before the hero video loads / when motion is reduced. */
+export const landingHeroPoster = '/videos/hero-poster.jpg'
+
+/** 16:9 demo still shown on the demo page. */
+export const demoImage = '/demo.jpg'
+/** Branded QR that opens a live WebAR sample when scanned. */
+export const demoQr = '/qr-demo.png'
 
 export function getService(slug: string): Service | undefined {
   return services.find((s) => s.slug === slug)
