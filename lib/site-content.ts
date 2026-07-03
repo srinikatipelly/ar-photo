@@ -149,6 +149,8 @@ export const services: Service[] = [
 
 /** 16:9 hero/showcase video on the landing page (placeholder until supplied). */
 export const landingHeroVideo = '/videos/hero.mp4'
+/** Still frame shown before the hero video loads / when motion is reduced. */
+export const landingHeroPoster = '/videos/hero-poster.jpg'
 
 export function getService(slug: string): Service | undefined {
   return services.find((s) => s.slug === slug)
