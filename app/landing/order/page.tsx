@@ -14,6 +14,26 @@ const FRAME_WAS = 79.0
 const DELIVERY_PRICE = 9.95
 const TOTAL = (FRAME_PRICE + DELIVERY_PRICE).toFixed(2)
 const TOTAL_WAS = (FRAME_WAS + DELIVERY_PRICE).toFixed(2)
+const DIGITAL_PRICE = 19.0
+
+// Friendly labels for the error summary at the top of the form.
+const FIELD_LABELS: Record<string, string> = {
+  firstName: 'First name',
+  lastName: 'Last name',
+  email: 'Email address',
+  photo: 'Frame photo',
+  video: 'Video',
+  consentUpload: 'Consent to process your files',
+  consentStore: 'Permission to store your files',
+  deliveryLine1: 'Delivery — street address',
+  deliverySuburb: 'Delivery — suburb',
+  deliveryState: 'Delivery — state',
+  deliveryPostcode: 'Delivery — postcode',
+  postalLine1: 'Postal — street address',
+  postalSuburb: 'Postal — suburb',
+  postalState: 'Postal — state',
+  postalPostcode: 'Postal — postcode',
+}
 
 const AU_STATES = ['ACT', 'NSW', 'NT', 'QLD', 'SA', 'TAS', 'VIC', 'WA']
 type Address = { line1: string; line2: string; suburb: string; state: string; postcode: string }
@@ -139,6 +159,7 @@ export default function OrderPage() {
   const [consentStore, setConsentStore] = useState(false)
   const [cancelled, setCancelled] = useState(false)
   const [signedIn, setSignedIn] = useState(false)
+  const [isDigital, setIsDigital] = useState(false)
 
   const [delivery, setDelivery] = useState<Address>(emptyAddr())
   const [postalSameAsDelivery, setPostalSame] = useState(true)
@@ -173,7 +194,9 @@ export default function OrderPage() {
   }, [])
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get('cancelled') === '1') setCancelled(true)
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('cancelled') === '1') setCancelled(true)
+    if (params.get('kind') === 'digital') setIsDigital(true)
   }, [])
 
   useEffect(() => {
@@ -242,8 +265,10 @@ export default function OrderPage() {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = 'Please enter a valid email address.'
     if (!photo) errs.photo = 'Please upload a frame photo.'
     if (!video) errs.video = fieldErrors.video ?? 'Please upload a video.'
-    validateAddress(delivery, 'delivery', errs)
-    if (!postalSameAsDelivery) validateAddress(postal, 'postal', errs)
+    if (!isDigital) {
+      validateAddress(delivery, 'delivery', errs)
+      if (!postalSameAsDelivery) validateAddress(postal, 'postal', errs)
+    }
     if (!consentUpload) errs.consentUpload = 'You must consent to uploading your photo and video.'
     if (!consentStore) errs.consentStore = 'You must give permission to store your files.'
     return errs
@@ -311,8 +336,8 @@ export default function OrderPage() {
       const customerName = `${firstName.trim()} ${lastName.trim()}`.trim()
       const fmtAddress = (a: Address) =>
         [a.line1, a.line2, a.suburb, `${a.state} ${a.postcode}`, 'Australia'].filter(Boolean).join(', ')
-      const deliveryAddress = fmtAddress(delivery)
-      const postalAddress = postalSameAsDelivery ? deliveryAddress : fmtAddress(postal)
+      const deliveryAddress = isDigital ? '' : fmtAddress(delivery)
+      const postalAddress = isDigital ? '' : postalSameAsDelivery ? deliveryAddress : fmtAddress(postal)
 
       const res = await fetch('/api/checkout', {
         method: 'POST',
@@ -322,6 +347,7 @@ export default function OrderPage() {
           customerEmail: email, customerName,
           mobile: mobile.trim(),
           deliveryAddress, postalAddress,
+          kind: isDigital ? 'digital' : 'frame',
         }),
       })
       if (!res.ok) {
@@ -369,37 +395,80 @@ export default function OrderPage() {
   const inputCls = (field: string) =>
     `${inputBase} ${fieldErrors[field] ? 'border-red-400/70 bg-red-500/10' : 'border-cream/20'}`
 
+  const errorList = Object.keys(fieldErrors)
+    .filter((k) => fieldErrors[k])
+    .map((k) => FIELD_LABELS[k] ?? fieldErrors[k])
+
   return (
     <main className="mx-auto w-full max-w-3xl px-6 py-14 sm:px-10">
-      <span className="eyebrow">Order</span>
-      <h1 className="mt-3 font-display text-4xl text-cream sm:text-5xl">Create your AR experience</h1>
+      <span className="eyebrow">{isDigital ? 'Digital AR Only' : 'Order'}</span>
+      <h1 className="mt-3 font-display text-4xl text-cream sm:text-5xl">AR Personalised Frames</h1>
+      <p className="mt-3 font-display text-xl text-gold-brand">
+        Your photo. Your video. Alive on the wall.
+      </p>
       <p className="mt-3 max-w-xl text-sm leading-relaxed text-cream/70">
-        Upload your photo and video. We&apos;ll craft your personalised AR frame — dispatched in 2–3
-        business days.
+        Scan the QR code on your frame and watch your still photo transform into a moving video
+        memory — relived, every single time.{' '}
+        {isDigital
+          ? 'This is a Digital AR Only order — no physical frame is sent. Within 1–2 business days we’ll email your photo with the QR code attached, ready to print and frame yourself.'
+          : "We'll craft your personalised AR frame and dispatch it in 2–3 business days."}
       </p>
 
-      {/* Pricing banner */}
-      <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3 rounded-2xl border border-gold-brand/30 bg-green-mid/40 p-5">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-gold-brand">AR Photo Frame 8×10</p>
-          <p className="mt-0.5 text-sm text-cream/80">
-            <span className="text-lg font-bold text-cream">${FRAME_PRICE.toFixed(0)}</span>{' '}
-            <span className="text-sm text-cream/40 line-through">${FRAME_WAS.toFixed(0)}</span>
-          </p>
-        </div>
-        <div className="h-8 w-px bg-cream/15" />
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-gold-brand">Delivery</p>
-          <p className="mt-0.5 text-sm font-bold text-cream">${DELIVERY_PRICE.toFixed(2)}</p>
-        </div>
-        <div className="h-8 w-px bg-cream/15" />
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-gold-brand">Total</p>
-          <p className="mt-0.5 text-sm font-bold text-cream">
-            ${TOTAL} <span className="text-sm font-normal text-cream/40 line-through">${TOTAL_WAS}</span>
-          </p>
-        </div>
+      {/* How it works — 3 simple steps */}
+      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        {[
+          { n: '1', title: 'Choose your moment', body: 'Pick the occasion — baby, couple, family or celebration.' },
+          { n: '2', title: 'Send your photo + video', body: 'We embed your video memory behind the QR code.' },
+          { n: '3', title: 'Scan & relive it', body: 'Point your phone at the QR — your memory plays instantly.' },
+        ].map((s) => (
+          <div key={s.n} className="rounded-2xl border border-cream/15 bg-green-mid/30 p-5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gold-brand text-sm font-bold text-green-deep">
+              {s.n}
+            </span>
+            <p className="mt-3 text-sm font-semibold text-cream">{s.title}</p>
+            <p className="mt-1 text-xs leading-relaxed text-cream/60">{s.body}</p>
+          </div>
+        ))}
       </div>
+
+      {/* Pricing banner */}
+      {isDigital ? (
+        <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3 rounded-2xl border border-gold-brand/30 bg-green-mid/40 p-5">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-gold-brand">Digital AR Only</p>
+            <p className="mt-0.5 text-sm text-cream/80">
+              <span className="text-lg font-bold text-cream">From ${DIGITAL_PRICE.toFixed(0)}</span>
+            </p>
+          </div>
+          <div className="h-8 w-px bg-cream/15" />
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-gold-brand">Delivery</p>
+            <p className="mt-0.5 text-sm font-bold text-cream">QR by email — no physical frame</p>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3 rounded-2xl border border-gold-brand/30 bg-green-mid/40 p-5">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-gold-brand">AR Photo Frame 8×10</p>
+            <p className="mt-0.5 text-sm text-cream/80">
+              <span className="text-lg font-bold text-cream">${FRAME_PRICE.toFixed(0)}</span>{' '}
+              <span className="text-sm text-cream/40 line-through">${FRAME_WAS.toFixed(0)}</span>
+            </p>
+          </div>
+          <div className="h-8 w-px bg-cream/15" />
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-gold-brand">Delivery</p>
+            <p className="mt-0.5 text-sm font-bold text-cream">${DELIVERY_PRICE.toFixed(2)}</p>
+          </div>
+          <div className="h-8 w-px bg-cream/15" />
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-gold-brand">Total</p>
+            <p className="mt-0.5 text-sm font-bold text-cream">
+              ${TOTAL} <span className="text-sm font-normal text-cream/40 line-through">${TOTAL_WAS}</span>
+            </p>
+          </div>
+        </div>
+      )}
 
       {cancelled && (
         <div className="mt-6 rounded-2xl border border-gold-brand/30 bg-gold-brand/10 p-4 text-sm text-cream/80">
@@ -409,12 +478,29 @@ export default function OrderPage() {
       )}
 
       {step === 'error' && error && (
-        <div className="mt-6 rounded-2xl border border-red-400/40 bg-red-500/10 p-4 text-sm text-red-200">{error}</div>
+        <div
+          role="alert"
+          className="mt-6 flex items-start gap-3 rounded-2xl border-2 border-red-500 bg-red-500/20 p-4 text-sm font-semibold text-red-100"
+        >
+          <span aria-hidden="true" className="text-lg leading-none">⚠️</span>
+          <span>{error}</span>
+        </div>
       )}
 
-      {step === 'form' && Object.keys(fieldErrors).length > 0 && (
-        <div className="mt-6 rounded-2xl border border-red-400/40 bg-red-500/10 p-4 text-sm font-medium text-red-200">
-          Please fix the highlighted fields below before continuing.
+      {step === 'form' && errorList.length > 0 && (
+        <div
+          role="alert"
+          className="mt-6 rounded-2xl border-2 border-red-500 bg-red-500/20 p-4 text-red-50"
+        >
+          <p className="flex items-center gap-2 text-sm font-bold">
+            <span aria-hidden="true" className="text-lg leading-none">⚠️</span>
+            Please fix {errorList.length} {errorList.length === 1 ? 'field' : 'fields'} before continuing:
+          </p>
+          <ul className="mt-2 list-disc space-y-1 pl-9 text-sm font-medium text-red-100">
+            {errorList.map((label) => (
+              <li key={label}>{label}</li>
+            ))}
+          </ul>
         </div>
       )}
 
@@ -488,30 +574,46 @@ export default function OrderPage() {
           {fieldErrors.video && <p className="mt-1 text-xs text-red-300">{fieldErrors.video}</p>}
         </div>
 
-        <div className="my-6 border-t border-cream/10" />
+        {isDigital ? (
+          <>
+            <div className="my-6 border-t border-cream/10" />
+            <div className="rounded-2xl border border-gold-brand/25 bg-green-deep/40 p-5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-gold-brand">Digital delivery</p>
+              <p className="mt-2 text-sm leading-relaxed text-cream/75">
+                No physical frame will be sent. Within 1&ndash;2 business days we&apos;ll email your photo
+                with the QR code attached, ready for you to print and frame yourself — so we don&apos;t
+                need a delivery address.
+              </p>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="my-6 border-t border-cream/10" />
 
-        {/* Delivery address */}
-        <h2 className="mb-1 text-xs font-semibold uppercase tracking-widest text-gold-brand">Delivery address</h2>
-        <p className="mb-4 text-xs text-cream/40">Where should we send your frame? Physical address only — no PO Boxes.</p>
-        <AddressBlock values={delivery} prefix="delivery" errors={fieldErrors} onChange={onDeliveryChange} />
+            {/* Delivery address */}
+            <h2 className="mb-1 text-xs font-semibold uppercase tracking-widest text-gold-brand">Delivery address</h2>
+            <p className="mb-4 text-xs text-cream/40">Where should we send your frame? Physical address only — no PO Boxes.</p>
+            <AddressBlock values={delivery} prefix="delivery" errors={fieldErrors} onChange={onDeliveryChange} />
 
-        <div className="my-6 border-t border-cream/10" />
+            <div className="my-6 border-t border-cream/10" />
 
-        {/* Postal address */}
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-gold-brand">Postal address</h2>
-        <label className="flex cursor-pointer items-center gap-2.5">
-          <input
-            type="checkbox"
-            checked={postalSameAsDelivery}
-            onChange={(e) => setPostalSame(e.target.checked)}
-            className="h-4 w-4 rounded border-cream/30 accent-gold-brand"
-          />
-          <span className="text-sm text-cream/80">Same as delivery address</span>
-        </label>
-        {!postalSameAsDelivery && (
-          <div className="mt-4">
-            <AddressBlock values={postal} prefix="postal" errors={fieldErrors} onChange={onPostalChange} />
-          </div>
+            {/* Postal address */}
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-gold-brand">Postal address</h2>
+            <label className="flex cursor-pointer items-center gap-2.5">
+              <input
+                type="checkbox"
+                checked={postalSameAsDelivery}
+                onChange={(e) => setPostalSame(e.target.checked)}
+                className="h-4 w-4 rounded border-cream/30 accent-gold-brand"
+              />
+              <span className="text-sm text-cream/80">Same as delivery address</span>
+            </label>
+            {!postalSameAsDelivery && (
+              <div className="mt-4">
+                <AddressBlock values={postal} prefix="postal" errors={fieldErrors} onChange={onPostalChange} />
+              </div>
+            )}
+          </>
         )}
 
         <div className="my-6 border-t border-cream/10" />
@@ -570,7 +672,7 @@ export default function OrderPage() {
 
       <div className="mt-6 flex flex-wrap justify-center gap-6 text-xs text-cream/40">
         <span>✉️ Confirmation sent to your email</span>
-        <span>📦 Dispatched in 2–3 business days</span>
+        <span>{isDigital ? '📱 Photo + QR emailed in 1–2 business days' : '📦 Dispatched in 2–3 business days'}</span>
         <span>🎥 Video: max 1 min · 200 MB</span>
       </div>
     </main>

@@ -66,25 +66,36 @@ export function OrderCard({ order }: { order: Order }) {
 
       {!deleted && (
         <div className="mt-5 flex flex-wrap gap-2">
-          <a
-            href={`/ar?frame=${order.frame_id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-full bg-gold-brand px-4 py-2 text-xs font-semibold text-green-deep transition hover:bg-cream"
-          >
-            View AR
-          </a>
-          {order.qr_url && (
-            <a
-              href={order.qr_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-full border border-cream/25 px-4 py-2 text-xs font-semibold text-cream transition hover:border-gold-brand hover:text-gold-brand"
-            >
-              QR code
-            </a>
+          {order.qr_url ? (
+            <>
+              <a
+                href={order.qr_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full bg-gold-brand px-4 py-2 text-xs font-semibold text-green-deep transition hover:bg-cream"
+              >
+                View QR code
+              </a>
+              <a
+                href={order.qr_url}
+                download={`golden-frame-qr-${order.frame_id}.png`}
+                className="rounded-full border border-cream/25 px-4 py-2 text-xs font-semibold text-cream transition hover:border-gold-brand hover:text-gold-brand"
+              >
+                Download QR
+              </a>
+            </>
+          ) : (
+            <span className="rounded-full border border-cream/15 px-4 py-2 text-xs font-medium text-cream/50">
+              QR code preparing…
+            </span>
           )}
         </div>
+      )}
+
+      {!deleted && (
+        <p className="mt-3 text-xs leading-relaxed text-cream/50">
+          Scan the QR code on your frame with any phone camera to relive your memory — no app needed.
+        </p>
       )}
 
       {error && <p className="mt-3 text-xs text-red-300">{error}</p>}

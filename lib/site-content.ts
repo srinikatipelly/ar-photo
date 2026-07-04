@@ -28,7 +28,7 @@ export const navItems: NavItem[] = [
   { label: 'Demo', href: '/landing/demo' },
   { label: 'Pricing', href: '/landing/pricing' },
   { label: 'Testimonials', href: '/landing#testimonials' },
-  { label: 'Contact', href: '/landing#contact' },
+  { label: 'Contact', href: '/landing/contact' },
 ]
 
 // ── How it works ────────────────────────────────────────────────────────────--
@@ -70,10 +70,24 @@ export type Service = {
   cta: string
   /** Where the primary CTA points — order flow for frames, contact/demo for B2B */
   ctaHref: string
-  /** Path to the 16:9 hero video for this category (placeholder until supplied) */
-  heroVideo: string
+  /** Path to the 16:9 hero video for this category. Omit to hide the hero video entirely. */
+  heroVideo?: string
   /** Optional poster image for the hero video */
   heroPoster?: string
+  /** Optional intro shown above an "occasions we cover" list */
+  occasionsIntro?: string
+  /** Optional list of occasions rendered as a chip grid (Special Events) */
+  occasions?: string[]
+  /** Optional 9:16 vertical demo video (e.g. Mother's Day mobile promo) */
+  verticalVideo?: string
+  /** Caption for the vertical demo video */
+  verticalVideoLabel?: string
+  /** Optional heading + note that emphasises contacting us (B2B / bespoke) */
+  contactNote?: string
+  /** Hide the hero heading/lead block on the detail page */
+  hideHero?: boolean
+  /** Hide the "Why you'll love it / What's included" features section */
+  hideFeatures?: boolean
 }
 
 export const services: Service[] = [
@@ -96,55 +110,88 @@ export const services: Service[] = [
     heroPoster: '/videos/hero-poster.jpg',
   },
   {
-    slug: 'birthdays',
-    name: 'Birthdays, Kids & Events',
-    summary: 'Milestone birthdays, baby firsts and celebrations that move and speak.',
+    slug: 'special-events',
+    name: 'Special Events',
+    summary: 'Any occasion, beautifully relived — one frame for every moment worth keeping.',
     showTagline: true,
-    headline: 'Every milestone, beautifully relived',
-    lead: 'From a child’s first steps to a milestone birthday or a once-in-a-lifetime celebration, we turn the photo into a portal — scan it and the moment plays again, with all its warmth and sound.',
+    headline: 'A frame for every special moment',
+    lead: 'Whatever the occasion, we can bring it to life. Choose any photo from any celebration and we’ll turn it into a living AR keepsake — scan it, and the moment plays again with all its warmth and sound. Be it a milestone, a holiday or a once-in-a-lifetime day, there’s no event we can’t create a frame for.',
     features: [
-      'Perfect for kids’ milestones and big birthdays',
-      'Bring baby’s first steps or a birthday surprise to life',
+      'Any occasion — order any frame for any moment',
+      'Bring the day back to life with video and sound',
       'An unforgettable, deeply personal gift',
       'Works on any phone — just point and watch',
     ],
-    cta: 'Create your celebration frame',
+    occasionsIntro:
+      'From the biggest milestones to the quiet moments in between, we can create a frame for any of these — and anything else you have in mind:',
+    occasions: [
+      'Christmas',
+      "Mother's Day",
+      "Father's Day",
+      'Weddings',
+      'Milestone birthdays (18th, 21st, 30th, 40th, 50th, 60th)',
+      "Kids' birthdays",
+      'Anniversaries',
+      'New baby / christening / naming day',
+      "Valentine's Day",
+      'Graduations',
+      'Memorial / in-memoriam keepsakes',
+      'Grandparents Day',
+      'Retirement',
+      'ANZAC Day',
+      'Easter',
+      'Australia Day',
+      'New Year',
+      'Engagements / proposals',
+      'Baby showers / gender reveals',
+      'Housewarming / new home',
+    ],
+    verticalVideo: '/videos/Mothers%20Day%20Mobile%20Video.mp4',
+    verticalVideoLabel: "Mother's Day — a living memory in motion",
+    cta: 'Create your event frame',
     ctaHref: '/upload',
-    heroVideo: '/videos/birthdays.mp4',
+    // No 16:9 hero video — the vertical "See it in motion" demo below is the real showcase.
+    hideHero: true,
+    hideFeatures: true,
   },
   {
-    slug: 'real-estate',
-    name: 'Real Estate',
-    summary: 'Add a scannable AR video to your listing photos — we provide the experience and QR code.',
+    slug: 'real-estate-corporates',
+    name: 'Real Estate & Corporates',
+    summary: 'Scannable AR for listings, flyers, brochures and business cards — we supply the QR, you print your way.',
     showTagline: false,
-    headline: 'Listings that come to life',
-    lead: 'Give your listing imagery a digital dimension. We create the AR experience and a QR code that links a property photo to a walkthrough, drone reel or agent introduction — so when it’s scanned, the listing comes alive. You print and place it your way.',
+    headline: 'Marketing that comes to life',
+    lead: 'Give your real estate listings and corporate marketing a digital dimension. We create the AR experience and a QR code that links any printed piece — a listing photo, flyer, brochure or business card — to a walkthrough, drone reel, agent intro or brand video. We supply the digital QR code; you print it however suits your marketing.',
     features: [
-      'We supply the AR experience + QR code linking your photo to a video',
-      'Plays walkthroughs, drone footage or agent intros on scan',
+      'One AR experience + QR code for real estate and corporate marketing',
+      'Ideas: flyers, brochures, business cards, listing boards, packaging',
+      'Plays walkthroughs, drone footage, agent or brand videos on scan',
       'No app required — opens straight in the phone camera (WebAR)',
-      'We don’t print — use your own printer, or we’ll connect you with a printing partner',
+      'We supply the digital QR code — print it whichever way suits you',
     ],
-    cta: 'Talk to us & book a demo',
-    ctaHref: '/landing#contact',
-    heroVideo: '/videos/real-estate.mp4',
+    contactNote:
+      'Every business is different. Contact us and talk to us about your marketing goals — we’ll tailor the AR experience and QR code, then hand you the digital copy ready to print on flyers, brochures, business cards or anything else.',
+    cta: 'Contact us & talk to us',
+    ctaHref: '/landing/contact',
+    heroVideo: '/videos/RealEstate_websiteAssets.mp4',
   },
   {
-    slug: 'business',
-    name: 'Business',
-    summary: 'Turn your marketing into scannable video experiences — we provide the AR and QR code.',
-    showTagline: false,
-    headline: 'Make your brand unforgettable',
-    lead: 'Turn any printed item into a premium “live” experience. We create the AR experience and a QR code so your brochures, cards, packaging or marketing play a video message when scanned — adding emotional value and setting you apart. You handle printing; we’ll guide you or connect a partner.',
+    slug: 'custom',
+    name: 'Custom',
+    summary: 'Something bespoke in mind? Be it any event, we can create a frame for your special moments.',
+    showTagline: true,
+    headline: 'Your moment, made bespoke',
+    lead: 'Have something unique in mind? Whatever the occasion — any event, any idea — we can create a frame for your special moments. If it doesn’t fit a standard category, this is exactly where it belongs. Tell us what you’re imagining and we’ll design a custom AR frame around it. Contact us and talk to us — we’ll help bring it to life.',
     features: [
-      'We supply the AR experience + QR code that plays your video on scan',
-      'Great for cards, brochures, packaging and marketing collateral',
-      'Increase perceived product value instantly',
-      'We don’t print — use your own printer, or we’ll connect you with a partner',
+      'Any event, any idea — we create a frame for your special moments',
+      'Fully bespoke to your photo, video and occasion',
+      'A one-of-a-kind, deeply personal keepsake',
+      'Works on any phone — just point and watch',
     ],
-    cta: 'Talk to us & book a demo',
-    ctaHref: '/landing#contact',
-    heroVideo: '/videos/business.mp4',
+    cta: 'Contact us & talk to us',
+    ctaHref: '/landing/contact',
+    // Single merged contact section — the hero itself is contact-led, so no separate
+    // contactNote block. No demo video — Custom is a bespoke, contact-led category.
+    hideFeatures: true,
   },
 ]
 
@@ -204,21 +251,21 @@ export const pricingTiers: PricingTier[] = [
       'No physical frame',
     ],
     cta: 'Get started',
-    href: '/landing/order',
+    href: '/landing/order?kind=digital',
   },
   {
-    name: 'Business & Real Estate',
+    name: 'Real Estate & Corporates',
     price: 'Custom',
     unit: 'volume & branding',
-    description: 'AR-enabled brochures, flyers, boards and packaging at volume, tailored to your brand.',
+    description: 'AR-enabled flyers, brochures, business cards and boards, tailored to your brand.',
     features: [
       'Bulk processing & branded delivery',
-      'Flyers, brochures, boards, packaging',
+      'Flyers, brochures, business cards, boards',
       'Volume pricing',
       'Dedicated support',
     ],
     cta: 'Talk to us',
-    href: '/landing#contact',
+    href: '/landing/contact',
   },
 ]
 

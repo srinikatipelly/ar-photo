@@ -2,9 +2,9 @@ import type { Service } from '@/lib/site-content'
 
 const icons: Record<string, string> = {
   weddings: '💍',
-  birthdays: '🎂',
-  'real-estate': '🏡',
-  business: '💼',
+  'special-events': '🎉',
+  'real-estate-corporates': '🏡',
+  custom: '✨',
 }
 
 export function ServiceCard({ service }: { service: Service }) {
