@@ -6,7 +6,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const base = brand.siteUrl
   const now = new Date()
 
-  const staticRoutes = ['/landing', '/landing/services', '/landing/demo', '/landing/pricing'].map(
+  const staticRoutes = ['/landing', '/landing/services', '/landing/demo', '/landing/pricing', '/landing/contact'].map(
     (path) => ({
       url: `${base}${path}`,
       lastModified: now,

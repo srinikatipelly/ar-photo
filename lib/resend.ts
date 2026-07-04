@@ -8,11 +8,37 @@ const appUrl    = () => process.env.NEXT_PUBLIC_APP_URL ?? 'https://thegoldenfra
 
 // ── Customer: order confirmation (no QR) ────────────────────────────────────
 export async function sendCustomerConfirmationEmail({
-  to, name, frameId,
-}: { to: string; name: string; frameId: string }) {
+  to, name, frameId, isDigital = false,
+}: { to: string; name: string; frameId: string; isDigital?: boolean }) {
   if (!resend) return
 
   const shortOrder = frameId.slice(-8).toUpperCase()
+
+  const introLine = isDigital
+    ? `Hi ${name || 'there'}, thank you for your order. This is a Digital AR Only order — no physical frame will be sent. Within 1–2 business days we’ll email your photo with the QR code attached, ready for you to print and frame yourself.`
+    : `Hi ${name || 'there'}, thank you for your order. Our team will handcraft your personalised AR photo frame and have it on its way to you within 2–3 business days.`
+
+  const nextStepsRows = isDigital
+    ? `
+              <p style="margin:0 0 8px;font-size:13px;color:#52525b;">
+                <strong style="color:#18181b;">Within 1–2 business days</strong> — We email your photo with the QR code attached, ready to print
+              </p>
+              <p style="margin:0 0 8px;font-size:13px;color:#52525b;">
+                <strong style="color:#18181b;">Print &amp; frame it</strong> — Print the photo at home or a print shop, then frame it however you like. Keep the QR code visible so it can be scanned.
+              </p>
+              <p style="margin:0;font-size:13px;color:#52525b;">
+                <strong style="color:#18181b;">Scan &amp; relive</strong> — Point any phone camera at the QR code and watch your video come alive!
+              </p>`
+    : `
+              <p style="margin:0 0 8px;font-size:13px;color:#52525b;">
+                <strong style="color:#18181b;">1–2 business days</strong> — We craft your personalised frame
+              </p>
+              <p style="margin:0 0 8px;font-size:13px;color:#52525b;">
+                <strong style="color:#18181b;">2–3 business days</strong> — Your frame is carefully packaged and shipped
+              </p>
+              <p style="margin:0;font-size:13px;color:#52525b;">
+                <strong style="color:#18181b;">When it arrives</strong> — Scan the QR code on the back with your phone camera and watch your video come alive!
+              </p>`
 
   const { error } = await resend.emails.send({
     from: `${fromName()} <${fromEmail()}>`,
@@ -36,21 +62,12 @@ export async function sendCustomerConfirmationEmail({
             Order received! 🎉
           </h1>
           <p style="margin:0 0 24px;font-size:16px;color:#71717a;line-height:1.6;">
-            Hi ${name || 'there'}, thank you for your order. Our team will handcraft your personalised AR photo frame and have it on its way to you within 2–3 business days.
+            ${introLine}
           </p>
 
           <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e4e4e7;border-radius:12px;padding:20px 24px;margin:0 0 24px;">
             <tr><td>
-              <p style="margin:0 0 12px;font-size:14px;font-weight:600;color:#18181b;">What happens next</p>
-              <p style="margin:0 0 8px;font-size:13px;color:#52525b;">
-                <strong style="color:#18181b;">1–2 business days</strong> — We craft your personalised frame
-              </p>
-              <p style="margin:0 0 8px;font-size:13px;color:#52525b;">
-                <strong style="color:#18181b;">2–3 business days</strong> — Your frame is carefully packaged and shipped
-              </p>
-              <p style="margin:0;font-size:13px;color:#52525b;">
-                <strong style="color:#18181b;">When it arrives</strong> — Scan the QR code on the back with your phone camera and watch your video come alive!
-              </p>
+              <p style="margin:0 0 12px;font-size:14px;font-weight:600;color:#18181b;">What happens next</p>${nextStepsRows}
             </td></tr>
           </table>
 
@@ -87,6 +104,7 @@ export async function sendCustomerConfirmationEmail({
 // ── Admin: new order notification with QR ────────────────────────────────────
 export async function sendAdminOrderNotification({
   frameId, customerName, customerEmail, mobile, deliveryAddress, photoUrl, videoUrl, qrDataUrl,
+  isDigital = false,
 }: {
   frameId: string
   customerName: string
@@ -96,6 +114,7 @@ export async function sendAdminOrderNotification({
   photoUrl: string
   videoUrl: string
   qrDataUrl: string
+  isDigital?: boolean
 }) {
   const adminEmail = process.env.ADMIN_EMAIL
   if (!resend || !adminEmail) return
@@ -104,11 +123,12 @@ export async function sendAdminOrderNotification({
   const buffer     = Buffer.from(base64Data, 'base64')
   const shortOrder = frameId.slice(-8).toUpperCase()
   const arUrl      = `${appUrl()}/ar?frame=${frameId}`
+  const orderType  = isDigital ? 'DIGITAL AR ONLY (no frame to ship)' : 'AR Photo Frame (ship physical frame)'
 
   const { error } = await resend.emails.send({
     from: `${fromName()} <${fromEmail()}>`,
     to: adminEmail,
-    subject: `New order #${shortOrder} — ${customerName || customerEmail}`,
+    subject: `New ${isDigital ? 'DIGITAL' : 'frame'} order #${shortOrder} — ${customerName || customerEmail}`,
     html: `
 <!DOCTYPE html>
 <html lang="en">
@@ -124,6 +144,13 @@ export async function sendAdminOrderNotification({
         </td></tr>
 
         <tr><td style="padding:32px 36px 0;">
+
+          <!-- Order type -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:${isDigital ? '#fef3c7' : '#dcfce7'};border:1px solid ${isDigital ? '#fcd34d' : '#86efac'};border-radius:12px;padding:14px 24px;margin:0 0 24px;">
+            <tr><td>
+              <p style="margin:0;font-size:14px;font-weight:700;color:#18181b;">Order type: ${orderType}</p>
+            </td></tr>
+          </table>
 
           <!-- Customer details -->
           <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;border-radius:12px;padding:20px 24px;margin:0 0 24px;">

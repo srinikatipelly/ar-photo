@@ -6,7 +6,7 @@ import { WhatsAppButton } from '@/components/site/WhatsAppButton'
 
 export const metadata: Metadata = {
   title: 'Pricing',
-  description: 'Simple, premium pricing for AR photo frames, digital AR experiences, and business volume orders.',
+  description: 'Premium service, simple pricing for AR photo frames, digital AR experiences, and business volume orders.',
   alternates: { canonical: '/landing/pricing' },
 }
 
@@ -36,7 +36,7 @@ export default function PricingPage() {
         <div className="mx-auto max-w-2xl text-center">
           <Eyebrow>Pricing</Eyebrow>
           <h1 className="mt-3 font-display text-4xl text-cream sm:text-5xl">
-            Simple, premium pricing
+            Premium service, simple pricing
           </h1>
           <p className="mt-4 text-sm leading-relaxed text-cream/70">
             Choose the living memory that suits you. No subscriptions, no hidden fees.

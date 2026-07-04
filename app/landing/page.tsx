@@ -131,7 +131,7 @@ export default function LandingHome() {
         <div className="mx-auto max-w-2xl text-center">
           <Eyebrow>Pricing</Eyebrow>
           <h2 className="mt-3 font-display text-3xl text-cream sm:text-4xl">
-            Simple, premium pricing
+            Premium service, simple pricing
           </h2>
         </div>
         <div className="mt-12 grid gap-6 lg:grid-cols-3">
