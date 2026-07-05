@@ -128,3 +128,9 @@ Bugs: ✅ fixed (2026-07-05) — Digital AR Only (AR-only) order messaging
    in 1–2 business days") — `app/landing/order/page.tsx`.
 
 
+More improvement: 05/07/2026:
+
+1. ✅ Fixed: Weddings ("Create your wedding frame") & Special Events ("Create your event
+   frame") service CTAs (`ctaHref`) pointed to the legacy `/upload` page (unbranded, no
+   Stripe). Both now route to the premium `/landing/order` flow (brand fonts/colours +
+   Stripe checkout) — `lib/site-content.ts`.
