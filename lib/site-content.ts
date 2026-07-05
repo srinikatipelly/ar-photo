@@ -105,7 +105,7 @@ export const services: Service[] = [
       'A timeless anniversary gift for years to come',
     ],
     cta: 'Create your wedding frame',
-    ctaHref: '/upload',
+    ctaHref: '/landing/order',
     heroVideo: '/videos/hero.mp4',
     heroPoster: '/videos/hero-poster.jpg',
   },
@@ -149,7 +149,7 @@ export const services: Service[] = [
     verticalVideo: '/videos/Mothers%20Day%20Mobile%20Video.mp4',
     verticalVideoLabel: "Mother's Day — a living memory in motion",
     cta: 'Create your event frame',
-    ctaHref: '/upload',
+    ctaHref: '/landing/order',
     // No 16:9 hero video — the vertical "See it in motion" demo below is the real showcase.
     hideHero: true,
     hideFeatures: true,
