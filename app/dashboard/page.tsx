@@ -99,7 +99,7 @@ export default async function DashboardPage() {
                 {orders.map((order) => (
                   <tr key={order.id} className="hover:bg-zinc-50">
                     <td className="px-5 py-4">
-                      <p className="font-medium text-zinc-900">{order.customer_name || '—'}</p>
+                      <p className="font-medium text-zinc-900">{order.customer_name || '-'}</p>
                       <p className="text-xs text-zinc-400">{order.customer_email}</p>
                     </td>
                     <td className="px-5 py-4 font-mono text-xs text-zinc-500">{order.frame_id}</td>
@@ -107,7 +107,7 @@ export default async function DashboardPage() {
                     <td className="px-5 py-4"><StatusBadge status={order.payment_status ?? 'unknown'} /></td>
                     <td className="px-5 py-4 text-right text-zinc-600">{order.scan_count}</td>
                     <td className="px-5 py-4 text-right text-zinc-600">
-                      {order.price_paid ? `$${(order.price_paid / 100).toFixed(2)}` : '—'}
+                      {order.price_paid ? `$${(order.price_paid / 100).toFixed(2)}` : '-'}
                     </td>
                     <td className="px-5 py-4 text-right text-zinc-400">
                       {new Date(order.created_at).toLocaleDateString('en-AU', {

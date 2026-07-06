@@ -24,24 +24,24 @@ export default async function OrderSuccessPage({
   const isDigital = kind === 'digital'
 
   const intro = isDigital
-    ? 'Thank you for your order. This is a Digital AR Only order — no physical frame will be sent. Within 1–2 business days we’ll email your photo with the QR code attached, ready for you to print and frame yourself.'
-    : 'Thank you for your order. We’ll handcraft your personalised AR photo frame and send it on its way — the QR code comes printed on the frame, ready to scan.'
+    ? 'Thank you for your order. This is a Digital AR Only order - no physical frame will be sent. Within 1-2 business days we’ll email your photo with the QR code attached, ready for you to print and frame yourself.'
+    : 'Thank you for your order. We’ll handcraft your personalised AR photo frame and send it on its way - the QR code comes printed on the frame, ready to scan.'
 
   const steps = isDigital
     ? [
         {
-          label: 'Within 1–2 business days',
-          body: 'We’ll email your photo with the QR code attached — ready for you to print and frame yourself.',
+          label: 'Within 1-2 business days',
+          body: 'We’ll email your photo with the QR code attached - ready for you to print and frame yourself.',
           icon: '✉️',
         },
         {
           label: 'Print & frame it',
-          body: 'Print the photo at home or a print shop, then frame it however you like — just keep the QR code visible so it can be scanned.',
+          body: 'Print the photo at home or a print shop, then frame it however you like - just keep the QR code visible so it can be scanned.',
           icon: '🖨️',
         },
         {
           label: 'Scan & relive',
-          body: 'Point any phone camera at the QR code and watch your video come alive — as often as you like!',
+          body: 'Point any phone camera at the QR code and watch your video come alive - as often as you like!',
           icon: '✨',
         },
       ]
@@ -52,12 +52,12 @@ export default async function OrderSuccessPage({
           icon: '✉️',
         },
         {
-          label: '1–2 business days',
+          label: '1-2 business days',
           body: 'Our team handcrafts your personalised AR photo frame using your uploaded photo.',
           icon: '🖼️',
         },
         {
-          label: '2–3 business days',
+          label: '2-3 business days',
           body: "Your frame is carefully packaged and dispatched. You'll receive a shipping confirmation email.",
           icon: '📦',
         },
@@ -83,7 +83,7 @@ export default async function OrderSuccessPage({
       <h1 className="mt-6 font-display text-4xl text-cream sm:text-5xl">Order confirmed!</h1>
       {isDigital && (
         <span className="mt-4 inline-flex rounded-full bg-gold-brand/15 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-gold-brand">
-          Digital AR Only — no physical frame
+          Digital AR Only - no physical frame
         </span>
       )}
       <p className="mt-4 text-base leading-relaxed text-cream/75">{intro}</p>

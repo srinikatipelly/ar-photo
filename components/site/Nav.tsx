@@ -15,7 +15,7 @@ export function Nav() {
       .getUser()
       .then(({ data }) => setSignedIn(!!data.user))
       .catch(() => {
-        /* not signed in / network issue — leave as signed out */
+        /* not signed in / network issue - leave as signed out */
       })
   }, [])
 
@@ -29,7 +29,7 @@ export function Nav() {
           <img src="/logo-mark.png" alt={brand.name} className="h-16 w-auto sm:h-20" />
         </a>
 
-        {/* Desktop links — centred and evenly spaced between logo and CTA */}
+        {/* Desktop links - centred and evenly spaced between logo and CTA */}
         <div className="hidden flex-1 items-center justify-center gap-9 lg:flex xl:gap-12">
           {navItems.map((item) => (
             <a

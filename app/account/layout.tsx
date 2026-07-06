@@ -18,7 +18,7 @@ const cormorant = Cormorant_Garamond({
 })
 
 export const metadata: Metadata = {
-  title: 'My account — The Golden Frame',
+  title: 'My account - The Golden Frame',
   robots: { index: false, follow: false },
 }
 

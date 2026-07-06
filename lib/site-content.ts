@@ -1,13 +1,13 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Central content source for the premium marketing site (app/landing/*).
-// Edit copy here — the pages render from this data, so no JSX changes needed.
+// Edit copy here - the pages render from this data, so no JSX changes needed.
 // Seeded from brand/business-info.md and brand/content_db.md.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const brand = {
   name: 'The Golden Frame',
   siteUrl: 'https://www.thegoldenframe.com.au', // new marketing-site domain
-  tagline: 'Where Memories Come Alive', // frames only — not for real estate / business
+  tagline: 'Where Memories Come Alive', // frames only - not for real estate / business
   phone: '0427 649 892',
   phoneIntl: '+61427649892',
   whatsapp: 'https://wa.me/61427649892',
@@ -38,7 +38,7 @@ export const howItWorks: Step[] = [
   {
     step: 'Scan',
     title: 'Scan the frame',
-    body: 'Point your phone camera at the photo — no app to download. WebAR opens right in your browser.',
+    body: 'Point your phone camera at the photo - no app to download. WebAR opens right in your browser.',
   },
   {
     step: 'Watch',
@@ -48,7 +48,7 @@ export const howItWorks: Step[] = [
   {
     step: 'Relive',
     title: 'Relive the moment',
-    body: 'Hear their voice, see them move, feel the moment again — any time, as often as you like.',
+    body: 'Hear their voice, see them move, feel the moment again - any time, as often as you like.',
   },
 ]
 
@@ -68,7 +68,7 @@ export type Service = {
   features: string[]
   /** Call-to-action label */
   cta: string
-  /** Where the primary CTA points — order flow for frames, contact/demo for B2B */
+  /** Where the primary CTA points - order flow for frames, contact/demo for B2B */
   ctaHref: string
   /** Path to the 16:9 hero video for this category. Omit to hide the hero video entirely. */
   heroVideo?: string
@@ -97,33 +97,33 @@ export const services: Service[] = [
     summary: 'AR photo frames that turn your wedding portrait into a living memory.',
     showTagline: true,
     headline: 'Your wedding, alive forever',
-    lead: 'Imagine your favourite wedding portrait on the wall — then scan it and watch your first dance, your vows, the laughter of the day play out in augmented reality. A keepsake that never stops giving.',
+    lead: 'Imagine your favourite wedding portrait on the wall - then scan it and watch your first dance, your vows, the laughter of the day play out in augmented reality. A keepsake that never stops giving.',
     features: [
       'Premium AR photo frame with your portrait',
       'Plays your first dance, speeches or highlight reel',
-      'Hidden QR — scan with any phone, no app needed',
+      'Hidden QR - scan with any phone, no app needed',
       'A timeless anniversary gift for years to come',
     ],
     cta: 'Create your wedding frame',
-    ctaHref: '/landing/order',
+    ctaHref: '/landing/pricing',
     heroVideo: '/videos/hero.mp4',
     heroPoster: '/videos/hero-poster.jpg',
   },
   {
     slug: 'special-events',
     name: 'Special Events',
-    summary: 'Any occasion, beautifully relived — one frame for every moment worth keeping.',
+    summary: 'Any occasion, beautifully relived - one frame for every moment worth keeping.',
     showTagline: true,
     headline: 'A frame for every special moment',
-    lead: 'Whatever the occasion, we can bring it to life. Choose any photo from any celebration and we’ll turn it into a living AR keepsake — scan it, and the moment plays again with all its warmth and sound. Be it a milestone, a holiday or a once-in-a-lifetime day, there’s no event we can’t create a frame for.',
+    lead: 'Whatever the occasion, we can bring it to life. Choose any photo from any celebration and we’ll turn it into a living AR keepsake - scan it, and the moment plays again with all its warmth and sound. Be it a milestone, a holiday or a once-in-a-lifetime day, there’s no event we can’t create a frame for.',
     features: [
-      'Any occasion — order any frame for any moment',
+      'Any occasion - order any frame for any moment',
       'Bring the day back to life with video and sound',
       'An unforgettable, deeply personal gift',
-      'Works on any phone — just point and watch',
+      'Works on any phone - just point and watch',
     ],
     occasionsIntro:
-      'From the biggest milestones to the quiet moments in between, we can create a frame for any of these — and anything else you have in mind:',
+      'From the biggest milestones to the quiet moments in between, we can create a frame for any of these - and anything else you have in mind:',
     occasions: [
       'Christmas',
       "Mother's Day",
@@ -147,29 +147,29 @@ export const services: Service[] = [
       'Housewarming / new home',
     ],
     verticalVideo: '/videos/Mothers%20Day%20Mobile%20Video.mp4',
-    verticalVideoLabel: "Mother's Day — a living memory in motion",
+    verticalVideoLabel: "Mother's Day - a living memory in motion",
     cta: 'Create your event frame',
-    ctaHref: '/landing/order',
-    // No 16:9 hero video — the vertical "See it in motion" demo below is the real showcase.
+    ctaHref: '/landing/pricing',
+    // No 16:9 hero video - the vertical "See it in motion" demo below is the real showcase.
     hideHero: true,
     hideFeatures: true,
   },
   {
     slug: 'real-estate-corporates',
     name: 'Real Estate & Corporates',
-    summary: 'Scannable AR for listings, flyers, brochures and business cards — we supply the QR, you print your way.',
+    summary: 'Scannable AR for listings, flyers, brochures and business cards - we supply the QR, you print your way.',
     showTagline: false,
     headline: 'Marketing that comes to life',
-    lead: 'Give your real estate listings and corporate marketing a digital dimension. We create the AR experience and a QR code that links any printed piece — a listing photo, flyer, brochure or business card — to a walkthrough, drone reel, agent intro or brand video. We supply the digital QR code; you print it however suits your marketing.',
+    lead: 'Give your real estate listings and corporate marketing a digital dimension. We create the AR experience and a QR code that links any printed piece - a listing photo, flyer, brochure or business card - to a walkthrough, drone reel, agent intro or brand video. We supply the digital QR code; you print it however suits your marketing.',
     features: [
       'One AR experience + QR code for real estate and corporate marketing',
       'Ideas: flyers, brochures, business cards, listing boards, packaging',
       'Plays walkthroughs, drone footage, agent or brand videos on scan',
-      'No app required — opens straight in the phone camera (WebAR)',
-      'We supply the digital QR code — print it whichever way suits you',
+      'No app required - opens straight in the phone camera (WebAR)',
+      'We supply the digital QR code - print it whichever way suits you',
     ],
     contactNote:
-      'Every business is different. Contact us and talk to us about your marketing goals — we’ll tailor the AR experience and QR code, then hand you the digital copy ready to print on flyers, brochures, business cards or anything else.',
+      'Every business is different. Contact us and talk to us about your marketing goals - we’ll tailor the AR experience and QR code, then hand you the digital copy ready to print on flyers, brochures, business cards or anything else.',
     cta: 'Contact us & talk to us',
     ctaHref: '/landing/contact',
     heroVideo: '/videos/RealEstate_websiteAssets.mp4',
@@ -180,17 +180,17 @@ export const services: Service[] = [
     summary: 'Something bespoke in mind? Be it any event, we can create a frame for your special moments.',
     showTagline: true,
     headline: 'Your moment, made bespoke',
-    lead: 'Have something unique in mind? Whatever the occasion — any event, any idea — we can create a frame for your special moments. If it doesn’t fit a standard category, this is exactly where it belongs. Tell us what you’re imagining and we’ll design a custom AR frame around it. Contact us and talk to us — we’ll help bring it to life.',
+    lead: 'Have something unique in mind? Whatever the occasion - any event, any idea - we can create a frame for your special moments. If it doesn’t fit a standard category, this is exactly where it belongs. Tell us what you’re imagining and we’ll design a custom AR frame around it. Contact us and talk to us - we’ll help bring it to life.',
     features: [
-      'Any event, any idea — we create a frame for your special moments',
+      'Any event, any idea - we create a frame for your special moments',
       'Fully bespoke to your photo, video and occasion',
       'A one-of-a-kind, deeply personal keepsake',
-      'Works on any phone — just point and watch',
+      'Works on any phone - just point and watch',
     ],
     cta: 'Contact us & talk to us',
     ctaHref: '/landing/contact',
-    // Single merged contact section — the hero itself is contact-led, so no separate
-    // contactNote block. No demo video — Custom is a bespoke, contact-led category.
+    // Single merged contact section - the hero itself is contact-led, so no separate
+    // contactNote block. No demo video - Custom is a bespoke, contact-led category.
     hideFeatures: true,
   },
 ]
@@ -228,12 +228,12 @@ export const pricingTiers: PricingTier[] = [
     price: '$29',
     was: '$79',
     unit: '8×10 frame',
-    description: 'Our signature living memory — a premium framed photo that plays your video in AR.',
+    description: 'Our signature living memory - a premium framed photo that plays your video in AR.',
     features: [
       'Premium 8×10 AR photo frame',
       'Up to 1 minute of video, with sound',
-      'Hidden QR code — no app needed',
-      'Dispatched in 2–3 business days',
+      'Hidden QR code - no app needed',
+      'Dispatched in 2-3 business days',
     ],
     cta: 'Order your frame',
     href: '/landing/order',
@@ -243,7 +243,7 @@ export const pricingTiers: PricingTier[] = [
     name: 'Digital AR Only',
     price: 'From $19',
     unit: 'QR delivered by email',
-    description: 'Just the AR experience and QR code — print or place it on anything yourself.',
+    description: 'Just the AR experience and QR code - print or place it on anything yourself.',
     features: [
       'Photo + video brought to life in AR',
       'QR code delivered by email',
@@ -274,7 +274,7 @@ export type Testimonial = { quote: string; author: string; detail: string }
 
 export const testimonials: Testimonial[] = [
   {
-    quote: 'I gave my parents a frame of their wedding photo that plays their old video. My mum cried — it felt like going back in time.',
+    quote: 'I gave my parents a frame of their wedding photo that plays their old video. My mum cried - it felt like going back in time.',
     author: 'Priya S.',
     detail: 'Anniversary gift',
   },
@@ -284,7 +284,7 @@ export const testimonials: Testimonial[] = [
     detail: 'Milestone birthday',
   },
   {
-    quote: 'Our real estate flyers now play a full walkthrough when scanned. Clients are genuinely impressed — it sets us apart.',
+    quote: 'Our real estate flyers now play a full walkthrough when scanned. Clients are genuinely impressed - it sets us apart.',
     author: 'Daniel R.',
     detail: 'Real estate agency',
   },

@@ -134,3 +134,20 @@ More improvement: 05/07/2026:
    frame") service CTAs (`ctaHref`) pointed to the legacy `/upload` page (unbranded, no
    Stripe). Both now route to the premium `/landing/order` flow (brand fonts/colours +
    Stripe checkout) — `lib/site-content.ts`.
+More improvement: 06/07/2026 — ✅ all applied (2026-07-06, build-verified)
+2. ✅ Demo page "Ready to create your own?" CTA now routes to `/landing/services`
+   (was `/landing/order`) — `app/landing/demo/page.tsx`.
+3. ✅ Weddings & Special Events service-page CTAs now route to `/landing/pricing`
+   (was `/landing/order`) — `lib/site-content.ts` (`ctaHref` for both services).
+4. ✅ Browser tab icon is now the golden-frame logo on every page: regenerated
+   `app/favicon.ico` (16/32/48 px) from `app/icon.png`, replacing the default Next.js
+   triangle. Head now references `/favicon.ico` + `/icon.png` site-wide (root layout).
+5. ✅ Replaced 136 em/en dashes ("—" "–") with a normal "-" across all user-facing copy
+   — landing pages, shared UI (`components/site`, `components/account`), `lib/site-content.ts`,
+   customer emails (`lib/resend.ts`) and the Stripe checkout descriptions. Box-drawing
+   section dividers ("──") left intact.
+6. ✅ Contact page: removed the duplicated "Prefer to message us right now?" WhatsApp+Email
+   panel (already covered by the channel cards) and replaced it with a proper enquiry form
+   (name / email / phone / message + high-contrast validation) that emails the business via
+   Resend, reply-to the customer — `components/site/ContactForm.tsx`, `app/api/contact/route.ts`,
+   `lib/resend.ts` (`sendContactEnquiry`), `app/landing/contact/page.tsx`.

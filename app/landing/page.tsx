@@ -10,7 +10,7 @@ import { WhatsAppButton } from '@/components/site/WhatsAppButton'
 export default function LandingHome() {
   return (
     <>
-      {/* ── Hero — copy left, large framed showcase video right ──────────────── */}
+      {/* ── Hero - copy left, large framed showcase video right ──────────────── */}
       <section className="relative overflow-hidden px-6 sm:px-10">
         {/* Static luxe gradient backdrop */}
         <div
@@ -27,7 +27,7 @@ export default function LandingHome() {
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-cream/75 sm:text-base lg:mx-0">
               We craft premium AR photo frames that bring your most treasured moments to life.
-              Scan the frame, and watch your video play in augmented reality — with sound and
+              Scan the frame, and watch your video play in augmented reality - with sound and
               all the emotion of the moment.
             </p>
             <p className="tagline mt-4 text-xl text-gold-brand sm:text-2xl">{brand.tagline}</p>
@@ -47,7 +47,7 @@ export default function LandingHome() {
             </div>
           </div>
 
-          {/* Large 16:9 showcase video — fills its column (no width cap) */}
+          {/* Large 16:9 showcase video - fills its column (no width cap) */}
           <div className="relative w-full">
             {/* Warm gold halo so the cream video melts into the green page */}
             <div
@@ -71,7 +71,7 @@ export default function LandingHome() {
             Scan. Watch. Relive.
           </h2>
           <p className="mt-4 text-sm leading-relaxed text-cream/70">
-            No app to download. WebAR opens straight in any phone camera — on iOS and Android.
+            No app to download. WebAR opens straight in any phone camera - on iOS and Android.
           </p>
         </div>
         <div className="mt-12">
@@ -108,7 +108,7 @@ export default function LandingHome() {
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-cream/70">
               Hang it on the wall. Scan the hidden QR with your phone. Watch a birthday message,
-              a wedding dance, or a baby&apos;s first steps play in augmented reality — right over
+              a wedding dance, or a baby&apos;s first steps play in augmented reality - right over
               the photo.
             </p>
             <a
@@ -169,7 +169,7 @@ export default function LandingHome() {
           </h2>
           <p className="mt-4 text-sm leading-relaxed text-green-deep/75">
             Whether it&apos;s a wedding or event photo frame, a milestone gift, a real estate
-            listing, or marketing for your small business — we&apos;ll help you turn it into a
+            listing, or marketing for your small business - we&apos;ll help you turn it into a
             living AR experience. Order online, or talk to us and book a demo.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

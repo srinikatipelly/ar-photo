@@ -4,7 +4,7 @@ import { brand } from '@/lib/site-content'
 import { Nav } from '@/components/site/Nav'
 import { Footer } from '@/components/site/Footer'
 
-// Body / UI font — matches the brand's thin, wide-tracked logo wordmark.
+// Body / UI font - matches the brand's thin, wide-tracked logo wordmark.
 const montserrat = Montserrat({
   variable: '--font-montserrat',
   subsets: ['latin'],
@@ -12,7 +12,7 @@ const montserrat = Montserrat({
   display: 'swap',
 })
 
-// Display serif for luxe headings — high-contrast, classic luxury/wedding feel.
+// Display serif for luxe headings - high-contrast, classic luxury/wedding feel.
 const cormorant = Cormorant_Garamond({
   variable: '--font-display',
   subsets: ['latin'],
@@ -22,13 +22,13 @@ const cormorant = Cormorant_Garamond({
 })
 
 const description =
-  'Premium AR photo frames that bring your memories to life. Scan the frame and watch your video play in augmented reality — weddings, birthdays, real estate and business.'
+  'Premium AR photo frames that bring your memories to life. Scan the frame and watch your video play in augmented reality - weddings, birthdays, real estate and business.'
 
 export const metadata: Metadata = {
   metadataBase: new URL(brand.siteUrl),
   title: {
-    default: 'The Golden Frame — Living Memories in Augmented Reality',
-    template: '%s — The Golden Frame',
+    default: 'The Golden Frame - Living Memories in Augmented Reality',
+    template: '%s - The Golden Frame',
   },
   description,
   applicationName: brand.name,
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     siteName: brand.name,
-    title: 'The Golden Frame — Living Memories in Augmented Reality',
+    title: 'The Golden Frame - Living Memories in Augmented Reality',
     description,
     url: '/landing',
     locale: 'en_AU',
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'The Golden Frame — Living Memories in Augmented Reality',
+    title: 'The Golden Frame - Living Memories in Augmented Reality',
     description,
     images: ['/og.png'],
   },

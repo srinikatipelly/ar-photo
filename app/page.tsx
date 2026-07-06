@@ -24,7 +24,7 @@ export default function Home() {
           Because some memories deserve more than a photo
         </h1>
         <p className="mt-6 max-w-xl text-lg text-zinc-500">
-          Upload your favourite photo and a video. We embed a hidden QR code — scan it and watch your memory come alive in augmented reality.
+          Upload your favourite photo and a video. We embed a hidden QR code - scan it and watch your memory come alive in augmented reality.
         </p>
         <div className="mt-9 flex flex-wrap justify-center gap-3">
           <a
@@ -70,7 +70,7 @@ export default function Home() {
               {
                 step: '02',
                 title: 'We craft your frame',
-                body: 'We prepare your personalised AR frame and embed the magic QR code. Dispatched in 2–3 business days.',
+                body: 'We prepare your personalised AR frame and embed the magic QR code. Dispatched in 2-3 business days.',
               },
               {
                 step: '03',
@@ -99,7 +99,7 @@ export default function Home() {
               { icon: '🎁', title: 'Unique & personalised', body: 'No two frames are the same. Your memory, your video, your gift.' },
               { icon: '📱', title: 'No app needed', body: 'Scan the QR code with any phone camera. It just works.' },
               { icon: '✉️', title: 'Digital QR delivered instantly', body: 'Get your QR code by email as soon as payment clears.' },
-              { icon: '📦', title: 'Dispatched in 2–3 days', body: 'Carefully crafted and delivered to your door.' },
+              { icon: '📦', title: 'Dispatched in 2-3 days', body: 'Carefully crafted and delivered to your door.' },
             ].map(({ icon, title, body }) => (
               <div key={title} className="rounded-3xl border border-zinc-100 p-6 text-center">
                 <div className="text-3xl">{icon}</div>
