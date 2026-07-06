@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Terms & Conditions and Privacy Policy — The Golden Frame',
+  title: 'Terms & Conditions and Privacy Policy - The Golden Frame',
   description: 'Terms and conditions, privacy policy, and consent information for The Golden Frame personalised AR photo frames.',
 }
 
@@ -125,7 +125,7 @@ export default function TermsPage() {
 
         {/* 6 */}
         <section>
-          <h2 className="mb-3 text-base font-semibold text-zinc-900">6. Your Consent — Upload and Storage</h2>
+          <h2 className="mb-3 text-base font-semibold text-zinc-900">6. Your Consent - Upload and Storage</h2>
           <p>
             Before submitting your order, you are asked to provide two separate consents:
           </p>

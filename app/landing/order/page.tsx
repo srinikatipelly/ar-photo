@@ -25,14 +25,14 @@ const FIELD_LABELS: Record<string, string> = {
   video: 'Video',
   consentUpload: 'Consent to process your files',
   consentStore: 'Permission to store your files',
-  deliveryLine1: 'Delivery — street address',
-  deliverySuburb: 'Delivery — suburb',
-  deliveryState: 'Delivery — state',
-  deliveryPostcode: 'Delivery — postcode',
-  postalLine1: 'Postal — street address',
-  postalSuburb: 'Postal — suburb',
-  postalState: 'Postal — state',
-  postalPostcode: 'Postal — postcode',
+  deliveryLine1: 'Delivery - street address',
+  deliverySuburb: 'Delivery - suburb',
+  deliveryState: 'Delivery - state',
+  deliveryPostcode: 'Delivery - postcode',
+  postalLine1: 'Postal - street address',
+  postalSuburb: 'Postal - suburb',
+  postalState: 'Postal - state',
+  postalPostcode: 'Postal - postcode',
 }
 
 const AU_STATES = ['ACT', 'NSW', 'NT', 'QLD', 'SA', 'TAS', 'VIC', 'WA']
@@ -189,7 +189,7 @@ export default function OrderPage() {
         }
       })
       .catch(() => {
-        /* not signed in / network issue — leave fields blank */
+        /* not signed in / network issue - leave fields blank */
       })
   }, [])
 
@@ -408,18 +408,18 @@ export default function OrderPage() {
       </p>
       <p className="mt-3 max-w-xl text-sm leading-relaxed text-cream/70">
         Scan the QR code on your frame and watch your still photo transform into a moving video
-        memory — relived, every single time.{' '}
+        memory - relived, every single time.{' '}
         {isDigital
-          ? 'This is a Digital AR Only order — no physical frame is sent. Within 1–2 business days we’ll email your photo with the QR code attached, ready to print and frame yourself.'
-          : "We'll craft your personalised AR frame and dispatch it in 2–3 business days."}
+          ? 'This is a Digital AR Only order - no physical frame is sent. Within 1-2 business days we’ll email your photo with the QR code attached, ready to print and frame yourself.'
+          : "We'll craft your personalised AR frame and dispatch it in 2-3 business days."}
       </p>
 
-      {/* How it works — 3 simple steps */}
+      {/* How it works - 3 simple steps */}
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
         {[
-          { n: '1', title: 'Choose your moment', body: 'Pick the occasion — baby, couple, family or celebration.' },
+          { n: '1', title: 'Choose your moment', body: 'Pick the occasion - baby, couple, family or celebration.' },
           { n: '2', title: 'Send your photo + video', body: 'We embed your video memory behind the QR code.' },
-          { n: '3', title: 'Scan & relive it', body: 'Point your phone at the QR — your memory plays instantly.' },
+          { n: '3', title: 'Scan & relive it', body: 'Point your phone at the QR - your memory plays instantly.' },
         ].map((s) => (
           <div key={s.n} className="rounded-2xl border border-cream/15 bg-green-mid/30 p-5">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gold-brand text-sm font-bold text-green-deep">
@@ -443,7 +443,7 @@ export default function OrderPage() {
           <div className="h-8 w-px bg-cream/15" />
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-gold-brand">Delivery</p>
-            <p className="mt-0.5 text-sm font-bold text-cream">QR by email — no physical frame</p>
+            <p className="mt-0.5 text-sm font-bold text-cream">QR by email - no physical frame</p>
           </div>
         </div>
       ) : (
@@ -472,7 +472,7 @@ export default function OrderPage() {
 
       {cancelled && (
         <div className="mt-6 rounded-2xl border border-gold-brand/30 bg-gold-brand/10 p-4 text-sm text-cream/80">
-          Your payment was cancelled and you have not been charged. Your details are below — complete
+          Your payment was cancelled and you have not been charged. Your details are below - complete
           checkout whenever you&apos;re ready.
         </div>
       )}
@@ -515,7 +515,7 @@ export default function OrderPage() {
           )}
         </div>
         {signedIn && (
-          <p className="mt-2 text-xs text-cream/60">✓ Signed in — we&apos;ve filled in your details.</p>
+          <p className="mt-2 text-xs text-cream/60">✓ Signed in - we&apos;ve filled in your details.</p>
         )}
 
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -581,7 +581,7 @@ export default function OrderPage() {
               <p className="text-xs font-semibold uppercase tracking-wide text-gold-brand">Digital delivery</p>
               <p className="mt-2 text-sm leading-relaxed text-cream/75">
                 No physical frame will be sent. Within 1&ndash;2 business days we&apos;ll email your photo
-                with the QR code attached, ready for you to print and frame yourself — so we don&apos;t
+                with the QR code attached, ready for you to print and frame yourself - so we don&apos;t
                 need a delivery address.
               </p>
             </div>
@@ -592,7 +592,7 @@ export default function OrderPage() {
 
             {/* Delivery address */}
             <h2 className="mb-1 text-xs font-semibold uppercase tracking-widest text-gold-brand">Delivery address</h2>
-            <p className="mb-4 text-xs text-cream/40">Where should we send your frame? Physical address only — no PO Boxes.</p>
+            <p className="mb-4 text-xs text-cream/40">Where should we send your frame? Physical address only - no PO Boxes.</p>
             <AddressBlock values={delivery} prefix="delivery" errors={fieldErrors} onChange={onDeliveryChange} />
 
             <div className="my-6 border-t border-cream/10" />
@@ -672,7 +672,7 @@ export default function OrderPage() {
 
       <div className="mt-6 flex flex-wrap justify-center gap-6 text-xs text-cream/40">
         <span>✉️ Confirmation sent to your email</span>
-        <span>{isDigital ? '📱 Photo + QR emailed in 1–2 business days' : '📦 Dispatched in 2–3 business days'}</span>
+        <span>{isDigital ? '📱 Photo + QR emailed in 1-2 business days' : '📦 Dispatched in 2-3 business days'}</span>
         <span>🎥 Video: max 1 min · 200 MB</span>
       </div>
     </main>

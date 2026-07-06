@@ -28,7 +28,7 @@ const emptyAddr = (): Address => ({ line1: '', line2: '', suburb: '', state: '',
 
 // AddressBlock is defined OUTSIDE UploadPage intentionally.
 // If defined inside, React treats it as a new component type on every render,
-// unmounting and remounting the inputs on each keystroke — making them non-editable.
+// unmounting and remounting the inputs on each keystroke - making them non-editable.
 function AddressBlock({
   values,
   prefix,
@@ -129,7 +129,7 @@ function AddressBlock({
         </div>
       </div>
 
-      {/* Country — fixed */}
+      {/* Country - fixed */}
       <div>
         <label className="mb-1 block text-sm font-medium text-zinc-700">Country</label>
         <input
@@ -481,7 +481,7 @@ export default function UploadPage() {
         <span className="text-sm font-semibold uppercase tracking-[0.3em] text-amber-500">Order</span>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-900">Create your AR experience</h1>
         <p className="mt-3 text-zinc-500">
-          Upload your photo and video. We'll craft your personalised AR frame — dispatched in 2–3 business days.
+          Upload your photo and video. We'll craft your personalised AR frame - dispatched in 2-3 business days.
         </p>
       </div>
 
@@ -491,7 +491,7 @@ export default function UploadPage() {
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">Promotional price</p>
             <p className="mt-0.5 text-sm text-zinc-700">
-              AR Photo Frame 8×10 —{' '}
+              AR Photo Frame 8×10 -{' '}
               <span className="text-lg font-bold text-zinc-900">$29.00</span>{' '}
               <span className="text-sm text-zinc-400 line-through">$79.00</span>
             </p>
@@ -587,7 +587,7 @@ export default function UploadPage() {
 
         {/* ── Delivery address ── */}
         <h2 className="mb-1 text-xs font-semibold uppercase tracking-widest text-zinc-400">Delivery address</h2>
-        <p className="mb-4 text-xs text-zinc-400">Where should we send your frame? Physical address only — no PO Boxes.</p>
+        <p className="mb-4 text-xs text-zinc-400">Where should we send your frame? Physical address only - no PO Boxes.</p>
         <AddressBlock
           values={delivery}
           prefix="delivery"
@@ -676,7 +676,7 @@ export default function UploadPage() {
 
       <div className="mt-6 flex flex-wrap justify-center gap-6 text-xs text-zinc-400">
         <span>✉️ Confirmation sent to your email</span>
-        <span>📦 Dispatched in 2–3 business days</span>
+        <span>📦 Dispatched in 2-3 business days</span>
         <span>🎥 Video: max 1 min · 200 MB</span>
       </div>
     </main>

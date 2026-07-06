@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
               product_data: {
                 name: 'Digital AR Experience (QR by email)',
                 description:
-                  'Your photo + video brought to life in AR. QR code delivered by email — no physical frame.',
+                  'Your photo + video brought to life in AR. QR code delivered by email - no physical frame.',
               },
             },
             quantity: 1,
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
               product_data: {
                 name: 'Personalised AR Photo Frame',
                 description:
-                  'Your photo frame with an embedded AR video experience. Dispatched in 2–3 business days.',
+                  'Your photo frame with an embedded AR video experience. Dispatched in 2-3 business days.',
               },
             },
             quantity: 1,

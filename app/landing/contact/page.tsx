@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import { brand } from '@/lib/site-content'
 import { Section, Eyebrow } from '@/components/site/Section'
-import { WhatsAppButton } from '@/components/site/WhatsAppButton'
+import { ContactForm } from '@/components/site/ContactForm'
 
 export const metadata: Metadata = {
   title: 'Contact',
   description:
-    'Get in touch with The Golden Frame — talk to us about AR photo frames, real estate & corporate marketing, or a custom idea.',
+    'Get in touch with The Golden Frame - talk to us about AR photo frames, real estate & corporate marketing, or a custom idea.',
   alternates: { canonical: '/landing/contact' },
 }
 
@@ -16,7 +16,7 @@ const channels = [
     label: 'Call us',
     value: brand.phone,
     href: `tel:${brand.phoneIntl}`,
-    note: 'Mon–Fri, business hours (AEST)',
+    note: 'Mon-Fri, business hours (AEST)',
   },
   {
     icon: '✉️',
@@ -42,7 +42,7 @@ export default function ContactPage() {
         <h1 className="mt-3 font-display text-4xl text-cream sm:text-5xl">Let&apos;s talk</h1>
         <p className="mt-4 text-sm leading-relaxed text-cream/70">
           Whether it&apos;s a wedding or event frame, real estate and corporate marketing, or a
-          custom idea you have in mind — we&apos;d love to hear from you. Reach out any way that
+          custom idea you have in mind - we&apos;d love to hear from you. Reach out any way that
           suits you and we&apos;ll help bring your moment to life.
         </p>
       </div>
@@ -64,23 +64,8 @@ export default function ContactPage() {
         ))}
       </div>
 
-      <div className="mx-auto mt-12 max-w-2xl rounded-3xl border border-gold-brand/30 bg-green-mid/40 p-8 text-center sm:p-10">
-        <h2 className="font-display text-2xl text-cream sm:text-3xl">
-          Prefer to message us right now?
-        </h2>
-        <p className="mt-3 text-sm leading-relaxed text-cream/70">
-          Tell us a little about your occasion or business and we&apos;ll get back to you with
-          ideas, pricing and next steps.
-        </p>
-        <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-          <WhatsAppButton message="Hi! I'd like to talk to The Golden Frame about a project." />
-          <a
-            href={`mailto:${brand.email}`}
-            className="rounded-full border border-cream/25 px-6 py-3 text-sm font-semibold text-cream transition hover:border-gold-brand hover:text-gold-brand"
-          >
-            Email us
-          </a>
-        </div>
+      <div className="mt-12">
+        <ContactForm />
       </div>
 
       <div className="mx-auto mt-10 flex max-w-2xl flex-wrap items-center justify-center gap-x-6 gap-y-2 text-center text-sm text-cream/60">

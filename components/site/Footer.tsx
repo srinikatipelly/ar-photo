@@ -12,7 +12,7 @@ export function Footer() {
               <img src="/logo-mark.png" alt={brand.name} className="h-20 w-auto" />
             </div>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-cream/70">
-              {brand.name} brings memories and brands to life through augmented reality — living
+              {brand.name} brings memories and brands to life through augmented reality - living
               keepsakes for weddings & events, and scannable AR experiences for real estate and
               small business. Proudly Australian.
             </p>

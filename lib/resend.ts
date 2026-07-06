@@ -15,29 +15,29 @@ export async function sendCustomerConfirmationEmail({
   const shortOrder = frameId.slice(-8).toUpperCase()
 
   const introLine = isDigital
-    ? `Hi ${name || 'there'}, thank you for your order. This is a Digital AR Only order — no physical frame will be sent. Within 1–2 business days we’ll email your photo with the QR code attached, ready for you to print and frame yourself.`
-    : `Hi ${name || 'there'}, thank you for your order. Our team will handcraft your personalised AR photo frame and have it on its way to you within 2–3 business days.`
+    ? `Hi ${name || 'there'}, thank you for your order. This is a Digital AR Only order - no physical frame will be sent. Within 1-2 business days we’ll email your photo with the QR code attached, ready for you to print and frame yourself.`
+    : `Hi ${name || 'there'}, thank you for your order. Our team will handcraft your personalised AR photo frame and have it on its way to you within 2-3 business days.`
 
   const nextStepsRows = isDigital
     ? `
               <p style="margin:0 0 8px;font-size:13px;color:#52525b;">
-                <strong style="color:#18181b;">Within 1–2 business days</strong> — We email your photo with the QR code attached, ready to print
+                <strong style="color:#18181b;">Within 1-2 business days</strong> - We email your photo with the QR code attached, ready to print
               </p>
               <p style="margin:0 0 8px;font-size:13px;color:#52525b;">
-                <strong style="color:#18181b;">Print &amp; frame it</strong> — Print the photo at home or a print shop, then frame it however you like. Keep the QR code visible so it can be scanned.
+                <strong style="color:#18181b;">Print &amp; frame it</strong> - Print the photo at home or a print shop, then frame it however you like. Keep the QR code visible so it can be scanned.
               </p>
               <p style="margin:0;font-size:13px;color:#52525b;">
-                <strong style="color:#18181b;">Scan &amp; relive</strong> — Point any phone camera at the QR code and watch your video come alive!
+                <strong style="color:#18181b;">Scan &amp; relive</strong> - Point any phone camera at the QR code and watch your video come alive!
               </p>`
     : `
               <p style="margin:0 0 8px;font-size:13px;color:#52525b;">
-                <strong style="color:#18181b;">1–2 business days</strong> — We craft your personalised frame
+                <strong style="color:#18181b;">1-2 business days</strong> - We craft your personalised frame
               </p>
               <p style="margin:0 0 8px;font-size:13px;color:#52525b;">
-                <strong style="color:#18181b;">2–3 business days</strong> — Your frame is carefully packaged and shipped
+                <strong style="color:#18181b;">2-3 business days</strong> - Your frame is carefully packaged and shipped
               </p>
               <p style="margin:0;font-size:13px;color:#52525b;">
-                <strong style="color:#18181b;">When it arrives</strong> — Scan the QR code on the back with your phone camera and watch your video come alive!
+                <strong style="color:#18181b;">When it arrives</strong> - Scan the QR code on the back with your phone camera and watch your video come alive!
               </p>`
 
   const { error } = await resend.emails.send({
@@ -98,7 +98,7 @@ export async function sendCustomerConfirmationEmail({
   // Resend returns { error } instead of throwing on API failures (unverified
   // sending domain, bad key, rate limit). Surface it so the caller can log it
   // instead of the send failing silently.
-  if (error) throw new Error(`Resend customer email failed: ${error.name} — ${error.message}`)
+  if (error) throw new Error(`Resend customer email failed: ${error.name} - ${error.message}`)
 }
 
 // ── Admin: new order notification with QR ────────────────────────────────────
@@ -128,7 +128,7 @@ export async function sendAdminOrderNotification({
   const { error } = await resend.emails.send({
     from: `${fromName()} <${fromEmail()}>`,
     to: adminEmail,
-    subject: `New ${isDigital ? 'DIGITAL' : 'frame'} order #${shortOrder} — ${customerName || customerEmail}`,
+    subject: `New ${isDigital ? 'DIGITAL' : 'frame'} order #${shortOrder} - ${customerName || customerEmail}`,
     html: `
 <!DOCTYPE html>
 <html lang="en">
@@ -139,7 +139,7 @@ export async function sendAdminOrderNotification({
       <table width="100%" style="max-width:560px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);">
 
         <tr><td style="background:#18181b;padding:28px 36px;">
-          <p style="margin:0;color:#f59e0b;font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;">Admin — New Order</p>
+          <p style="margin:0;color:#f59e0b;font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;">Admin - New Order</p>
           <p style="margin:4px 0 0;color:#ffffff;font-size:20px;font-weight:600;">Order #${shortOrder}</p>
         </td></tr>
 
@@ -156,10 +156,10 @@ export async function sendAdminOrderNotification({
           <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;border-radius:12px;padding:20px 24px;margin:0 0 24px;">
             <tr><td>
               <p style="margin:0 0 12px;font-size:14px;font-weight:600;color:#18181b;">Customer details</p>
-              <p style="margin:0 0 6px;font-size:13px;color:#52525b;"><strong style="color:#18181b;">Name:</strong> ${customerName || '—'}</p>
+              <p style="margin:0 0 6px;font-size:13px;color:#52525b;"><strong style="color:#18181b;">Name:</strong> ${customerName || '-'}</p>
               <p style="margin:0 0 6px;font-size:13px;color:#52525b;"><strong style="color:#18181b;">Email:</strong> ${customerEmail}</p>
-              <p style="margin:0 0 6px;font-size:13px;color:#52525b;"><strong style="color:#18181b;">Mobile:</strong> ${mobile || '—'}</p>
-              <p style="margin:0 0 6px;font-size:13px;color:#52525b;"><strong style="color:#18181b;">Delivery Address:</strong> ${deliveryAddress || '—'}</p>
+              <p style="margin:0 0 6px;font-size:13px;color:#52525b;"><strong style="color:#18181b;">Mobile:</strong> ${mobile || '-'}</p>
+              <p style="margin:0 0 6px;font-size:13px;color:#52525b;"><strong style="color:#18181b;">Delivery Address:</strong> ${deliveryAddress || '-'}</p>
               <p style="margin:0;font-size:13px;color:#52525b;"><strong style="color:#18181b;">Frame ID:</strong> ${frameId}</p>
             </td></tr>
           </table>
@@ -180,7 +180,7 @@ export async function sendAdminOrderNotification({
           </table>
 
           <!-- QR code -->
-          <p style="margin:0 0 12px;font-size:14px;font-weight:600;color:#18181b;">QR Code — print and stick to the back of the frame</p>
+          <p style="margin:0 0 12px;font-size:14px;font-weight:600;color:#18181b;">QR Code - print and stick to the back of the frame</p>
           <div style="text-align:center;margin:0 0 24px;">
             <img src="cid:qrcode" alt="QR Code"
               style="width:200px;height:200px;border-radius:12px;border:1px solid #e4e4e7;" />
@@ -198,7 +198,7 @@ export async function sendAdminOrderNotification({
         </td></tr>
 
         <tr><td style="padding:24px 36px 32px;border-top:1px solid #f4f4f5;">
-          <p style="margin:0;font-size:12px;color:#a1a1aa;">The Golden Frame — Admin Notification</p>
+          <p style="margin:0;font-size:12px;color:#a1a1aa;">The Golden Frame - Admin Notification</p>
         </td></tr>
 
       </table>
@@ -213,7 +213,72 @@ export async function sendAdminOrderNotification({
     ],
   })
 
-  if (error) throw new Error(`Resend admin email failed: ${error.name} — ${error.message}`)
+  if (error) throw new Error(`Resend admin email failed: ${error.name} - ${error.message}`)
+}
+
+// ── Contact: enquiry from the website contact form ──────────────────────────
+export async function sendContactEnquiry({
+  name, email, phone, message,
+}: { name: string; email: string; phone?: string; message: string }) {
+  if (!resend) throw new Error('Email service is not configured.')
+
+  // Send to the business inbox; fall back to the sending address if ADMIN_EMAIL isn't set.
+  const to = process.env.ADMIN_EMAIL ?? fromEmail()
+
+  const { error } = await resend.emails.send({
+    from: `${fromName()} <${fromEmail()}>`,
+    to,
+    // Replies go straight back to the customer.
+    replyTo: email,
+    subject: `New enquiry from ${name || email}`,
+    html: `
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8" /></head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:520px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+
+        <tr><td style="background:#0F3535;padding:28px 36px;">
+          <p style="margin:0;color:#C9A24B;font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;">The Golden Frame - New enquiry</p>
+        </td></tr>
+
+        <tr><td style="padding:32px 36px 0;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;border-radius:12px;padding:20px 24px;margin:0 0 24px;">
+            <tr><td>
+              <p style="margin:0 0 6px;font-size:13px;color:#52525b;"><strong style="color:#18181b;">Name:</strong> ${escapeHtml(name) || '-'}</p>
+              <p style="margin:0 0 6px;font-size:13px;color:#52525b;"><strong style="color:#18181b;">Email:</strong> ${escapeHtml(email)}</p>
+              <p style="margin:0;font-size:13px;color:#52525b;"><strong style="color:#18181b;">Phone:</strong> ${escapeHtml(phone || '') || '-'}</p>
+            </td></tr>
+          </table>
+
+          <p style="margin:0 0 8px;font-size:14px;font-weight:600;color:#18181b;">Message</p>
+          <p style="margin:0 0 28px;font-size:14px;color:#3f3f46;line-height:1.6;white-space:pre-wrap;">${escapeHtml(message)}</p>
+        </td></tr>
+
+        <tr><td style="padding:20px 36px 32px;border-top:1px solid #f4f4f5;">
+          <p style="margin:0;font-size:12px;color:#a1a1aa;">Reply to this email to respond to ${escapeHtml(name) || 'the customer'} directly.</p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
+  })
+
+  if (error) throw new Error(`Resend contact email failed: ${error.name} - ${error.message}`)
+}
+
+// Escape user-supplied text before interpolating into the enquiry email HTML.
+function escapeHtml(s: string) {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }
 
 // Legacy alias kept for any existing callers

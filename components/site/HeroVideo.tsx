@@ -11,7 +11,7 @@ type HeroVideoProps = {
 }
 
 /**
- * Background hero video — native <video>, muted autoplay loop (no extra deps).
+ * Background hero video - native <video>, muted autoplay loop (no extra deps).
  * Falls back gracefully to the gradient backdrop if the file is missing or fails,
  * so the hero always looks premium even before a real video is added.
  */
@@ -21,7 +21,7 @@ export function HeroVideo({ src = '/hero.mp4', poster, className = '' }: HeroVid
 
   return (
     <div className={`absolute inset-0 overflow-hidden ${className}`} aria-hidden="true">
-      {/* Luxe gradient backdrop — always present */}
+      {/* Luxe gradient backdrop - always present */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,#1c4a47_0%,#0F3535_55%,#082020_100%)]" />
 
       {!failed && (

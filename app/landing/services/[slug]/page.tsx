@@ -97,7 +97,7 @@ export default async function ServicePage({
         </Section>
       )}
 
-      {/* See it in motion — 9:16 vertical demo in a phone-style frame */}
+      {/* See it in motion - 9:16 vertical demo in a phone-style frame */}
       {service.verticalVideo && (
         <Section tone="deep" className={service.hideHero ? 'pt-28' : ''}>
           <div className="grid items-center gap-10 lg:grid-cols-2">
@@ -108,7 +108,7 @@ export default async function ServicePage({
                 A real memory, brought to life
               </h2>
               <p className="mt-4 text-sm leading-relaxed text-cream/75">
-                This is exactly how your frame comes alive when scanned — a still photo that plays
+                This is exactly how your frame comes alive when scanned - a still photo that plays
                 back your video memory, filmed for mobile just like the keepsake in your hands. Press
                 play to watch a sample.
               </p>

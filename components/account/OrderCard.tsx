@@ -94,7 +94,7 @@ export function OrderCard({ order }: { order: Order }) {
 
       {!deleted && (
         <p className="mt-3 text-xs leading-relaxed text-cream/50">
-          Scan the QR code on your frame with any phone camera to relive your memory — no app needed.
+          Scan the QR code on your frame with any phone camera to relive your memory - no app needed.
         </p>
       )}
 

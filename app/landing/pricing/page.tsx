@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 const faqs = [
   {
     q: 'Do my customers need an app?',
-    a: 'No. We use WebAR — it opens directly in the phone camera or browser on both iOS and Android.',
+    a: 'No. We use WebAR - it opens directly in the phone camera or browser on both iOS and Android.',
   },
   {
     q: 'How long can the video be?',
@@ -21,11 +21,11 @@ const faqs = [
   },
   {
     q: 'How long does delivery take?',
-    a: 'Physical frames are handcrafted and dispatched within 2–3 business days. Digital QR codes are delivered by email.',
+    a: 'Physical frames are handcrafted and dispatched within 2-3 business days. Digital QR codes are delivered by email.',
   },
   {
     q: 'Can I order in bulk for my business?',
-    a: 'Yes — we offer volume pricing and branded delivery for real estate and business clients. Get in touch.',
+    a: 'Yes - we offer volume pricing and branded delivery for real estate and business clients. Get in touch.',
   },
 ]
 

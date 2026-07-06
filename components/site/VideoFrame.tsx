@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 type VideoFrameProps = {
   /** Path to the looping video (placeholder until a real clip is supplied). */
   src?: string
-  /** Optional poster image — shown before playback and when motion is reduced. */
+  /** Optional poster image - shown before playback and when motion is reduced. */
   poster?: string
   /** Caption shown over the gradient fallback when the video is missing. */
   fallbackLabel?: string
@@ -13,7 +13,7 @@ type VideoFrameProps = {
 }
 
 /**
- * 16:9 framed showcase video — muted autoplay loop, gold border, rounded corners.
+ * 16:9 framed showcase video - muted autoplay loop, gold border, rounded corners.
  * • Falls back to a luxe gradient + label if the file is missing or fails to load.
  * • Respects `prefers-reduced-motion`: shows the poster (or gradient) instead of
  *   autoplaying, so the page is calm and accessible for those who opt out of motion.
@@ -41,7 +41,7 @@ export function VideoFrame({
     <div
       className={`relative aspect-video w-full overflow-hidden rounded-3xl border border-gold-brand/30 bg-green-mid/40 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] ${className}`}
     >
-      {/* Gradient backdrop — always present */}
+      {/* Gradient backdrop - always present */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_25%,#1c4a47_0%,#0F3535_60%,#082020_100%)]" />
 
       {/* Poster (if provided) sits above the gradient as a still fallback */}
