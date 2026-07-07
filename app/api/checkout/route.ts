@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     const isDigital = kind === 'digital'
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://localhost:3000'
-    const framePrice = parseInt(process.env.FRAME_PRICE_CENTS ?? '2999', 10)
+    const framePrice = parseInt(process.env.FRAME_PRICE_CENTS ?? '3900', 10)
     const deliveryPrice = parseInt(process.env.DELIVERY_PRICE_CENTS ?? '995', 10)
     const digitalPrice = parseInt(process.env.DIGITAL_PRICE_CENTS ?? '1900', 10)
 

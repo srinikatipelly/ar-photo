@@ -225,7 +225,7 @@ export type PricingTier = {
 export const pricingTiers: PricingTier[] = [
   {
     name: 'AR Photo Frame',
-    price: '$29',
+    price: '$39',
     was: '$79',
     unit: '8×10 frame',
     description: 'Our signature living memory - a premium framed photo that plays your video in AR.',
