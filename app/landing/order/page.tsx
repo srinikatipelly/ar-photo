@@ -9,7 +9,7 @@ type Step = 'form' | 'compiling' | 'uploading' | 'error'
 const MAX_VIDEO_BYTES = 200 * 1024 * 1024
 const MAX_VIDEO_SECONDS = 60
 
-const FRAME_PRICE = 29.0
+const FRAME_PRICE = 39.0
 const FRAME_WAS = 79.0
 const DELIVERY_PRICE = 9.95
 const TOTAL = (FRAME_PRICE + DELIVERY_PRICE).toFixed(2)

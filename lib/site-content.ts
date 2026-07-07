@@ -12,10 +12,10 @@ export const brand = {
   phoneIntl: '+61427649892',
   whatsapp: 'https://wa.me/61427649892',
   email: 'hello@thegoldenframe.com.au',
-  instagram: 'https://www.instagram.com/thegoldenframe.creations',
-  instagramHandle: 'thegoldenframe.creations',
-  facebook: 'https://www.facebook.com/thegoldenframecreations',
-  facebookHandle: 'thegoldenframecreations',
+  instagram: 'https://www.instagram.com/thegoldenframe.ar',
+  instagramHandle: 'thegoldenframe.ar',
+  facebook: 'https://www.facebook.com/profile.php?id=61590971710781',
+  facebookHandle: 'The Golden Frame',
   orderUrl: '/landing/order', // premium branded order page (MVP /upload stays on .co)
 } as const
 
@@ -225,7 +225,7 @@ export type PricingTier = {
 export const pricingTiers: PricingTier[] = [
   {
     name: 'AR Photo Frame',
-    price: '$29',
+    price: '$39',
     was: '$79',
     unit: '8×10 frame',
     description: 'Our signature living memory - a premium framed photo that plays your video in AR.',

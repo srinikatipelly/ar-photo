@@ -15,10 +15,10 @@ const BSB            = process.env.NEXT_PUBLIC_BSB            ?? ''
 const ACCOUNT_NUMBER = process.env.NEXT_PUBLIC_ACCOUNT_NUMBER ?? ''
 
 // Pricing
-const FRAME_PRICE    = 29.00
+const FRAME_PRICE    = 39.00
 const FRAME_WAS      = 79.00
 const DELIVERY_PRICE = 9.95
-const TOTAL          = (FRAME_PRICE + DELIVERY_PRICE).toFixed(2)   // 38.95
+const TOTAL          = (FRAME_PRICE + DELIVERY_PRICE).toFixed(2)   // 48.95
 const TOTAL_WAS      = (FRAME_WAS  + DELIVERY_PRICE).toFixed(2)    // 88.95
 
 // ── Address ───────────────────────────────────────────────────────────────────
@@ -361,7 +361,7 @@ export default function UploadPage() {
               <div className="flex items-center justify-between">
                 <span className="text-zinc-600">AR Photo Frame 8×10 <span className="text-xs text-amber-600 font-medium">(Promotional price)</span></span>
                 <span className="font-medium text-zinc-900">
-                  $29.00 <span className="ml-1 text-xs text-zinc-400 line-through">$79.00</span>
+                  $39.00 <span className="ml-1 text-xs text-zinc-400 line-through">$79.00</span>
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -492,7 +492,7 @@ export default function UploadPage() {
             <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">Promotional price</p>
             <p className="mt-0.5 text-sm text-zinc-700">
               AR Photo Frame 8×10 -{' '}
-              <span className="text-lg font-bold text-zinc-900">$29.00</span>{' '}
+              <span className="text-lg font-bold text-zinc-900">$39.00</span>{' '}
               <span className="text-sm text-zinc-400 line-through">$79.00</span>
             </p>
           </div>
