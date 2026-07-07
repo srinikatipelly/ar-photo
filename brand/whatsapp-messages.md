@@ -7,6 +7,7 @@
 **Standard contact block** (paste at the end of any message):
 ```
 📞 0427 649 892
+💬 WhatsApp: wa.me/61427649892
 🌐 thegoldenframe.com.au
 📸 Instagram: @thegoldenframe.ar
 👍 Facebook: facebook.com/profile.php?id=61590971710781
@@ -28,8 +29,11 @@ _Where Memories Come Alive_
 Australia's own *Augmented Reality* photo experience. Point your phone at a printed photo and watch it come alive, just like the magic frames in Harry Potter, but with *your* memories. 📱💛
 
 Want to see it in 30 seconds? 👇
-🌐 thegoldenframe.com.au
 📞 0427 649 892
+💬 WhatsApp: wa.me/61427649892
+🌐 thegoldenframe.com.au
+📸 Instagram: @thegoldenframe.ar
+👍 Facebook: facebook.com/profile.php?id=61590971710781
 
 ## Broadcast 2 - How the magic works
 
@@ -42,7 +46,12 @@ Still picturing it? Here's how simple it is 👇
 Weddings, birthdays, new babies, the people we miss... every memory deserves to live on.
 
 _Where Memories Come Alive_ 💛
+
+📞 0427 649 892
+💬 WhatsApp: wa.me/61427649892
 🌐 thegoldenframe.com.au
+📸 Instagram: @thegoldenframe.ar
+👍 Facebook: facebook.com/profile.php?id=61590971710781
 
 ## Broadcast 3 - The feeling (emotional)
 
@@ -55,8 +64,12 @@ Some moments are too precious for a still photo. 🥹
 
 *The Golden Frame* keeps them alive, not just remembered.
 
-See a live demo 👉 thegoldenframe.com.au
-📸 @thegoldenframe.ar
+See a live demo 👇
+📞 0427 649 892
+💬 WhatsApp: wa.me/61427649892
+🌐 thegoldenframe.com.au
+📸 Instagram: @thegoldenframe.ar
+👍 Facebook: facebook.com/profile.php?id=61590971710781
 
 ## Broadcast 4 - The invitation (call to action)
 
@@ -64,8 +77,9 @@ Ready to bring your memories to life? 🎁
 
 Order online in minutes and we'll handcraft your AR frame, delivered anywhere in Australia in 2-3 business days. 📦
 
-👉 thegoldenframe.com.au
+👉 Order now: thegoldenframe.com.au
 📞 0427 649 892
+💬 WhatsApp: wa.me/61427649892
 📸 Instagram: @thegoldenframe.ar
 👍 Facebook: facebook.com/profile.php?id=61590971710781
 
@@ -181,3 +195,5 @@ Australia's unique *AR* experience: watch your printed photos *move, play & spea
 📞 0427 649 892
 🌐 thegoldenframe.com.au
 📸 @thegoldenframe.ar
+
+Facebook: https://www.facebook.com/thegoldenframe.ar
