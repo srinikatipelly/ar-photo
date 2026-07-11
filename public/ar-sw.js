@@ -1,25 +1,32 @@
-// AR Service Worker — caches CDN scripts, .mind target files, frame metadata,
-// and transcoded videos so repeat scans are near-instant.
+// AR Service Worker — caches the (self-hosted) AR engine, .mind target files,
+// frame metadata, and transcoded videos so repeat scans are near-instant.
 
-const CDN_CACHE    = 'ar-cdn-v1'
+// Bumped to v2 when the AR engine moved from the jsDelivr CDN to self-hosted
+// /vendor files. The renamed cache also purges the old 'ar-cdn-v1' entry.
+const LIB_CACHE    = 'ar-lib-v2'
 const ASSET_CACHE  = 'ar-assets-v1'
 const FRAME_CACHE  = 'ar-frames-v1'
 const VIDEO_CACHE  = 'ar-video-v1'
 
-const CDN_SCRIPTS = [
-  'https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.module.js',
-  'https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-three.prod.js',
+// Self-hosted AR engine (three@0.132.2 + mind-ar@1.2.2). Same-origin, so this
+// also makes the viewer work fully offline after the first successful load.
+const LIB_SCRIPTS = [
+  '/vendor/three/three.module.js',
+  '/vendor/three/addons/renderers/CSS3DRenderer.js',
+  '/vendor/mind-ar/mindar-image-three.prod.js',
+  '/vendor/mind-ar/controller-495b585f.js',
+  '/vendor/mind-ar/ui-85e81035.js',
 ]
 
-// Pre-cache CDN scripts immediately on install
+// Pre-cache the engine immediately on install
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CDN_CACHE).then((cache) =>
+    caches.open(LIB_CACHE).then((cache) =>
       Promise.all(
-        CDN_SCRIPTS.map((url) =>
+        LIB_SCRIPTS.map((url) =>
           cache.match(url).then((hit) => {
             if (hit) return
-            return fetch(url, { mode: 'cors' })
+            return fetch(url)
               .then((res) => { if (res.ok) cache.put(url, res) })
               .catch(() => {})
           })
@@ -35,7 +42,7 @@ self.addEventListener('activate', (e) => {
     caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter((k) => ![CDN_CACHE, ASSET_CACHE, FRAME_CACHE, VIDEO_CACHE].includes(k))
+          .filter((k) => ![LIB_CACHE, ASSET_CACHE, FRAME_CACHE, VIDEO_CACHE].includes(k))
           .map((k) => caches.delete(k))
       )
     )
@@ -46,10 +53,10 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const { url } = e.request
 
-  // ── CDN scripts (Three.js, MindAR): cache-first ─────────────────────────
-  if (url.includes('cdn.jsdelivr.net')) {
+  // ── AR engine (self-hosted Three.js + MindAR): cache-first ──────────────
+  if (url.includes('/vendor/')) {
     e.respondWith(
-      caches.open(CDN_CACHE).then((cache) =>
+      caches.open(LIB_CACHE).then((cache) =>
         cache.match(e.request).then((cached) => {
           if (cached) return cached
           return fetch(e.request).then((res) => {
