@@ -151,3 +151,141 @@ More improvement: 06/07/2026 — ✅ all applied (2026-07-06, build-verified)
    (name / email / phone / message + high-contrast validation) that emails the business via
    Resend, reply-to the customer — `components/site/ContactForm.tsx`, `app/api/contact/route.ts`,
    `lib/resend.ts` (`sendContactEnquiry`), `app/landing/contact/page.tsx`.
+
+   copied from similar website, we need to modify as per australian market and our business requirements:
+   ==================================================
+   Shipping
+
+Shipping Policy
+Effective Date: March 8, 2026
+At Luxe Magics (www.luxemagics.com), we're a small team working from Hyderabad, committed to getting your memories to you safely and on time. Here's exactly what to expect.
+
+---
+
+Shipping Methods and Delivery Times
+Standard Products (Fridge Magnets, Magnetic Bookmarks, Stickers, Photo Prints)
+Processing: 2-3 business days
+Delivery: 5-7 business days
+
+AR Frame (Require approval before printing)
+Preview ready: Within 1-2 days of order
+Approval needed before printing 
+Processing: 1-2 business days after approval
+Delivery: 5-7 business days
+Delivery times are estimates and begin after order processing. Business days exclude weekends and holidays.
+
+---
+
+Order Processing
+Orders are processed within 2-3 business days (Monday-Saturday)
+Orders placed after 2:00 PM IST will be processed the next business day
+Orders placed on Sundays or holidays will be processed on the next business day
+AR frame orders require your approval of the preview before we proceed to printing
+You will receive a confirmation email once your order ships, including tracking information
+
+---
+
+Shipping Costs
+Free Shipping on all orders ₹499 and above
+₹49 flat rate for orders under ₹499
+No hidden charges. What you see at checkout is what you pay.
+---
+
+Shipping Locations
+We currently ship to all locations within India, including:
+
+All major cities (Delhi, Mumbai, Bangalore, Hyderabad, Chennai, Kolkata, Pune, etc.)
+Most towns and smaller cities
+Remote locations (may take 3-5 additional days)
+Areas we cannot service
+Certain remote locations not covered by our shipping partners
+International Shipping: Not available at this time. If you're outside India and interested in ordering, please contact us at hello@luxemagics.com
+Please ensure your shipping address is complete and accurate to avoid delays.
+
+---
+
+Order Tracking
+Once your order ships, you will receive:
+Shipping confirmation email
+Tracking number
+Link to track your package in real-time
+You can also track your order by logging into your account on www.luxemagics.com
+
+Lost the tracking email?
+
+Contact us via WhatsApp at +91 7207219977 
+Email orders@luxemagics.com
+---
+
+Delivery Attempts
+Our courier partner will attempt delivery 2-3 times to your address.
+
+What happens if you miss all delivery attempts?
+The courier will return the package to us
+We will contact you to reschedule delivery
+Re-delivery may incur additional charges (as per courier partner's policy)
+Pro tip: Keep your phone handy on the expected delivery date. The courier will call before attempting delivery.
+
+---
+
+Delivery Issues
+Lost or Stolen Packages
+If your tracking shows the package was delivered but you haven't received it, please contact us within 48 hours at support@luxemagics.com or WhatsApp +91 7207219977. We will investigate with our shipping partner and arrange for a replacement or refund.
+
+Damaged Packages
+If your package arrives damaged, please:
+
+Take a short video (10-15 seconds) showing the damage to both packaging and product
+Contact us immediately at support@luxemagics.com
+Do not discard the packaging until the issue is resolved
+Report within 7 days of delivery
+We will arrange for a replacement or full refund at no additional cost to you.
+
+Incorrect Address
+If you provide an incorrect shipping address, we cannot guarantee delivery or accept responsibility for lost packages. Please contact us immediately at hello@luxemagics.com if you realize an error, and we will attempt to intercept the shipment (additional fees may apply).
+
+---
+
+Shipping Restrictions
+We cannot ship to:
+
+P.O. boxes for certain products
+International addresses (India only at this time)
+Areas not serviced by our shipping partners
+If you're unsure whether we deliver to your location, email us your pincode at hello@luxemagics.com and we'll confirm within a few hours.
+
+---
+
+Delays and Special Circumstances
+Festival Seasons (Diwali, Holi, Eid, etc.)
+During major festivals, courier partners experience higher volumes. Please add 2-3 additional days to the standard delivery time.
+
+Weather and Natural Events
+Heavy rains, floods, or strikes may cause delays beyond our control. We will keep you updated if such situations affect your order.
+
+Customization Changes
+If you request changes to your AR frame preview after initial submission, the processing timeline will restart from the date of final approval.
+
+Peak Shopping Seasons
+During holidays and peak seasons, processing and delivery times may be extended. We recommend placing orders early to ensure timely delivery. Any delays will be communicated via email.
+
+---
+
+Questions About Shipping?
+If you have questions about shipping or need to modify your order, please contact us as soon as possible:
+
+Email: hello@luxemagics.com or support@luxemagics.com
+WhatsApp: +91 7207219977
+Hours: Monday - Saturday, 10 AM - 6 PM IST
+We're real people running a small business. We'll actually respond to you.
+
+---
+
+A Note From Us
+We're a tiny team. Every order is packed with care by us (literally). If something goes wrong with shipping, we take it personally and we'll fix it.
+
+Thanks for supporting our small business. Your order means the world to us.
+
+— Shiva & Sankeerthana 
+Luxe Magics
+===
