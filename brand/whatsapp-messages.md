@@ -197,3 +197,26 @@ Australia's unique *AR* experience: watch your printed photos *move, play & spea
 📸 @thegoldenframe.ar
 
 Facebook: https://www.facebook.com/thegoldenframe.ar
+
+Some ideas for instagram:
+A picture that doesn’t just sit still..it plays your story🎬✨
+
+Scan the frame and relive your favourite moment again and again. Because memories deserve motion🥰
+
+Upgrade your moments with our best selling AR frame.
+
+Even the loneliest penguin deserves a little magic ✨🐧
+
+That nihilist penguin walking away from everything? We get it. Sometimes you need to wander into the unknown to find what truly sparkles.
+
+While the world sees a penguin walking toward the mountains, we see someone brave enough to chase their own path—even if it's unconventional.
+At The Golden Frame, we believe in the magic of finding yourself, even when you're walking alone. Because the most transformative journeys often start with that first solitary step.
+
+🐧 Are you embracing your inner lonely penguin this year?
+
+✨ Let The Golden Frame add a little sparkle to your solo journey
+
+Ad ideas:
+https://www.instagram.com/reel/DW6aAwij6nl/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==
+
+Promote it as a gifting idea to someone
