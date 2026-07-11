@@ -13,8 +13,8 @@
   <script type="importmap">
   {
     "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/"
+      "three": "/vendor/three/three.module.js",
+      "three/addons/": "/vendor/three/addons/"
     }
   }
   </script>
@@ -24,12 +24,15 @@
     It tells the browser to download AND parse/compile each module eagerly —
     saving ~1-2s of compile time on mobile before the module script even runs.
     Three.js first so mind-ar's internal import resolves from the pre-compiled cache.
-  -->
-  <link rel="modulepreload" crossorigin href="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.module.js">
-  <link rel="modulepreload" crossorigin href="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-three.prod.js">
 
-  <!-- Early connection to CDN and asset origins -->
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    Self-hosted from /vendor (three@0.132.2, mind-ar@1.2.2) so a live scan never
+    depends on a third-party CDN staying up — the whole AR engine loads from our
+    own origin. See ARCHITECTURE.md §7.
+  -->
+  <link rel="modulepreload" href="/vendor/three/three.module.js">
+  <link rel="modulepreload" href="/vendor/mind-ar/mindar-image-three.prod.js">
+
+  <!-- Early connection to the asset origin (R2) -->
   <link rel="preconnect" href="https://pub-4bff56c624244a6f948d870f253a8b4c.r2.dev" crossorigin>
 
   <style>
@@ -105,7 +108,7 @@
     /* ── Unmute button ────────────────────────────────────────────── */
     #unmute-btn {
       display: none;
-      position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+      position: fixed; bottom: 148px; left: 50%; transform: translateX(-50%);
       align-items: center; gap: 8px;
       background: rgba(0,0,0,0.75); color: #fff; font-size: 14px; font-weight: 600;
       padding: 12px 20px; border-radius: 999px; z-index: 5;
@@ -135,6 +138,59 @@
       background: linear-gradient(135deg, #fbbf24, #f59e0b);
       color: #000; font-size: 14px; font-weight: 700;
       border: none; cursor: pointer;
+    }
+
+    /* ── Watch-without-camera button (shown once the camera is live) ─ */
+    #watch-btn {
+      display: none;
+      position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%);
+      align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.12); color: #fff; font-size: 14px; font-weight: 600;
+      padding: 11px 20px; border-radius: 999px; z-index: 5;
+      backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.28);
+      cursor: pointer; white-space: nowrap;
+    }
+    #watch-btn.nudge { animation: nudge-pulse 1.6s ease-in-out infinite; }
+    @keyframes nudge-pulse {
+      0%, 100% { box-shadow: 0 0 0 rgba(251,191,36,0);   border-color: rgba(255,255,255,0.28); }
+      50%      { box-shadow: 0 0 20px rgba(251,191,36,0.55); border-color: rgba(251,191,36,0.85); }
+    }
+
+    /* ── Full-screen steady player (no camera, zero shake) ─────────── */
+    #player {
+      position: fixed; inset: 0; z-index: 30; display: none;
+      flex-direction: column; background: #000;
+    }
+    #player.show { display: flex; }
+    #player-bar {
+      display: flex; align-items: center;
+      padding: calc(env(safe-area-inset-top) + 14px) 16px 14px;
+    }
+    #player-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.14); color: #fff;
+      font-size: 15px; font-weight: 600; padding: 10px 18px;
+      border-radius: 999px; border: none; cursor: pointer;
+      backdrop-filter: blur(8px);
+    }
+    #player-stage {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      overflow: hidden; padding: 0 8px;
+    }
+    #player-stage video {
+      width: 100%; height: auto; max-height: 100%;
+      border-radius: 14px; background: #000;
+    }
+    #player-caption {
+      color: rgba(255,255,255,0.65); font-size: 13px; font-style: italic;
+      text-align: center; padding: 14px 24px calc(env(safe-area-inset-bottom) + 20px);
+    }
+
+    /* Fallback "watch" button on the error screen */
+    #error-watch-btn {
+      display: none; margin-top: 20px; padding: 13px 28px; border-radius: 999px;
+      background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #000;
+      font-size: 14px; font-weight: 700; border: none; cursor: pointer;
     }
 
     /* MindAR renders its canvas inside #scene-container */
@@ -170,16 +226,28 @@
   </div>
 
   <button id="unmute-btn">🔊 Tap to enable sound</button>
+  <button id="watch-btn">▶️ Watch without camera</button>
   <div id="hint" style="display:none; opacity:0;">Point your camera at the photo frame</div>
 
   <div id="error">
     <div id="error-icon">⚠️</div>
     <p id="error-text">Something went wrong.</p>
     <small id="error-detail"></small>
+    <button id="error-watch-btn">▶️ Watch the video instead</button>
     <button id="reload-btn" onclick="location.reload()">Try again</button>
   </div>
 
   <div id="scene-container"></div>
+
+  <!-- Full-screen, steady (no-camera) player. The AR video element is moved in
+       here on demand, so there is zero tracking jitter while it plays. -->
+  <div id="player">
+    <div id="player-bar">
+      <button id="player-back">‹ Back to camera</button>
+    </div>
+    <div id="player-stage"></div>
+    <div id="player-caption">Playing your memory ✨</div>
+  </div>
 
   <!-- Register service worker as early as possible (classic script, no defer needed) -->
   <script>
@@ -189,7 +257,7 @@
   </script>
 
   <script type="module">
-    import { MindARThree } from 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-three.prod.js'
+    import { MindARThree } from '/vendor/mind-ar/mindar-image-three.prod.js'
     import * as THREE from 'three'
 
     const frameId        = new URLSearchParams(location.search).get('frame')
@@ -223,6 +291,48 @@
     const errorText      = document.getElementById('error-text')
     const errorDetail    = document.getElementById('error-detail')
     const sceneContainer = document.getElementById('scene-container')
+    const watchBtn       = document.getElementById('watch-btn')
+    const errorWatchBtn  = document.getElementById('error-watch-btn')
+    const playerEl       = document.getElementById('player')
+    const playerStage    = document.getElementById('player-stage')
+    const playerBack     = document.getElementById('player-back')
+
+    // Shared state so the fallback player works from both AR and error screens.
+    let arVideo     = null   // the <video> used as the AR texture AND the player source
+    let arActive    = false  // true once the live AR camera is running
+    let targetFound = false  // has the printed photo been detected at least once?
+
+    // ── Steady full-screen player (no camera, so zero tracking shake) ──
+    // We move the very same <video> element into the player, so playback and
+    // sound continue seamlessly whether it's shown as an AR texture or here.
+    function openPlayer() {
+      if (!arVideo) return
+      playerBack.textContent = arActive ? '‹ Back to camera' : '‹ Back'
+      playerStage.appendChild(arVideo)
+      arVideo.setAttribute('controls', '')
+      arVideo.muted = false
+      arVideo.play().catch(() => {})
+      errorEl.style.display = 'none'
+      unmuteBtn.style.display = 'none'
+      playerEl.classList.add('show')
+    }
+
+    function closePlayer() {
+      playerEl.classList.remove('show')
+      arVideo.removeAttribute('controls')
+      if (arActive) {
+        // Re-detach so it returns to being purely the AR texture source.
+        if (arVideo.parentNode) arVideo.parentNode.removeChild(arVideo)
+        arVideo.play().catch(() => {})
+      } else {
+        // Camera never started — send them back to the error screen.
+        errorEl.style.display = 'flex'
+      }
+    }
+
+    watchBtn.addEventListener('click', openPlayer)
+    errorWatchBtn.addEventListener('click', openPlayer)
+    playerBack.addEventListener('click', closePlayer)
 
     function setStep(id, state) {
       // state: 'active' | 'done'
@@ -242,6 +352,9 @@
       hintEl.style.display    = 'none'
       errorText.textContent   = message
       errorDetail.textContent = detail || ''
+      // If we already have the video, always offer the no-camera fallback so
+      // the customer can still see their memory even when AR can't start.
+      errorWatchBtn.style.display = arVideo ? 'inline-block' : 'none'
       errorEl.style.display   = 'flex'
       console.error('[AR] ERROR:', message, detail || '')
     }
@@ -307,6 +420,7 @@
         video.preload = 'auto'
         video.setAttribute('playsinline', '')
         video.setAttribute('webkit-playsinline', '')
+        arVideo = video  // share with the no-camera fallback player
 
         const photoImg = new Image()
         if (photoUrl) photoImg.src = photoUrl
@@ -347,8 +461,12 @@
           // screen through brief tracking dropouts so it doesn't flicker/pop out.
           filterMinCF:     0.0001,
           filterBeta:      0.001,
-          missTolerance:   8,
-          warmupTolerance: 3,
+          // Higher tolerances = the video rides through brief tracking dropouts
+          // instead of flickering/popping out, so it sits far steadier inside the
+          // printed frame. Steady playback with no shake at all = the Watch
+          // without camera button, which plays the video screen-locked.
+          missTolerance:   16,
+          warmupTolerance: 5,
         })
 
         const { renderer, scene, camera } = mindarThree
@@ -377,6 +495,8 @@
         mindarThree.addAnchor(0).group.add(plane)
 
         mindarThree.anchors[0].onTargetFound = () => {
+          targetFound = true
+          watchBtn.classList.remove('nudge')
           video.muted = false
           video.play().catch(() => {
             video.muted = true
@@ -412,6 +532,17 @@
         loadingEl.style.display = 'none'
         hintEl.style.display    = 'block'
         hintEl.style.opacity    = '1'
+
+        // Camera is live — offer the no-camera option, and gently draw attention
+        // to it if the customer hasn't managed to scan the frame after a while.
+        arActive = true
+        watchBtn.style.display = 'flex'
+        setTimeout(() => {
+          if (!targetFound && arActive) {
+            watchBtn.classList.add('nudge')
+            hintEl.textContent = "Trouble scanning? Tap “Watch without camera” below"
+          }
+        }, 12000)
 
         unmuteBtn.addEventListener('click', () => {
           video.muted = false
