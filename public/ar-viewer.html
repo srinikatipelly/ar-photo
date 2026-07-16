@@ -414,6 +414,19 @@
       let mindarThree  = null
       let targetBlobUrl = null
 
+      // MindAR's stop() is synchronous and returns undefined, so it must not be
+      // treated as a promise: `stop().catch(...)` throws a TypeError *after* stop()
+      // has already killed the camera, which aborts whichever handler called it
+      // and strands the viewer on a black screen with no error shown.
+      const stopAR = () => {
+        if (!mindarThree) return
+        try {
+          mindarThree.stop()
+        } catch (e) {
+          console.warn('[AR] stop failed:', e)
+        }
+      }
+
       // Fire the camera prompt up front (don't block asset loading on it).
       setStep('step-camera', 'active')
       const cameraPrewarm = prewarmCamera()
@@ -555,7 +568,7 @@
         setProgress(70, 'Opening your camera…')
 
         const hardTimeout = setTimeout(() => {
-          if (mindarThree) mindarThree.stop().catch(() => {})
+          stopAR()
           showError('AR timed out.', 'Camera or tracker took too long. Tap "Try again".')
         }, 120000)
 
@@ -590,7 +603,7 @@
 
       } catch (err) {
         console.error('[AR] loadFrame error:', err)
-        if (mindarThree) mindarThree.stop().catch(() => {})
+        stopAR()
         if (targetBlobUrl) URL.revokeObjectURL(targetBlobUrl)
 
         const msg = (err && err.message) ? err.message : String(err)
