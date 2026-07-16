@@ -152,8 +152,46 @@ More improvement: 06/07/2026 — ✅ all applied (2026-07-06, build-verified)
    Resend, reply-to the customer — `components/site/ContactForm.tsx`, `app/api/contact/route.ts`,
    `lib/resend.ts` (`sendContactEnquiry`), `app/landing/contact/page.tsx`.
 
+
+Enhancements: 16/07/2026 — ✅ all applied (2026-07-17, dev-verified on localhost)
+Demo page reworked to be more engaging and instructional — `app/landing/demo/page.tsx`.
+1. ✅ Hero now leads with the action ("Open your camera. Watch it come alive.") + numbered
+   instruction chips (1 Open camera · 2 Scan QR · 3 Point at photo) above the composite still.
+2. ✅ Added a standalone wedding-frame-with-QR image as the live AR target —
+   `public/weddingFrame1.png` (`demoFrame` export in `lib/site-content.ts`).
+3. ✅ "Try it yourself" is now a stacked live sample: Step 01 Scan (QR with a pulsing gold glow)
+   on top, then Step 02 Point below it showing the frame large at its native 2:3, with a tip
+   noting the printed frame does both in one scan.
+
+Bug: ✅ fixed (2026-07-17) — AR video stopped playing on "Back to camera"
+`closePlayer()` detached the <video> from the document and then called play() synchronously.
+The browser pauses a media element that leaves the document, and does it *asynchronously*, so
+that play() was undone a moment later and playback stopped. The video is created detached and
+used straight as a WebGL texture, so opening the player was the first time it ever entered the
+document — which is why only the return trip broke. Fixed by adding an off-screen `#video-dock`
+that keeps the video in the document: `closePlayer()` now moves it back there instead of
+detaching, so the spec's pause step sees it is still in a document and returns without pausing.
+The dock is deliberately not display:none — that can stop frame decoding and freeze the texture.
+Reproduced and verified in Chromium via Playwright (headless DOM/playback only — the real camera,
+MindAR tracking and iOS Safari still want a check on a real phone) — `public/ar-viewer.html`.
+
+Still open (not blocking):
+- `public/weddingFrame1.png` (3.6 MB) / `weddingFrame2.png` (2.0 MB) are heavy for a page that is
+  opened on phones, often on mobile data. WebP at the rendered size would be ~150-250 KB.
+- `weddingFrame2.png` is committed but not referenced anywhere yet.
+
+Original request (for reference):
+I feel the Demo page is not very attractive and user friendly. We need to make it more attractive and user friendly. 
+The demo page should be more interactive and engaging for the users.
+1. first hero image should tell the users to open your camera and scan the QR code to see the demo. The hero image should be more interactive and engaging for the users.
+2. second image should be only the photo of wedding photo with the QR code on the frame.
+3. try yourself -> scan the QR and point the photo on 2nd image to see the demo. The users should be able to see the demo by scanning the QR code on the frame.
+
+
+DONT implement the below yet:
+   ==================================================   
    copied from similar website, we need to modify as per australian market and our business requirements:
-   ==================================================
+
    Shipping
 
 Shipping Policy
@@ -288,4 +326,4 @@ Thanks for supporting our small business. Your order means the world to us.
 
 — Shiva & Sankeerthana 
 Luxe Magics
-===
+   ==================================================

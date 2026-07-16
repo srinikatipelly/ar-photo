@@ -105,14 +105,15 @@
       transition: width 0.5s ease;
     }
 
-    /* ── Unmute button ────────────────────────────────────────────── */
-    #unmute-btn {
+    /* ── Sound toggle (icon only) ─────────────────────────────────── */
+    #sound-btn {
       display: none;
-      position: fixed; bottom: 148px; left: 50%; transform: translateX(-50%);
-      align-items: center; gap: 8px;
-      background: rgba(0,0,0,0.75); color: #fff; font-size: 14px; font-weight: 600;
-      padding: 12px 20px; border-radius: 999px; z-index: 5;
-      backdrop-filter: blur(8px); border: none; cursor: pointer; white-space: nowrap;
+      position: fixed; top: calc(env(safe-area-inset-top) + 16px); right: 16px;
+      width: 44px; height: 44px; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.55); color: #fff; font-size: 20px; line-height: 1;
+      border-radius: 999px; z-index: 6; padding: 0;
+      backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.22);
+      cursor: pointer;
     }
 
     /* ── Scan hint ────────────────────────────────────────────────── */
@@ -154,6 +155,15 @@
     @keyframes nudge-pulse {
       0%, 100% { box-shadow: 0 0 0 rgba(251,191,36,0);   border-color: rgba(255,255,255,0.28); }
       50%      { box-shadow: 0 0 20px rgba(251,191,36,0.55); border-color: rgba(251,191,36,0.85); }
+    }
+
+    /* Off-screen home for the AR video whenever it is only feeding the WebGL
+       texture. It has to stay in the document (a media element removed from the
+       document gets paused by the browser) and stay rendered - display:none can
+       stop frame decoding, which would freeze the texture. */
+    #video-dock {
+      position: fixed; left: -9999px; top: 0;
+      width: 1px; height: 1px; opacity: 0; pointer-events: none;
     }
 
     /* ── Full-screen steady player (no camera, zero shake) ─────────── */
@@ -225,19 +235,22 @@
     </div>
   </div>
 
-  <button id="unmute-btn">🔊 Tap to enable sound</button>
-  <button id="watch-btn">▶️ Watch without camera</button>
+  <button id="sound-btn" aria-label="Toggle sound">🔊</button>
+  <button id="watch-btn">✨ Play as video</button>
   <div id="hint" style="display:none; opacity:0;">Point your camera at the photo frame</div>
 
   <div id="error">
     <div id="error-icon">⚠️</div>
     <p id="error-text">Something went wrong.</p>
     <small id="error-detail"></small>
-    <button id="error-watch-btn">▶️ Watch the video instead</button>
+    <button id="error-watch-btn">✨ Play as video</button>
     <button id="reload-btn" onclick="location.reload()">Try again</button>
   </div>
 
   <div id="scene-container"></div>
+
+  <!-- Keeps the AR video attached to the document while it is only a texture. -->
+  <div id="video-dock"></div>
 
   <!-- Full-screen, steady (no-camera) player. The AR video element is moved in
        here on demand, so there is zero tracking jitter while it plays. -->
@@ -286,7 +299,7 @@
     loadingQuote.textContent = QUOTES[0]
     const quoteInterval = setInterval(showNextQuote, 3000)
     const hintEl         = document.getElementById('hint')
-    const unmuteBtn      = document.getElementById('unmute-btn')
+    const soundBtn       = document.getElementById('sound-btn')
     const errorEl        = document.getElementById('error')
     const errorText      = document.getElementById('error-text')
     const errorDetail    = document.getElementById('error-detail')
@@ -296,6 +309,7 @@
     const playerEl       = document.getElementById('player')
     const playerStage    = document.getElementById('player-stage')
     const playerBack     = document.getElementById('player-back')
+    const videoDock      = document.getElementById('video-dock')
 
     // Shared state so the fallback player works from both AR and error screens.
     let arVideo     = null   // the <video> used as the AR texture AND the player source
@@ -313,7 +327,7 @@
       arVideo.muted = false
       arVideo.play().catch(() => {})
       errorEl.style.display = 'none'
-      unmuteBtn.style.display = 'none'
+      soundBtn.style.display = 'none'   // full-screen player has its own controls
       playerEl.classList.add('show')
     }
 
@@ -321,9 +335,15 @@
       playerEl.classList.remove('show')
       arVideo.removeAttribute('controls')
       if (arActive) {
-        // Re-detach so it returns to being purely the AR texture source.
-        if (arVideo.parentNode) arVideo.parentNode.removeChild(arVideo)
-        arVideo.play().catch(() => {})
+        // Park it back in the dock so it returns to being purely the AR texture
+        // source. It must move to another in-document parent rather than be
+        // detached: the browser pauses a media element that leaves the document,
+        // and it does so asynchronously, so a play() here would be undone a
+        // moment later and the AR video would stop.
+        videoDock.appendChild(arVideo)
+        arVideo.play().catch(() => {})   // also resumes if they paused via the controls
+        soundBtn.style.display = 'flex'   // restore the sound toggle over the camera
+        syncSoundIcon()
       } else {
         // Camera never started — send them back to the error screen.
         errorEl.style.display = 'flex'
@@ -333,6 +353,20 @@
     watchBtn.addEventListener('click', openPlayer)
     errorWatchBtn.addEventListener('click', openPlayer)
     playerBack.addEventListener('click', closePlayer)
+
+    // ── Sound toggle ──────────────────────────────────────────────────
+    // The video plays with sound ON by default; this icon lets the viewer
+    // mute/unmute. It also recovers the case where the browser blocks un-muted
+    // autoplay: we fall back to muted, the icon shows 🔇, and one tap enables sound.
+    function syncSoundIcon() {
+      soundBtn.textContent = (arVideo && arVideo.muted) ? '🔇' : '🔊'
+    }
+    soundBtn.addEventListener('click', () => {
+      if (!arVideo) return
+      arVideo.muted = !arVideo.muted
+      if (!arVideo.muted) arVideo.play().catch(() => {})
+      syncSoundIcon()
+    })
 
     function setStep(id, state) {
       // state: 'active' | 'done'
@@ -420,6 +454,7 @@
         video.preload = 'auto'
         video.setAttribute('playsinline', '')
         video.setAttribute('webkit-playsinline', '')
+        videoDock.appendChild(video)  // keep it in the document from the start
         arVideo = video  // share with the no-camera fallback player
 
         const photoImg = new Image()
@@ -497,12 +532,18 @@
         mindarThree.anchors[0].onTargetFound = () => {
           targetFound = true
           watchBtn.classList.remove('nudge')
+          // Play with sound ON by default. If the browser blocks un-muted
+          // autoplay, fall back to muted — the 🔇 icon then invites one tap.
           video.muted = false
-          video.play().catch(() => {
+          video.play().then(() => {
+            syncSoundIcon()
+          }).catch(() => {
             video.muted = true
             video.play().catch(e => console.warn('[AR] Video play failed:', e))
-            unmuteBtn.style.display = 'flex'
+            syncSoundIcon()
           })
+          soundBtn.style.display = 'flex'
+          syncSoundIcon()
           hintEl.style.opacity = '0'
         }
         mindarThree.anchors[0].onTargetLost = () => {
@@ -540,7 +581,7 @@
         setTimeout(() => {
           if (!targetFound && arActive) {
             watchBtn.classList.add('nudge')
-            hintEl.textContent = "Trouble scanning? Tap “Watch without camera” below"
+            hintEl.textContent = "Trouble scanning? Tap “Play as video” below"
           }
         }, 12000)
 
