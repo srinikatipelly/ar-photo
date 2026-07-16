@@ -176,9 +176,8 @@ Reproduced and verified in Chromium via Playwright (headless DOM/playback only â
 MindAR tracking and iOS Safari still want a check on a real phone) â€” `public/ar-viewer.html`.
 
 Still open (not blocking):
-- `public/weddingFrame1.png` (3.6 MB) / `weddingFrame2.png` (2.0 MB) are heavy for a page that is
-  opened on phones, often on mobile data. WebP at the rendered size would be ~150-250 KB.
-- `weddingFrame2.png` is committed but not referenced anywhere yet.
+- `public/weddingFrame1.png` (3.6 MB) is heavy for a page that is opened on phones, often on
+  mobile data. WebP at the rendered size would be ~150-250 KB.
 
 Original request (for reference):
 I feel the Demo page is not very attractive and user friendly. We need to make it more attractive and user friendly. 
