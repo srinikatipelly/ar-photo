@@ -175,6 +175,40 @@ The dock is deliberately not display:none — that can stop frame decoding and f
 Reproduced and verified in Chromium via Playwright (headless DOM/playback only — the real camera,
 MindAR tracking and iOS Safari still want a check on a real phone) — `public/ar-viewer.html`.
 
+Bug: ✅ fixed (2026-07-17) — black screen on camera start (phone-verified)
+Two bugs, one on top of the other. The sound-toggle refactor renamed `unmute-btn` → `sound-btn`
+(and `unmuteBtn` → `soundBtn`) but left an `unmuteBtn.addEventListener(...)` behind, referencing
+an undeclared variable → ReferenceError. It sat inside `loadFrame()`'s try, a few lines *after*
+`await mindarThree.start()`, so the camera came up and was then torn straight back down by the
+catch. The listener was dead code (`onTargetFound` + the `soundBtn` handler already cover it), so
+it was deleted.
+The reason it showed as a *silent* black page rather than an error screen: MindAR's `stop()` is
+synchronous and returns undefined, but both call sites did `mindarThree.stop().catch(() => {})`.
+Reading `.catch` on undefined threw a TypeError — but only *after* `stop()` had already killed the
+camera tracks and removed the camera video element. So the catch blanked the screen and then died
+before `showError()` ever ran, leaving the scan hint up and no error. That masked every underlying
+error in the viewer, and hit the 120s hard-timeout path too. Both now go through a `stopAR()`
+helper that wraps `stop()` in try/catch, defined inside `loadFrame()` (where `mindarThree` is
+scoped) — `public/ar-viewer.html`.
+Lesson worth keeping: `public/*.html` is not covered by `npm run lint`, so nothing in the AR
+viewer is statically checked. Extracting the module script and running eslint `no-undef` over it
+caught both the original bug and a scope mistake in the fix itself. Wiring that into lint properly
+would stop this whole class of bug reaching a phone.
+
+Parked: sound is not ON by default when the AR video starts (raised 17/07/2026)
+Symptom: the video plays muted; the 🔇 icon then takes one tap to enable sound.
+Cause: iOS/WebKit blocks un-muted autoplay without a qualifying user gesture. `onTargetFound`
+fires long after any tap (the customer scanned a QR, then allowed the camera), so the un-muted
+`video.play()` rejects and the existing fallback correctly drops to muted and shows 🔇. The
+fallback is working as designed — the gap is that we never unlock audio.
+Deliberately NOT fixed now: it means touching the exact play/mute paths that produced the black
+screen above, and a silent-but-working viewer beats a loud broken one.
+When picked up: unlock audio during a real user gesture rather than at target-found — e.g. on the
+same tap that dismisses an intro/permission prompt, call `video.play()` then immediately pause and
+reset, which satisfies WebKit's gesture requirement so later un-muted play is allowed. Verify on a
+real iPhone (headless Chromium will not reproduce the policy) and re-check the "Back to camera"
+path, since it shares `arVideo`.
+
 Still open (not blocking):
 - `public/weddingFrame1.png` (3.6 MB) is heavy for a page that is opened on phones, often on
   mobile data. WebP at the rendered size would be ~150-250 KB.
