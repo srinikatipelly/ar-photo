@@ -200,8 +200,10 @@ export const landingHeroVideo = '/videos/hero.mp4'
 /** Still frame shown before the hero video loads / when motion is reduced. */
 export const landingHeroPoster = '/videos/hero-poster.jpg'
 
-/** 16:9 demo still shown on the demo page. */
+/** 16:9 demo still shown on the demo page (phone scanning a framed photo). */
 export const demoImage = '/demo.jpg'
+/** Standalone wedding frame (with printed QR) that acts as the live AR target. */
+export const demoFrame = '/weddingFrame1.png'
 /** Branded QR that opens a live WebAR sample when scanned. */
 export const demoQr = '/qr-demo.png'
 
