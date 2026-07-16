@@ -585,12 +585,6 @@
           }
         }, 12000)
 
-        unmuteBtn.addEventListener('click', () => {
-          video.muted = false
-          video.play().catch(() => {})
-          unmuteBtn.style.display = 'none'
-        })
-
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
         renderer.setAnimationLoop(() => renderer.render(scene, camera))
 
