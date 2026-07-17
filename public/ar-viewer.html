@@ -106,14 +106,37 @@
     }
 
     /* ── Sound toggle (icon only) ─────────────────────────────────── */
+    /* Sits on the same line as "Play as video" rather than up top, where the
+       notch / Dynamic Island / Safari's own chrome hide it and where it is out
+       of reach one-handed. Matches the watch button's glass styling. */
     #sound-btn {
       display: none;
-      position: fixed; top: calc(env(safe-area-inset-top) + 16px); right: 16px;
-      width: 44px; height: 44px; align-items: center; justify-content: center;
-      background: rgba(0,0,0,0.55); color: #fff; font-size: 20px; line-height: 1;
+      position: fixed; bottom: 84px; right: 16px;
+      width: 48px; height: 48px; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.12); color: #fff;
       border-radius: 999px; z-index: 6; padding: 0;
-      backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.22);
-      cursor: pointer;
+      backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.28);
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+      transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
+    }
+    #sound-btn:active { transform: scale(0.92); }
+    #sound-btn svg { width: 22px; height: 22px; display: block; }
+    #sound-btn .icon-off { display: none; }
+    /* Muted means the customer is silently missing the audio, so make the
+       button announce itself instead of waiting to be found. */
+    #sound-btn.muted .icon-on  { display: none; }
+    #sound-btn.muted .icon-off { display: block; }
+    #sound-btn.muted {
+      background: rgba(251,191,36,0.18);
+      border-color: rgba(251,191,36,0.75);
+      animation: sound-pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes sound-pulse {
+      0%, 100% { box-shadow: 0 0 0 rgba(251,191,36,0); }
+      50%      { box-shadow: 0 0 18px rgba(251,191,36,0.5); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #sound-btn.muted { animation: none; }
     }
 
     /* ── Scan hint ────────────────────────────────────────────────── */
@@ -235,7 +258,20 @@
     </div>
   </div>
 
-  <button id="sound-btn" aria-label="Toggle sound">🔊</button>
+  <button id="sound-btn" aria-label="Turn sound off" aria-pressed="true">
+    <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M11 5 6 9H2v6h4l5 4V5z"/>
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+    </svg>
+    <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M11 5 6 9H2v6h4l5 4V5z"/>
+      <line x1="22" y1="9" x2="16" y2="15"/>
+      <line x1="16" y1="9" x2="22" y2="15"/>
+    </svg>
+  </button>
   <button id="watch-btn">✨ Play as video</button>
   <div id="hint" style="display:none; opacity:0;">Point your camera at the photo frame</div>
 
@@ -357,9 +393,15 @@
     // ── Sound toggle ──────────────────────────────────────────────────
     // The video plays with sound ON by default; this icon lets the viewer
     // mute/unmute. It also recovers the case where the browser blocks un-muted
-    // autoplay: we fall back to muted, the icon shows 🔇, and one tap enables sound.
+    // autoplay: we fall back to muted, the button shows the muted icon and
+    // pulses, and one tap enables sound.
+    // Toggles a class rather than writing textContent, which would delete the
+    // button's SVG icons.
     function syncSoundIcon() {
-      soundBtn.textContent = (arVideo && arVideo.muted) ? '🔇' : '🔊'
+      const muted = !!(arVideo && arVideo.muted)
+      soundBtn.classList.toggle('muted', muted)
+      soundBtn.setAttribute('aria-label', muted ? 'Turn sound on' : 'Turn sound off')
+      soundBtn.setAttribute('aria-pressed', muted ? 'false' : 'true')
     }
     soundBtn.addEventListener('click', () => {
       if (!arVideo) return
