@@ -139,6 +139,27 @@
       #sound-btn.muted { animation: none; }
     }
 
+    /* ── Interactive link overlay (Approach A) ─────────────────────────
+       Real DOM <a> links positioned over the tracked card each frame.
+       Only used when the frame provides a `links` array (or ?links= /
+       ?demoLinks=1 for testing), so frames without links are unaffected. */
+    #link-layer { position: fixed; inset: 0; z-index: 8; display: none; overflow: hidden; pointer-events: none; }
+    #link-layer.show { display: block; }
+    .ar-link {
+      position: absolute; transform: translate(-50%, -50%);
+      visibility: hidden; opacity: 0;
+      align-items: center; gap: 6px; pointer-events: auto; cursor: pointer;
+      padding: 9px 16px; border-radius: 999px;
+      font-size: 13px; font-weight: 600; line-height: 1;
+      color: #1a1a1a; text-decoration: none; white-space: nowrap;
+      background: rgba(255,255,255,0.92); border: 1px solid rgba(251,191,36,0.9);
+      box-shadow: 0 6px 20px -6px rgba(0,0,0,0.55); backdrop-filter: blur(6px);
+      transition: opacity 0.3s ease, transform 0.12s ease;
+      will-change: left, top;
+    }
+    #link-layer.show .ar-link { display: inline-flex; opacity: 1; }
+    .ar-link:active { transform: translate(-50%, -50%) scale(0.94); }
+
     /* ── Scan hint ────────────────────────────────────────────────── */
     #hint {
       position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
@@ -287,6 +308,9 @@
 
   <!-- Keeps the AR video attached to the document while it is only a texture. -->
   <div id="video-dock"></div>
+
+  <!-- Real DOM links positioned over the tracked card each frame (Approach A). -->
+  <div id="link-layer"></div>
 
   <!-- Full-screen, steady (no-camera) player. The AR video element is moved in
        here on demand, so there is zero tracking jitter while it plays. -->
@@ -452,6 +476,44 @@
       }
     }
 
+    // ── Interactive links (Approach A) ─────────────────────────────────
+    // A link is { label, url, x, y } where x,y are 0..1 fractions of the card
+    // (0,0 = top-left). Links come from the frame payload in production; the
+    // ?links= and ?demoLinks= params exist only for testing on the phone.
+    const DEMO_LINKS = [
+      { label: 'Visit website', url: 'https://www.thegoldenframe.com.au',                 x: 0.5, y: 0.50 },
+      { label: 'Instagram',     url: 'https://www.instagram.com/thegoldenframe',          x: 0.5, y: 0.68 },
+      { label: 'Save contact',  url: 'https://www.thegoldenframe.com.au/landing/contact', x: 0.5, y: 0.86 },
+    ]
+
+    const clamp01 = (n) => (Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : 0.5)
+
+    // Keep only well-formed links, and only http(s) URLs — never javascript:
+    // or data: — since a link list can arrive from an untrusted URL param.
+    function sanitizeLinks(arr) {
+      if (!Array.isArray(arr)) return []
+      return arr
+        .map((l) => {
+          if (!l || typeof l.label !== 'string' || typeof l.url !== 'string') return null
+          let ok = false
+          try { const u = new URL(l.url); ok = u.protocol === 'https:' || u.protocol === 'http:' } catch (e) { /* invalid */ }
+          if (!ok) return null
+          return { label: l.label.slice(0, 40), url: l.url, x: clamp01(Number(l.x)), y: clamp01(Number(l.y)) }
+        })
+        .filter(Boolean)
+        .slice(0, 6)
+    }
+
+    function resolveLinks(payloadLinks) {
+      const fromPayload = sanitizeLinks(payloadLinks)
+      if (fromPayload.length) return fromPayload
+      const params = new URLSearchParams(location.search)
+      if (params.get('demoLinks') === '1') return sanitizeLinks(DEMO_LINKS)
+      const raw = params.get('links')
+      if (raw) { try { return sanitizeLinks(JSON.parse(raw)) } catch (e) { return [] } }
+      return []
+    }
+
     async function loadFrame() {
       let mindarThree  = null
       let targetBlobUrl = null
@@ -493,7 +555,7 @@
           const body = await res.json().catch(() => ({}))
           throw new Error(body.error || 'Frame not found (HTTP ' + res.status + ')')
         }
-        const { videoUrl, targetUrl, photoUrl } = await res.json()
+        const { videoUrl, targetUrl, photoUrl, links: payloadLinks } = await res.json()
         if (!videoUrl || !targetUrl) throw new Error('Frame data is incomplete.')
 
         setProgress(35, 'Downloading AR target…')
@@ -605,6 +667,47 @@
           hintEl.style.opacity = '1'
         }
 
+        // ── Interactive link overlay (Approach A: DOM synced to the anchor) ──
+        // Each frame we project a point on the card into screen space and move a
+        // real <a> there, so links track the card but stay crisp, tappable and
+        // openable like any web link. No-op unless the frame supplies links.
+        const links = resolveLinks(payloadLinks)
+        let updateLinkOverlay = () => {}
+        if (links.length) {
+          const layer       = document.getElementById('link-layer')
+          const anchorGroup = mindarThree.anchors[0].group
+          const cardW = planeW / INSET          // card spans width 1 in target units
+          const cardH = planeH / INSET          // …and height photoH/photoW
+          const els = links.map((lnk) => {
+            const a = document.createElement('a')
+            a.className   = 'ar-link'
+            a.href        = lnk.url
+            a.target      = '_blank'
+            a.rel         = 'noopener noreferrer'
+            a.textContent = lnk.label
+            layer.appendChild(a)
+            return a
+          })
+          const v = new THREE.Vector3()
+          updateLinkOverlay = () => {
+            if (!targetFound) { layer.classList.remove('show'); return }
+            layer.classList.add('show')
+            const rect = renderer.domElement.getBoundingClientRect()
+            for (let i = 0; i < links.length; i++) {
+              const lnk = links[i], el = els[i]
+              // Card-local point (y is top-down in the fractions), then to world,
+              // then to normalised device coords via the AR camera.
+              v.set((lnk.x - 0.5) * cardW, (0.5 - lnk.y) * cardH, 0.001)
+              anchorGroup.localToWorld(v)
+              v.project(camera)
+              if (v.z >= 1) { el.style.visibility = 'hidden'; continue }  // behind camera
+              el.style.left = (rect.left + (v.x * 0.5 + 0.5) * rect.width) + 'px'
+              el.style.top  = (rect.top + (-v.y * 0.5 + 0.5) * rect.height) + 'px'
+              el.style.visibility = 'visible'
+            }
+          }
+        }
+
         // ── Step 6: Start camera ──────────────────────────────────────────
         setStep('step-camera', 'active')
         setProgress(70, 'Opening your camera…')
@@ -641,7 +744,10 @@
         }, 12000)
 
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-        renderer.setAnimationLoop(() => renderer.render(scene, camera))
+        renderer.setAnimationLoop(() => {
+          renderer.render(scene, camera)
+          updateLinkOverlay()
+        })
 
       } catch (err) {
         console.error('[AR] loadFrame error:', err)

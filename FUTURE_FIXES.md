@@ -209,6 +209,32 @@ reset, which satisfies WebKit's gesture requirement so later un-muted play is al
 real iPhone (headless Chromium will not reproduce the policy) and re-check the "Back to camera"
 path, since it shares `arVideo`.
 
+Enhancement (prototype): 20/07/2026 — interactive links anchored to the AR image (Approach A)
+Goal: e.g. a scanned business card shows tappable buttons over it (Website / Instagram / Save
+contact) that open real links. Foundation is in `public/ar-viewer.html`; NOT yet wired to the
+backend or an authoring UI.
+How it works: a `links` array of `{ label, url, x, y }` (x,y = 0..1 fractions of the card, 0,0 =
+top-left). Each render frame we project a card-local point into screen space and move a real DOM
+`<a target="_blank" rel="noopener">` there, so links track the card yet stay crisp, accessible and
+natively openable. No new dependency — three.js `Vector3.project` + the existing render loop. Zero
+change for frames without links (the whole thing is skipped when the list is empty).
+URLs are sanitised: http(s) only (javascript:/data: rejected), label capped, x/y clamped, max 6 —
+important because links may arrive from an untrusted source.
+Test it on a phone now: append `?demoLinks=1` to a working viewer URL (…/ar-viewer.html?frame=<id>
+&demoLinks=1) for a preset set, or `?links=<url-encoded JSON>` for custom. Scan the frame and the
+buttons appear over it.
+Verified headless (Playwright): no-undef lint clean; projection math against real three.js maps
+card fractions to the right screen quadrants; sanitiser accepts good links and rejects
+javascript:/data:/malformed; overlay renders real, tappable, new-tab links. NOT yet tested with a
+live camera / real tracking on a phone.
+To finish (when picked up):
+- Add `links` to the `/api/frames/:id` payload + the DB/model, and an admin/authoring UI to place
+  them (x,y) per frame. The viewer already reads `payload.links` first.
+- Validate MindAR tracking on a REAL printed business card — small, glossy, text-heavy targets
+  track far worse than the photo-collage frames, and the buttons are only as steady as the track.
+- Optional polish: GSAP entrance stagger; a leader dot/label; hide the overlay while the no-camera
+  player is open (currently just covered by the player at a higher z-index).
+
 Still open (not blocking):
 - `public/weddingFrame1.png` (3.6 MB) is heavy for a page that is opened on phones, often on
   mobile data. WebP at the rendered size would be ~150-250 KB.
