@@ -209,6 +209,32 @@ reset, which satisfies WebKit's gesture requirement so later un-muted play is al
 real iPhone (headless Chromium will not reproduce the policy) and re-check the "Back to camera"
 path, since it shares `arVideo`.
 
+Enhancement (prototype): 20/07/2026 — interactive links anchored to the AR image (Approach A)
+Goal: e.g. a scanned business card shows tappable buttons over it (Website / Instagram / Save
+contact) that open real links. Foundation is in `public/ar-viewer.html`; NOT yet wired to the
+backend or an authoring UI.
+How it works: a `links` array of `{ label, url, x, y }` (x,y = 0..1 fractions of the card, 0,0 =
+top-left). Each render frame we project a card-local point into screen space and move a real DOM
+`<a target="_blank" rel="noopener">` there, so links track the card yet stay crisp, accessible and
+natively openable. No new dependency — three.js `Vector3.project` + the existing render loop. Zero
+change for frames without links (the whole thing is skipped when the list is empty).
+URLs are sanitised: http(s) only (javascript:/data: rejected), label capped, x/y clamped, max 6 —
+important because links may arrive from an untrusted source.
+Test it on a phone now: append `?demoLinks=1` to a working viewer URL (…/ar-viewer.html?frame=<id>
+&demoLinks=1) for a preset set, or `?links=<url-encoded JSON>` for custom. Scan the frame and the
+buttons appear over it.
+Verified headless (Playwright): no-undef lint clean; projection math against real three.js maps
+card fractions to the right screen quadrants; sanitiser accepts good links and rejects
+javascript:/data:/malformed; overlay renders real, tappable, new-tab links. NOT yet tested with a
+live camera / real tracking on a phone.
+To finish (when picked up):
+- Add `links` to the `/api/frames/:id` payload + the DB/model, and an admin/authoring UI to place
+  them (x,y) per frame. The viewer already reads `payload.links` first.
+- Validate MindAR tracking on a REAL printed business card — small, glossy, text-heavy targets
+  track far worse than the photo-collage frames, and the buttons are only as steady as the track.
+- Optional polish: GSAP entrance stagger; a leader dot/label; hide the overlay while the no-camera
+  player is open (currently just covered by the player at a higher z-index).
+
 Still open (not blocking):
 - `public/weddingFrame1.png` (3.6 MB) is heavy for a page that is opened on phones, often on
   mobile data. WebP at the rendered size would be ~150-250 KB.
@@ -220,6 +246,23 @@ The demo page should be more interactive and engaging for the users.
 2. second image should be only the photo of wedding photo with the QR code on the frame.
 3. try yourself -> scan the QR and point the photo on 2nd image to see the demo. The users should be able to see the demo by scanning the QR code on the frame.
 
+New enhancement request 20/07/2026 :
+1. while customer scans AR and while getting loaded I don't want to show like "Loading your AR experience"I just want the animated logo loading /brand/logo.is it good idea to use lottie animation for loading the AR experience? I think it will be more attractive and user friendly. Please let me know your thoughts on this.
+
+DONE 21/07/2026 — wordless animated logo loader in `public/ar-viewer.html`.
+Decision: skipped Lottie. Reasons: no Lottie JSON exists (only static PNG logos); the lottie-web
+runtime (~250 KB + JSON) is heavy for a screen whose job is to paint instantly while the AR assets
+(incl. the 3.6 MB frame) download; pure CSS on the real brand mark achieves "just the animated logo"
+with zero extra bytes and works offline.
+What changed: replaced the emoji-in-gradient box with `/logo-mark.png` (the 36 KB transparent
+lockup used in nav/footer), animated with a CSS `logo-breathe` (subtle scale + swelling golden glow,
+2.6s loop) plus a `prefers-reduced-motion` steady-glow fallback. Removed the loading copy the request
+didn't want: the "…coming to life" title, rotating quotes, and the three worded step indicators
+(+ their dead JS). Kept the thin 2px wordless progress bar so slow mobile loads don't feel frozen —
+remove if only-the-logo is preferred. `setStep()` calls left as harmless no-ops (function guards on
+missing elements). Request said `/brand/logo` but no `public/brand/` folder exists; used
+`/logo-mark.png` (swap to `/logo-trimmed.png` for the full lockup). Not yet seen on a live phone
+camera — the loader paints on page load before AR starts.
 
 DONT implement the below yet:
    ==================================================   
