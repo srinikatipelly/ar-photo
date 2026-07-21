@@ -45,7 +45,10 @@
     #loading {
       position: fixed; inset: 0;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      background: linear-gradient(160deg, #0a0a0a 0%, #1a1408 100%);
+      /* Brand green (#0F3535) — the exact colour the logo mark is designed on,
+         so the transparent PNG sits seamlessly. Kept flat (no gradient) to avoid
+         a visible seam against any green the mark itself carries. */
+      background: #0F3535;
       z-index: 10; padding: 40px 32px;
     }
 
