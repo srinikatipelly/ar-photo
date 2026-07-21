@@ -246,6 +246,23 @@ The demo page should be more interactive and engaging for the users.
 2. second image should be only the photo of wedding photo with the QR code on the frame.
 3. try yourself -> scan the QR and point the photo on 2nd image to see the demo. The users should be able to see the demo by scanning the QR code on the frame.
 
+New enhancement request 20/07/2026 :
+1. while customer scans AR and while getting loaded I don't want to show like "Loading your AR experience"I just want the animated logo loading /brand/logo.is it good idea to use lottie animation for loading the AR experience? I think it will be more attractive and user friendly. Please let me know your thoughts on this.
+
+DONE 21/07/2026 — wordless animated logo loader in `public/ar-viewer.html`.
+Decision: skipped Lottie. Reasons: no Lottie JSON exists (only static PNG logos); the lottie-web
+runtime (~250 KB + JSON) is heavy for a screen whose job is to paint instantly while the AR assets
+(incl. the 3.6 MB frame) download; pure CSS on the real brand mark achieves "just the animated logo"
+with zero extra bytes and works offline.
+What changed: replaced the emoji-in-gradient box with `/logo-mark.png` (the 36 KB transparent
+lockup used in nav/footer), animated with a CSS `logo-breathe` (subtle scale + swelling golden glow,
+2.6s loop) plus a `prefers-reduced-motion` steady-glow fallback. Removed the loading copy the request
+didn't want: the "…coming to life" title, rotating quotes, and the three worded step indicators
+(+ their dead JS). Kept the thin 2px wordless progress bar so slow mobile loads don't feel frozen —
+remove if only-the-logo is preferred. `setStep()` calls left as harmless no-ops (function guards on
+missing elements). Request said `/brand/logo` but no `public/brand/` folder exists; used
+`/logo-mark.png` (swap to `/logo-trimmed.png` for the full lockup). Not yet seen on a live phone
+camera — the loader paints on page load before AR starts.
 
 DONT implement the below yet:
    ==================================================   

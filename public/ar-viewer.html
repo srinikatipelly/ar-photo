@@ -40,6 +40,8 @@
     body { overflow: hidden; background: #0a0a0a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
 
     /* ── Loading screen ───────────────────────────────────────────── */
+    /* Deliberately wordless: while the AR assets download we show only the
+       animated brand mark (no "Loading…" copy) plus a thin progress bar. */
     #loading {
       position: fixed; inset: 0;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -48,55 +50,24 @@
     }
 
     #loading-logo {
-      width: 72px; height: 72px; border-radius: 22px;
-      background: linear-gradient(135deg, #fbbf24, #f59e0b);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 34px; margin-bottom: 28px;
-      box-shadow: 0 0 48px rgba(251,191,36,0.35);
-      animation: pulse-glow 2.5s ease-in-out infinite;
+      width: min(60vw, 240px); height: auto; margin-bottom: 36px;
+      animation: logo-breathe 2.6s ease-in-out infinite;
+      will-change: transform, filter;
     }
 
-    @keyframes pulse-glow {
-      0%, 100% { box-shadow: 0 0 48px rgba(251,191,36,0.35); }
-      50%       { box-shadow: 0 0 72px rgba(251,191,36,0.6); }
+    @keyframes logo-breathe {
+      0%, 100% { transform: scale(1);     filter: drop-shadow(0 0 18px rgba(251,191,36,0.30)); }
+      50%      { transform: scale(1.045); filter: drop-shadow(0 0 44px rgba(251,191,36,0.60)); }
     }
 
-    #loading-title {
-      color: #fff; font-size: 20px; font-weight: 700; letter-spacing: -0.02em;
-      text-align: center; margin-bottom: 10px; line-height: 1.3;
+    /* Respect users who ask the OS to minimise motion: hold a steady glow. */
+    @media (prefers-reduced-motion: reduce) {
+      #loading-logo { animation: none; filter: drop-shadow(0 0 24px rgba(251,191,36,0.40)); }
     }
-
-    #loading-quote {
-      color: rgba(255,255,255,0.5); font-size: 13px; font-style: italic;
-      text-align: center; margin-bottom: 40px; min-height: 20px;
-      transition: opacity 0.6s ease;
-      max-width: 240px; line-height: 1.5;
-    }
-    #loading-quote.fade { opacity: 0; }
-
-    /* Step indicators */
-    #steps {
-      display: flex; flex-direction: column; gap: 12px;
-      width: 100%; max-width: 240px; margin-bottom: 28px;
-    }
-    .step {
-      display: flex; align-items: center; gap: 12px;
-      opacity: 0.25; transition: opacity 0.5s;
-    }
-    .step.active  { opacity: 1; }
-    .step.done    { opacity: 0.5; }
-    .step-dot {
-      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-      background: rgba(255,255,255,0.2);
-      transition: background 0.4s, box-shadow 0.4s;
-    }
-    .step.active .step-dot { background: #fbbf24; box-shadow: 0 0 8px #fbbf24; }
-    .step.done   .step-dot { background: #4ade80; box-shadow: none; }
-    .step-label { color: #fff; font-size: 13px; font-weight: 500; }
 
     /* Progress bar */
     #progress-track {
-      width: 100%; max-width: 240px; height: 2px;
+      width: 100%; max-width: 200px; height: 2px;
       background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden;
     }
     #progress-fill {
@@ -253,27 +224,9 @@
 </head>
 <body>
 
-  <!-- Loading screen -->
+  <!-- Loading screen — wordless animated brand mark only -->
   <div id="loading">
-    <div id="loading-logo">🖼️</div>
-    <div id="loading-title">Your beautiful memory<br>is coming to life…</div>
-    <div id="loading-quote"></div>
-
-    <div id="steps">
-      <div class="step" id="step-libs">
-        <div class="step-dot"></div>
-        <span class="step-label">Preparing the magic</span>
-      </div>
-      <div class="step" id="step-frame">
-        <div class="step-dot"></div>
-        <span class="step-label">Finding your memory</span>
-      </div>
-      <div class="step" id="step-camera">
-        <div class="step-dot"></div>
-        <span class="step-label">Opening the window</span>
-      </div>
-    </div>
-
+    <img id="loading-logo" src="/logo-mark.png" alt="The Golden Frame" />
     <div id="progress-track">
       <div id="progress-fill"></div>
     </div>
@@ -335,29 +288,7 @@
 
     const frameId        = new URLSearchParams(location.search).get('frame')
     const loadingEl      = document.getElementById('loading')
-    const loadingQuote   = document.getElementById('loading-quote')
     const progressFill   = document.getElementById('progress-fill')
-
-    // Rotating warm messages shown during loading
-    const QUOTES = [
-      'Every moment deserves to be relived ✨',
-      'The best memories never fade',
-      'Your story is about to unfold',
-      'Some moments are worth holding forever',
-      'Bringing your special moment back to life',
-      'The magic of memories, right in your hands',
-    ]
-    let quoteIndex = 0
-    function showNextQuote() {
-      loadingQuote.classList.add('fade')
-      setTimeout(() => {
-        quoteIndex = (quoteIndex + 1) % QUOTES.length
-        loadingQuote.textContent = QUOTES[quoteIndex]
-        loadingQuote.classList.remove('fade')
-      }, 600)
-    }
-    loadingQuote.textContent = QUOTES[0]
-    const quoteInterval = setInterval(showNextQuote, 3000)
     const hintEl         = document.getElementById('hint')
     const soundBtn       = document.getElementById('sound-btn')
     const errorEl        = document.getElementById('error')
@@ -727,7 +658,6 @@
         setStep('step-camera', 'done')
         setProgress(100)
 
-        clearInterval(quoteInterval)
         loadingEl.style.display = 'none'
         hintEl.style.display    = 'block'
         hintEl.style.opacity    = '1'
