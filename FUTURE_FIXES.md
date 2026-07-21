@@ -255,14 +255,18 @@ runtime (~250 KB + JSON) is heavy for a screen whose job is to paint instantly w
 (incl. the 3.6 MB frame) download; pure CSS on the real brand mark achieves "just the animated logo"
 with zero extra bytes and works offline.
 What changed: replaced the emoji-in-gradient box with `/logo-mark.png` (the 36 KB transparent
-lockup used in nav/footer), animated with a CSS `logo-breathe` (subtle scale + swelling golden glow,
-2.6s loop) plus a `prefers-reduced-motion` steady-glow fallback. Removed the loading copy the request
-didn't want: the "…coming to life" title, rotating quotes, and the three worded step indicators
-(+ their dead JS). Kept the thin 2px wordless progress bar so slow mobile loads don't feel frozen —
-remove if only-the-logo is preferred. `setStep()` calls left as harmless no-ops (function guards on
-missing elements). Request said `/brand/logo` but no `public/brand/` folder exists; used
-`/logo-mark.png` (swap to `/logo-trimmed.png` for the full lockup). Not yet seen on a live phone
-camera — the loader paints on page load before AR starts.
+lockup used in nav/footer). Removed the loading copy the request didn't want: the "…coming to life"
+title, rotating quotes, and the three worded step indicators (+ their dead JS). Kept the thin 2px
+wordless progress bar so slow mobile loads don't feel frozen — remove if only-the-logo is preferred.
+`setStep()` calls left as harmless no-ops (function guards on missing elements). Request said
+`/brand/logo` but no `public/brand/` folder exists; used `/logo-mark.png` (swap to
+`/logo-trimmed.png` for the full lockup).
+Animation style (chosen after review — first pass was a pulsing scale+glow that read too "app-loader",
+not luxury): a "rotating hairline bezel". The wordmark holds perfectly still inside a `#loader-emblem`;
+an inline SVG draws a faint full-circle gold track plus one thin gold arc (`stroke-dasharray: 70 294`,
+~19% of the circumference) that orbits slowly (`bezel-spin` 2.8s linear) — watch-bezel feel, no
+pulsing. `prefers-reduced-motion` holds the arc still. All pure CSS/SVG, no Lottie/library. Not yet
+seen on a live phone camera — the loader paints on page load before AR starts.
 
 DONT implement the below yet:
    ==================================================   

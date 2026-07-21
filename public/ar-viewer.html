@@ -45,24 +45,50 @@
     #loading {
       position: fixed; inset: 0;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      background: linear-gradient(160deg, #0a0a0a 0%, #1a1408 100%);
+      /* Brand green (#0F3535) — the exact colour the logo mark is designed on,
+         so the transparent PNG sits seamlessly. Kept flat (no gradient) to avoid
+         a visible seam against any green the mark itself carries. */
+      background: #0F3535;
       z-index: 10; padding: 40px 32px;
     }
 
+    /* Emblem: the wordmark held perfectly still inside a single hairline gold
+       arc that orbits it slowly (watch-bezel feel). No pulsing — luxury motion
+       is a whisper, not a throb. */
+    #loader-emblem {
+      position: relative;
+      width: min(78vw, 300px); aspect-ratio: 1;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 40px;
+    }
+
+    #bezel {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      overflow: visible; pointer-events: none;
+    }
+    /* Faint full-circle track so the moving arc reads as travelling a path. */
+    .bezel-track {
+      fill: none; stroke: rgba(251,191,36,0.12); stroke-width: 0.6;
+    }
+    .bezel-arc {
+      fill: none; stroke: #fbbf24; stroke-width: 0.9; stroke-linecap: round;
+      /* Show ~19% of the circumference (2πr ≈ 364 in viewBox units) as one arc. */
+      stroke-dasharray: 70 294;
+      filter: drop-shadow(0 0 4px rgba(251,191,36,0.55));
+      transform-box: fill-box; transform-origin: center;
+      animation: bezel-spin 2.8s linear infinite;
+      will-change: transform;
+    }
+    @keyframes bezel-spin { to { transform: rotate(360deg); } }
+
     #loading-logo {
-      width: min(60vw, 240px); height: auto; margin-bottom: 36px;
-      animation: logo-breathe 2.6s ease-in-out infinite;
-      will-change: transform, filter;
+      width: 62%; height: auto;
+      filter: drop-shadow(0 0 20px rgba(251,191,36,0.26));
     }
 
-    @keyframes logo-breathe {
-      0%, 100% { transform: scale(1);     filter: drop-shadow(0 0 18px rgba(251,191,36,0.30)); }
-      50%      { transform: scale(1.045); filter: drop-shadow(0 0 44px rgba(251,191,36,0.60)); }
-    }
-
-    /* Respect users who ask the OS to minimise motion: hold a steady glow. */
+    /* Respect users who ask the OS to minimise motion: hold the arc still. */
     @media (prefers-reduced-motion: reduce) {
-      #loading-logo { animation: none; filter: drop-shadow(0 0 24px rgba(251,191,36,0.40)); }
+      .bezel-arc { animation: none; }
     }
 
     /* Progress bar */
@@ -224,9 +250,15 @@
 </head>
 <body>
 
-  <!-- Loading screen — wordless animated brand mark only -->
+  <!-- Loading screen — wordmark held still inside a slowly orbiting hairline arc -->
   <div id="loading">
-    <img id="loading-logo" src="/logo-mark.png" alt="The Golden Frame" />
+    <div id="loader-emblem">
+      <svg id="bezel" viewBox="0 0 120 120" aria-hidden="true">
+        <circle class="bezel-track" cx="60" cy="60" r="58" />
+        <circle class="bezel-arc"   cx="60" cy="60" r="58" />
+      </svg>
+      <img id="loading-logo" src="/logo-mark.png" alt="The Golden Frame" />
+    </div>
     <div id="progress-track">
       <div id="progress-fill"></div>
     </div>
