@@ -40,8 +40,8 @@
     body { overflow: hidden; background: #0a0a0a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
 
     /* ── Loading screen ───────────────────────────────────────────── */
-    /* Deliberately wordless: while the AR assets download we show only the
-       brand mark inside its orbiting arc — no copy, no progress bar. */
+    /* Minimal luxury loader: static brand mark on brand green, a quietly
+       cross-fading caption, and a thin gold→cream progress line. No spinner. */
     #loading {
       position: fixed; inset: 0;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -52,41 +52,35 @@
       z-index: 10; padding: 40px 32px;
     }
 
-    /* Emblem: the wordmark held perfectly still inside a single hairline gold
-       arc that orbits it slowly (watch-bezel feel). No pulsing — luxury motion
-       is a whisper, not a throb. */
-    #loader-emblem {
-      position: relative;
-      width: min(78vw, 300px); aspect-ratio: 1;
-      display: flex; align-items: center; justify-content: center;
-    }
-
-    #bezel {
-      position: absolute; inset: 0; width: 100%; height: 100%;
-      overflow: visible; pointer-events: none;
-    }
-    /* Faint full-circle track so the moving arc reads as travelling a path. */
-    .bezel-track {
-      fill: none; stroke: rgba(251,191,36,0.12); stroke-width: 0.6;
-    }
-    .bezel-arc {
-      fill: none; stroke: #fbbf24; stroke-width: 0.9; stroke-linecap: round;
-      /* Show ~19% of the circumference (2πr ≈ 364 in viewBox units) as one arc. */
-      stroke-dasharray: 70 294;
-      filter: drop-shadow(0 0 4px rgba(251,191,36,0.55));
-      transform-box: fill-box; transform-origin: center;
-      animation: bezel-spin 2.8s linear infinite;
-      will-change: transform;
-    }
-    @keyframes bezel-spin { to { transform: rotate(360deg); } }
-
     #loading-logo {
-      width: 62%; height: auto;
+      width: min(58vw, 240px); height: auto;
     }
 
-    /* Respect users who ask the OS to minimise motion: hold the arc still. */
+    /* Cross-fading status line — warm but restrained, in the brand cream. */
+    #loading-caption {
+      margin-top: 30px;
+      color: rgba(249,230,194,0.72);
+      font-size: 13px; letter-spacing: 0.08em; line-height: 1.5;
+      text-align: center; min-height: 20px; max-width: 260px;
+      transition: opacity 0.5s ease;
+    }
+    #loading-caption.fade { opacity: 0; }
+
+    /* Thin progress line (gold → cream) reflecting real asset-load progress. */
+    #progress-track {
+      margin-top: 26px;
+      width: min(60vw, 220px); height: 2px;
+      background: rgba(249,230,194,0.14); border-radius: 2px; overflow: hidden;
+    }
+    #progress-fill {
+      height: 100%; width: 0%; border-radius: 2px;
+      background: linear-gradient(90deg, #d4af37, #f9e6c2);
+      transition: width 0.5s ease;
+    }
+
+    /* Respect users who ask the OS to minimise motion: drop the transitions. */
     @media (prefers-reduced-motion: reduce) {
-      .bezel-arc { animation: none; }
+      #loading-caption, #progress-fill { transition: none; }
     }
 
     /* ── Sound toggle (icon only) ─────────────────────────────────── */
@@ -237,15 +231,11 @@
 </head>
 <body>
 
-  <!-- Loading screen — wordmark held still inside a slowly orbiting hairline arc -->
+  <!-- Loading screen — static brand mark, cross-fading caption, thin progress line -->
   <div id="loading">
-    <div id="loader-emblem">
-      <svg id="bezel" viewBox="0 0 120 120" aria-hidden="true">
-        <circle class="bezel-track" cx="60" cy="60" r="58" />
-        <circle class="bezel-arc"   cx="60" cy="60" r="58" />
-      </svg>
-      <img id="loading-logo" src="/logo-mark.png" alt="The Golden Frame" />
-    </div>
+    <img id="loading-logo" src="/logo-mark.png" alt="The Golden Frame" />
+    <div id="loading-caption" aria-live="polite">Preparing your augmented reality experience</div>
+    <div id="progress-track"><div id="progress-fill"></div></div>
   </div>
 
   <button id="sound-btn" aria-label="Turn sound off" aria-pressed="true">
@@ -304,7 +294,25 @@
 
     const frameId        = new URLSearchParams(location.search).get('frame')
     const loadingEl      = document.getElementById('loading')
+    const loadingCaption = document.getElementById('loading-caption')
+    const progressFill   = document.getElementById('progress-fill')
     const hintEl         = document.getElementById('hint')
+
+    // Warm, restrained status lines that cross-fade while the assets download.
+    const CAPTIONS = [
+      'Preparing your augmented reality experience',
+      'Bringing your memory to life',
+      'Almost there — hold tight',
+    ]
+    let captionIndex = 0
+    const captionTimer = setInterval(() => {
+      loadingCaption.classList.add('fade')
+      setTimeout(() => {
+        captionIndex = (captionIndex + 1) % CAPTIONS.length
+        loadingCaption.textContent = CAPTIONS[captionIndex]
+        loadingCaption.classList.remove('fade')
+      }, 500)
+    }, 2200)
     const soundBtn       = document.getElementById('sound-btn')
     const errorEl        = document.getElementById('error')
     const errorText      = document.getElementById('error-text')
@@ -388,11 +396,12 @@
       el.classList.add(state)
     }
 
-    // Progress bar was removed from the loader; kept as a no-op so the existing
-    // call sites in the load flow stay valid.
-    function setProgress(pct, sub) {}
+    function setProgress(pct) {
+      if (progressFill) progressFill.style.width = pct + '%'
+    }
 
     function showError(message, detail) {
+      clearInterval(captionTimer)
       loadingEl.style.display = 'none'
       hintEl.style.display    = 'none'
       errorText.textContent   = message
@@ -672,6 +681,7 @@
         setStep('step-camera', 'done')
         setProgress(100)
 
+        clearInterval(captionTimer)
         loadingEl.style.display = 'none'
         hintEl.style.display    = 'block'
         hintEl.style.opacity    = '1'
