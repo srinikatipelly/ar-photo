@@ -54,21 +54,30 @@
 
     #loading-logo {
       width: min(58vw, 240px); height: auto;
+      /* Gentle continuous breathe — opacity only, no scale/throb. */
+      animation: logo-breathe 3.6s ease-in-out infinite;
+    }
+    @keyframes logo-breathe {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.7; }
     }
 
-    /* Cross-fading status line — warm but restrained, in the brand cream. */
+    /* Status line — warm but restrained, in the brand cream. Fixed min-height
+       fits the longest (2-line) phrase and centres it, so the bar below never
+       jumps as the text changes. One line shows at a time (see JS). */
     #loading-caption {
       margin-top: 30px;
       color: rgba(249,230,194,0.72);
       font-size: 13px; letter-spacing: 0.08em; line-height: 1.5;
-      text-align: center; min-height: 20px; max-width: 260px;
+      text-align: center; min-height: 42px; max-width: 260px;
+      display: flex; align-items: center; justify-content: center;
       transition: opacity 0.5s ease;
     }
     #loading-caption.fade { opacity: 0; }
 
     /* Thin progress line (gold → cream) reflecting real asset-load progress. */
     #progress-track {
-      margin-top: 26px;
+      margin-top: 10px;
       width: min(60vw, 220px); height: 2px;
       background: rgba(249,230,194,0.14); border-radius: 2px; overflow: hidden;
     }
@@ -78,9 +87,10 @@
       transition: width 0.5s ease;
     }
 
-    /* Respect users who ask the OS to minimise motion: drop the transitions. */
+    /* Respect users who ask the OS to minimise motion. */
     @media (prefers-reduced-motion: reduce) {
       #loading-caption, #progress-fill { transition: none; }
+      #loading-logo { animation: none; }
     }
 
     /* ── Sound toggle (icon only) ─────────────────────────────────── */
@@ -302,17 +312,26 @@
     const CAPTIONS = [
       'Preparing your augmented reality experience',
       'Bringing your memory to life',
-      'Almost there — hold tight',
+      'Almost there - hold tight',
     ]
     let captionIndex = 0
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    function advanceCaption() {
+      captionIndex = (captionIndex + 1) % CAPTIONS.length
+      loadingCaption.textContent = CAPTIONS[captionIndex]
+    }
+    // Fade the current line fully OUT, then swap + fade the next line IN. The
+    // swap is driven by transitionend, so the two lines never overlap.
     const captionTimer = setInterval(() => {
-      loadingCaption.classList.add('fade')
-      setTimeout(() => {
-        captionIndex = (captionIndex + 1) % CAPTIONS.length
-        loadingCaption.textContent = CAPTIONS[captionIndex]
-        loadingCaption.classList.remove('fade')
-      }, 500)
-    }, 2200)
+      if (reduceMotion) advanceCaption()          // no fade: just swap the text
+      else loadingCaption.classList.add('fade')   // begin fading the current line out
+    }, 2600)
+    loadingCaption.addEventListener('transitionend', (e) => {
+      if (e.propertyName !== 'opacity') return
+      if (!loadingCaption.classList.contains('fade')) return  // ignore the fade-in end
+      advanceCaption()
+      loadingCaption.classList.remove('fade')       // fade the new line in
+    })
     const soundBtn       = document.getElementById('sound-btn')
     const errorEl        = document.getElementById('error')
     const errorText      = document.getElementById('error-text')
