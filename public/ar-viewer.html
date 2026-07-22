@@ -65,15 +65,23 @@
     /* Status line — warm but restrained, in the brand cream. Fixed min-height
        fits the longest (2-line) phrase and centres it, so the bar below never
        jumps as the text changes. One line shows at a time (see JS). */
+    /* Two stacked layers, cross-faded sequentially. We only ever change the
+       text of the HIDDEN layer, so the visible line never mutates mid-fade —
+       which is what caused the two-line ghost/overlap on iOS Safari. */
     #loading-caption {
+      position: relative;
       margin-top: 30px;
-      color: rgba(249,230,194,0.72);
-      font-size: 13px; letter-spacing: 0.08em; line-height: 1.5;
-      text-align: center; min-height: 42px; max-width: 260px;
-      display: flex; align-items: center; justify-content: center;
-      transition: opacity 0.5s ease;
+      width: min(86vw, 340px); height: 44px;
     }
-    #loading-caption.fade { opacity: 0; }
+    #loading-caption .cap {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center; line-height: 1.5;
+      color: rgba(249,230,194,0.72);
+      font-size: 13px; letter-spacing: 0.08em;
+      opacity: 0; transition: opacity 0.5s ease;
+    }
+    #loading-caption .cap.show { opacity: 1; }
 
     /* Thin progress line (gold → cream) reflecting real asset-load progress. */
     #progress-track {
@@ -89,7 +97,7 @@
 
     /* Respect users who ask the OS to minimise motion. */
     @media (prefers-reduced-motion: reduce) {
-      #loading-caption, #progress-fill { transition: none; }
+      #loading-caption .cap, #progress-fill { transition: none; }
       #loading-logo { animation: none; }
     }
 
@@ -244,7 +252,10 @@
   <!-- Loading screen — static brand mark, cross-fading caption, thin progress line -->
   <div id="loading">
     <img id="loading-logo" src="/logo-mark.png" alt="The Golden Frame" />
-    <div id="loading-caption" aria-live="polite">Preparing your augmented reality experience</div>
+    <div id="loading-caption" aria-live="polite">
+      <span class="cap show">Preparing your augmented reality experience</span>
+      <span class="cap"></span>
+    </div>
     <div id="progress-track"><div id="progress-fill"></div></div>
   </div>
 
@@ -308,30 +319,37 @@
     const progressFill   = document.getElementById('progress-fill')
     const hintEl         = document.getElementById('hint')
 
-    // Warm, restrained status lines that cross-fade while the assets download.
+    // Warm, restrained status lines shown one at a time while assets download.
     const CAPTIONS = [
       'Preparing your augmented reality experience',
       'Bringing your memory to life',
       'Almost there - hold tight',
     ]
+    // Two stacked <span class="cap"> layers. The visible one keeps its text; we
+    // set the NEXT line on the hidden layer, then fade current out and the next
+    // in — sequentially, so two lines are never painted together (the iOS bug).
+    const caps = loadingCaption.querySelectorAll('.cap')
+    let active = 0
     let captionIndex = 0
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    function advanceCaption() {
-      captionIndex = (captionIndex + 1) % CAPTIONS.length
-      loadingCaption.textContent = CAPTIONS[captionIndex]
-    }
-    // Fade the current line fully OUT, then swap + fade the next line IN. The
-    // swap is driven by transitionend, so the two lines never overlap.
     const captionTimer = setInterval(() => {
-      if (reduceMotion) advanceCaption()          // no fade: just swap the text
-      else loadingCaption.classList.add('fade')   // begin fading the current line out
-    }, 2600)
-    loadingCaption.addEventListener('transitionend', (e) => {
-      if (e.propertyName !== 'opacity') return
-      if (!loadingCaption.classList.contains('fade')) return  // ignore the fade-in end
-      advanceCaption()
-      loadingCaption.classList.remove('fade')       // fade the new line in
-    })
+      const cur = caps[active]
+      const nxt = caps[active ^ 1]
+      captionIndex = (captionIndex + 1) % CAPTIONS.length
+      nxt.textContent = CAPTIONS[captionIndex]     // set text on the HIDDEN layer
+      if (reduceMotion) {
+        cur.classList.remove('show'); nxt.classList.add('show'); active ^= 1
+        return
+      }
+      const onOut = (e) => {
+        if (e.propertyName !== 'opacity') return
+        cur.removeEventListener('transitionend', onOut)
+        nxt.classList.add('show')                  // fade next in only once current is gone
+        active ^= 1
+      }
+      cur.addEventListener('transitionend', onOut)
+      cur.classList.remove('show')                 // fade current out
+    }, 3000)
     const soundBtn       = document.getElementById('sound-btn')
     const errorEl        = document.getElementById('error')
     const errorText      = document.getElementById('error-text')

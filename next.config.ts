@@ -10,6 +10,15 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // The AR viewer HTML iterates often. Force revalidation so a new build
+        // reaches phones immediately instead of a stale copy sticking in the
+        // browser/CDN cache. The heavy engine below stays hard-cached.
+        source: '/ar-viewer.html',
+        headers: [
+          { key: 'Cache-Control', value: 'no-cache' },
+        ],
+      },
+      {
         // Self-hosted AR engine (three@0.132.2, mind-ar@1.2.2). These are
         // version-pinned and only change when we deliberately swap versions
         // (and bump the service-worker cache), so they're safe to cache hard.
