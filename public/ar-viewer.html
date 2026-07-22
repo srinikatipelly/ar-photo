@@ -380,6 +380,9 @@
       errorEl.style.display = 'none'
       soundBtn.style.display = 'none'   // full-screen player has its own controls
       playerEl.classList.add('show')
+      // Give the browser/hardware Back button something to pop, so it closes the
+      // player (returns to camera) instead of navigating away from the viewer.
+      history.pushState({ arPlayer: true }, '')
     }
 
     function closePlayer() {
@@ -403,7 +406,28 @@
 
     watchBtn.addEventListener('click', openPlayer)
     errorWatchBtn.addEventListener('click', openPlayer)
-    playerBack.addEventListener('click', closePlayer)
+
+    // The on-screen back button unwinds the history entry openPlayer pushed,
+    // which fires popstate → closePlayer(). Routing both the on-screen button
+    // and the browser Back button through popstate keeps them in lock-step, so
+    // Back from the player returns to the camera instead of leaving the page.
+    playerBack.addEventListener('click', () => {
+      if (history.state && history.state.arPlayer) history.back()
+      else closePlayer()
+    })
+    window.addEventListener('popstate', () => {
+      if (playerEl.classList.contains('show')) closePlayer()
+    })
+
+    // Back/forward-cache guard: iOS/Android can restore a frozen snapshot of
+    // this page on forward-navigation, but by then the camera stream and the
+    // WebGL/AR context are dead — which showed as a black screen with no camera
+    // and broken playback. Re-initialise from scratch instead. Assets are
+    // service-worker cached and the frame id is in the URL, so this is fast and
+    // needs no re-scan.
+    window.addEventListener('pageshow', (e) => {
+      if (e.persisted) location.reload()
+    })
 
     // ── Sound toggle ──────────────────────────────────────────────────
     // The video plays with sound ON by default; this icon lets the viewer
