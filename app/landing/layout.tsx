@@ -3,6 +3,7 @@ import { Montserrat, Cormorant_Garamond } from 'next/font/google'
 import { brand } from '@/lib/site-content'
 import { Nav } from '@/components/site/Nav'
 import { Footer } from '@/components/site/Footer'
+import { getRegion } from '@/lib/region-server'
 
 // Body / UI font - matches the brand's thin, wide-tracked logo wordmark.
 const montserrat = Montserrat({
@@ -50,12 +51,13 @@ export const metadata: Metadata = {
   },
 }
 
-export default function LandingLayout({ children }: { children: React.ReactNode }) {
+export default async function LandingLayout({ children }: { children: React.ReactNode }) {
+  const region = await getRegion()
   return (
     <div className={`site-shell ${montserrat.variable} ${cormorant.variable} flex min-h-screen flex-col`}>
-      <Nav />
+      <Nav region={region} />
       <main className="flex-1">{children}</main>
-      <Footer />
+      <Footer region={region} />
     </div>
   )
 }

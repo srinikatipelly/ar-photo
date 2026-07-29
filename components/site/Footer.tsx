@@ -1,6 +1,8 @@
-import { brand, navItems, services } from '@/lib/site-content'
+import { navItems, services } from '@/lib/site-content'
+import { getBrand, type Region } from '@/lib/regions'
 
-export function Footer() {
+export function Footer({ region }: { region: Region }) {
+  const brand = getBrand(region)
   return (
     <footer className="border-t border-cream/10 bg-green-deep px-6 py-16 text-cream sm:px-10">
       <div className="mx-auto w-full max-w-6xl">
@@ -37,11 +39,13 @@ export function Footer() {
           <div id="contact">
             <p className="text-xs font-semibold uppercase tracking-widest text-gold-brand">Contact</p>
             <ul className="mt-4 space-y-3 text-sm">
-              <li>
-                <a href={`tel:${brand.phoneIntl}`} className="text-cream/70 transition hover:text-gold-brand">
-                  📞 {brand.phone}
-                </a>
-              </li>
+              {brand.phone && (
+                <li>
+                  <a href={`tel:${brand.phoneIntl}`} className="text-cream/70 transition hover:text-gold-brand">
+                    📞 {brand.phone}
+                  </a>
+                </li>
+              )}
               <li>
                 <a href={`mailto:${brand.email}`} className="break-all text-cream/70 transition hover:text-gold-brand">
                   ✉️ {brand.email}

@@ -212,8 +212,14 @@ export function getService(slug: string): Service | undefined {
 }
 
 // ── Pricing ─────────────────────────────────────────────────────────────────--
+/** Stable identifier per tier - used to look up region price overrides in lib/regions.ts. */
+export type PricingKey = 'frame' | 'digital' | 'realEstate'
+
 export type PricingTier = {
+  /** Stable key for region-aware price/currency lookups (see lib/regions.ts). */
+  key: PricingKey
   name: string
+  /** Default (AU) price display. Region-aware pages resolve this via getPricing(region). */
   price: string
   was?: string
   unit: string
@@ -226,6 +232,7 @@ export type PricingTier = {
 
 export const pricingTiers: PricingTier[] = [
   {
+    key: 'frame',
     name: 'AR Photo Frame',
     price: '$39',
     was: '$79',
@@ -242,6 +249,7 @@ export const pricingTiers: PricingTier[] = [
     featured: true,
   },
   {
+    key: 'digital',
     name: 'Digital AR Only',
     price: 'From $19',
     unit: 'QR delivered by email',
@@ -256,6 +264,7 @@ export const pricingTiers: PricingTier[] = [
     href: '/landing/order?kind=digital',
   },
   {
+    key: 'realEstate',
     name: 'Real Estate & Corporates',
     price: 'Custom',
     unit: 'volume & branding',

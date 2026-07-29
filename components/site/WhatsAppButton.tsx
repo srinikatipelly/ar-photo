@@ -1,15 +1,24 @@
-import { brand } from '@/lib/site-content'
+import { getBrand, type Region } from '@/lib/regions'
+import { getRegion } from '@/lib/region-server'
 
 type WhatsAppButtonProps = {
   /** Optional prefilled message */
   message?: string
   className?: string
   children?: React.ReactNode
+  /**
+   * Region override. Omit in Server Components to auto-resolve from the request.
+   * (This is an async Server Component - do not render it inside a Client Component
+   * without passing an already-resolved region.)
+   */
+  region?: Region
 }
 
-/** WhatsApp deep-link CTA (opens chat with the business). */
-export function WhatsAppButton({ message, className = '', children }: WhatsAppButtonProps) {
-  const href = message ? `${brand.whatsapp}?text=${encodeURIComponent(message)}` : brand.whatsapp
+/** WhatsApp deep-link CTA (opens chat with the business for the active region). */
+export async function WhatsAppButton({ message, className = '', children, region }: WhatsAppButtonProps) {
+  const activeRegion = region ?? (await getRegion())
+  const { whatsapp } = getBrand(activeRegion)
+  const href = message ? `${whatsapp}?text=${encodeURIComponent(message)}` : whatsapp
 
   return (
     <a

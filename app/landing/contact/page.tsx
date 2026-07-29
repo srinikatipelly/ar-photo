@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import { brand } from '@/lib/site-content'
+import { getBrand } from '@/lib/regions'
+import { getRegion } from '@/lib/region-server'
 import { Section, Eyebrow } from '@/components/site/Section'
 import { ContactForm } from '@/components/site/ContactForm'
 
@@ -10,31 +11,39 @@ export const metadata: Metadata = {
   alternates: { canonical: '/landing/contact' },
 }
 
-const channels = [
-  {
-    icon: '📞',
-    label: 'Call us',
-    value: brand.phone,
-    href: `tel:${brand.phoneIntl}`,
-    note: 'Mon-Fri, business hours (AEST)',
-  },
-  {
-    icon: '✉️',
-    label: 'Email us',
-    value: brand.email,
-    href: `mailto:${brand.email}`,
-    note: 'We usually reply within one business day',
-  },
-  {
-    icon: '💬',
-    label: 'WhatsApp',
-    value: 'Chat with us instantly',
-    href: brand.whatsapp,
-    note: 'The quickest way to reach us',
-  },
-]
+export default async function ContactPage() {
+  const region = await getRegion()
+  const brand = getBrand(region)
 
-export default function ContactPage() {
+  const channels = [
+    // Call card only where there's a phone line (AU today; India/US are WhatsApp-first).
+    ...(brand.phone
+      ? [
+          {
+            icon: '📞',
+            label: 'Call us',
+            value: brand.phone,
+            href: `tel:${brand.phoneIntl}`,
+            note: 'Mon-Fri, business hours (AEST)',
+          },
+        ]
+      : []),
+    {
+      icon: '✉️',
+      label: 'Email us',
+      value: brand.email,
+      href: `mailto:${brand.email}`,
+      note: 'We usually reply within one business day',
+    },
+    {
+      icon: '💬',
+      label: 'WhatsApp',
+      value: 'Chat with us instantly',
+      href: brand.whatsapp,
+      note: 'The quickest way to reach us',
+    },
+  ]
+
   return (
     <Section tone="deep" className="pt-28">
       <div className="mx-auto max-w-2xl text-center">
@@ -47,7 +56,11 @@ export default function ContactPage() {
         </p>
       </div>
 
-      <div className="mx-auto mt-12 grid max-w-4xl gap-5 sm:grid-cols-3">
+      <div
+        className={`mx-auto mt-12 grid max-w-4xl gap-5 ${
+          channels.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'
+        }`}
+      >
         {channels.map((c) => (
           <a
             key={c.label}
