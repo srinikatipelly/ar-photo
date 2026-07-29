@@ -1,4 +1,6 @@
-import { brand, services, pricingTiers, testimonials, landingHeroVideo, landingHeroPoster } from '@/lib/site-content'
+import { brand, services, testimonials, landingHeroVideo, landingHeroPoster } from '@/lib/site-content'
+import { getBrand, getPricing } from '@/lib/regions'
+import { getRegion } from '@/lib/region-server'
 import { Section, Eyebrow } from '@/components/site/Section'
 import { Steps } from '@/components/site/Steps'
 import { ServiceCard } from '@/components/site/ServiceCard'
@@ -7,7 +9,10 @@ import { TestimonialCard } from '@/components/site/TestimonialCard'
 import { VideoFrame } from '@/components/site/VideoFrame'
 import { WhatsAppButton } from '@/components/site/WhatsAppButton'
 
-export default function LandingHome() {
+export default async function LandingHome() {
+  const region = await getRegion()
+  const regionBrand = getBrand(region)
+  const pricingTiers = getPricing(region)
   return (
     <>
       {/* ── Hero - copy left, large framed showcase video right ──────────────── */}
@@ -134,7 +139,15 @@ export default function LandingHome() {
             Premium service, simple pricing
           </h2>
         </div>
-        <div className="mt-12 grid gap-6 lg:grid-cols-3">
+        <div
+          className={`mt-12 grid gap-6 ${
+            pricingTiers.length === 1
+              ? 'mx-auto max-w-sm'
+              : pricingTiers.length === 2
+                ? 'mx-auto max-w-3xl sm:grid-cols-2'
+                : 'lg:grid-cols-3'
+          }`}
+        >
           {pricingTiers.map((tier) => (
             <PricingCard key={tier.name} tier={tier} />
           ))}
@@ -182,13 +195,19 @@ export default function LandingHome() {
             <WhatsAppButton message="Hi! I'd love to know more about The Golden Frame AR frames." />
           </div>
           <p className="mt-6 text-sm text-green-deep/70">
-            Or call{' '}
-            <a href={`tel:${brand.phoneIntl}`} className="font-semibold underline">
-              {brand.phone}
-            </a>{' '}
-            ·{' '}
-            <a href={`mailto:${brand.email}`} className="font-semibold underline">
-              {brand.email}
+            {regionBrand.phone ? (
+              <>
+                Or call{' '}
+                <a href={`tel:${regionBrand.phoneIntl}`} className="font-semibold underline">
+                  {regionBrand.phone}
+                </a>{' '}
+                ·{' '}
+              </>
+            ) : (
+              'Or email us at '
+            )}
+            <a href={`mailto:${regionBrand.email}`} className="font-semibold underline">
+              {regionBrand.email}
             </a>
           </p>
         </div>

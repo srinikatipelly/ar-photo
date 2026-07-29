@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import { pricingTiers } from '@/lib/site-content'
+import { getPricing } from '@/lib/regions'
+import { getRegion } from '@/lib/region-server'
 import { Section, Eyebrow } from '@/components/site/Section'
 import { PricingCard } from '@/components/site/PricingCard'
 import { WhatsAppButton } from '@/components/site/WhatsAppButton'
@@ -29,7 +30,9 @@ const faqs = [
   },
 ]
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  const region = await getRegion()
+  const pricingTiers = getPricing(region)
   return (
     <>
       <Section tone="deep" className="pt-28">
@@ -42,7 +45,15 @@ export default function PricingPage() {
             Choose the living memory that suits you. No subscriptions, no hidden fees.
           </p>
         </div>
-        <div className="mt-12 grid gap-6 lg:grid-cols-3">
+        <div
+          className={`mt-12 grid gap-6 ${
+            pricingTiers.length === 1
+              ? 'mx-auto max-w-sm'
+              : pricingTiers.length === 2
+                ? 'mx-auto max-w-3xl sm:grid-cols-2'
+                : 'lg:grid-cols-3'
+          }`}
+        >
           {pricingTiers.map((tier) => (
             <PricingCard key={tier.name} tier={tier} />
           ))}

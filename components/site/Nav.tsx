@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react'
 import { brand, navItems } from '@/lib/site-content'
 import { createBrowserSupabase } from '@/lib/supabase/client'
+import { CountrySwitcher } from '@/components/site/CountrySwitcher'
+import type { Region } from '@/lib/regions'
 
-export function Nav() {
+export function Nav({ region }: { region: Region }) {
   const [open, setOpen] = useState(false)
   const [signedIn, setSignedIn] = useState(false)
 
@@ -43,6 +45,9 @@ export function Nav() {
         </div>
 
         <div className="flex shrink-0 items-center gap-4">
+          <div className="hidden sm:block">
+            <CountrySwitcher region={region} />
+          </div>
           <a
             href="/account"
             className="hidden text-sm font-medium text-cream/80 transition hover:text-gold-brand sm:inline"
@@ -97,6 +102,9 @@ export function Nav() {
             >
               Order Now
             </a>
+            <div className="mt-3 px-3">
+              <CountrySwitcher region={region} />
+            </div>
           </div>
         </div>
       )}
