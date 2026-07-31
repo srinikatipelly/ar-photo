@@ -12,8 +12,13 @@ function LoginForm() {
   const [error, setError] = useState(params.get('error') ? 'Sign-in link expired or invalid. Please try again.' : '')
 
   const supabase = createBrowserSupabase()
+  // Optional post-login destination (e.g. /partners). Same-site relative paths only.
+  const rawNext = params.get('next')
+  const next = rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : ''
   const redirectTo =
-    typeof window !== 'undefined' ? `${window.location.origin}/api/auth/callback` : undefined
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/api/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ''}`
+      : undefined
 
   // Only show the Google button once the Google provider is configured in Supabase.
   // Set NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=true in Vercel after enabling it there.
