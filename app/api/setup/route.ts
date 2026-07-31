@@ -23,11 +23,15 @@ export async function GET(req: NextRequest) {
           target_url TEXT NOT NULL,
           status TEXT NOT NULL DEFAULT 'active',
           plan TEXT NOT NULL DEFAULT 'single',
+          items JSONB,
           scan_count INTEGER NOT NULL DEFAULT 0,
           created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
           updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
         );
-        
+
+        -- Album mode: multiple photo+video pairs behind one QR (plan='album').
+        ALTER TABLE public.frames ADD COLUMN IF NOT EXISTS items JSONB;
+
         CREATE INDEX IF NOT EXISTS frames_frame_id_idx ON public.frames(frame_id);
         CREATE INDEX IF NOT EXISTS frames_customer_email_idx ON public.frames(customer_email);
         CREATE INDEX IF NOT EXISTS frames_created_at_idx ON public.frames(created_at);
