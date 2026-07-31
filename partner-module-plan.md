@@ -1,7 +1,8 @@
 # Partner (B2B) module — gated album creation + Google Drive import
 
-Status: **planned, not started** (2026-08-01). Builds on album mode (`album-mode-plan.md`).
-Decision taken: Drive import uses a **service account + shared folder** (not per-partner OAuth).
+Status: **Phase 1 + Phase 2 implemented** on `album-mode` branch (2026-08-01) — see
+"Setup & testing" below. Builds on album mode (`album-mode-plan.md`). Drive import uses a
+**service account + shared folder** (not per-partner OAuth). ZIP fallback is browser-side.
 
 ## Goal
 
@@ -167,6 +168,54 @@ flowchart TD
 - `trigger/import-drive-album.ts` — mirror Drive → R2; update `import_jobs`.
 - `app/api/partner/drive/import/route.ts` — create the job + trigger the task.
 - `app/partners/albums/import/page.tsx` — paste link → preview → import → poll → compile → QR.
+
+## Phase 2 — setup & testing (as built)
+
+**What shipped:** partner portal is brand-themed (dark green/cream/gold). Dashboard has
+**+ New album** (manual) and **Import (Drive / ZIP)**. The import page (`/partners/albums/import`)
+has two tabs:
+- **Google Drive** — paste a shared folder link → **Preview** (lists + validates each subfolder's
+  photo/video) → **Import** → a Trigger.dev task mirrors Drive→R2 → the browser compiles the
+  `.mind` and creates the album → one QR.
+- **ZIP** — upload a `.zip` of the same folder tree; it's unpacked in the browser (JSZip), then
+  compiled + created. No Google/Trigger needed. Best for smaller albums (the zip loads into
+  browser memory).
+
+**Migration (run once, Supabase SQL):**
+```sql
+CREATE TABLE IF NOT EXISTS public.import_jobs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  partner_id UUID NOT NULL REFERENCES public.partners(id),
+  source TEXT NOT NULL, folder_ref TEXT, album_name TEXT,
+  status TEXT NOT NULL DEFAULT 'pending', items JSONB, error TEXT, frame_id TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+ALTER TABLE public.import_jobs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "partner reads own jobs" ON public.import_jobs FOR SELECT USING (partner_id = auth.uid());
+```
+
+**Google Cloud (one-time, for Drive import only — ZIP works without it):**
+1. Create/choose a GCP project → **enable the Google Drive API**.
+2. Create a **Service Account** → **Keys → Add key → JSON**. Note its email
+   (`…@<project>.iam.gserviceaccount.com`).
+3. **Env vars** (Vercel **and** Trigger.dev, since the task also needs them):
+   - `GOOGLE_SERVICE_ACCOUNT_EMAIL` = the SA email
+   - `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` = the JSON key's `private_key` (paste with real newlines
+     or literal `\n` — both handled).
+4. The customer **shares their event folder with the SA email** (Viewer). Shared Drives work too
+   (calls pass `supportsAllDrives`).
+
+**To test:**
+- **ZIP path (no setup):** zip a folder like `event/folder1/{photo,video}`, `folder2/{…}` → sign in
+  as a partner → Import → ZIP tab → choose the zip → preview → create → scan the QR.
+- **Drive path:** set the env vars, run **`npm run trigger:dev`** (the mirror runs there — without
+  it the job stays pending and the import endpoint returns a clear "worker not available" error),
+  share a structured folder with the SA email → Import → Drive tab → paste link → Preview →
+  Import.
+
+**Note on Trigger.dev:** the Drive mirror is a Trigger task on purpose (large videos would blow
+Vercel's function limits). It must be running (`trigger:dev`) or deployed. ZIP has no such
+dependency.
 
 ## Phase 3 — polish
 

@@ -47,6 +47,23 @@ export async function GET(req: NextRequest) {
         ALTER TABLE public.partners ENABLE ROW LEVEL SECURITY;
         CREATE POLICY "partner reads self" ON public.partners FOR SELECT USING (id = auth.uid());
 
+        -- Phase 2: Drive/ZIP import jobs (mirror progress; polled by the partner UI).
+        CREATE TABLE IF NOT EXISTS public.import_jobs (
+          id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          partner_id UUID NOT NULL REFERENCES public.partners(id),
+          source     TEXT NOT NULL,
+          folder_ref TEXT,
+          album_name TEXT,
+          status     TEXT NOT NULL DEFAULT 'pending',
+          items      JSONB,
+          error      TEXT,
+          frame_id   TEXT,
+          created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+          updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+        );
+        ALTER TABLE public.import_jobs ENABLE ROW LEVEL SECURITY;
+        CREATE POLICY "partner reads own jobs" ON public.import_jobs FOR SELECT USING (partner_id = auth.uid());
+
         CREATE INDEX IF NOT EXISTS frames_frame_id_idx ON public.frames(frame_id);
         CREATE INDEX IF NOT EXISTS frames_customer_email_idx ON public.frames(customer_email);
         CREATE INDEX IF NOT EXISTS frames_created_at_idx ON public.frames(created_at);
