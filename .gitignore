@@ -10,6 +10,9 @@
 !.yarn/releases
 !.yarn/versions
 
+# trigger.dev local cache
+/.trigger
+
 # testing
 /coverage
 

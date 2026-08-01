@@ -570,7 +570,145 @@
           const body = await res.json().catch(() => ({}))
           throw new Error(body.error || 'Frame not found (HTTP ' + res.status + ')')
         }
-        const { videoUrl, targetUrl, photoUrl, links: payloadLinks } = await res.json()
+        const data = await res.json()
+
+        // ── Album mode: one QR, many photos ──────────────────────────────
+        // A single .mind target holds all photos; each photo gets its own anchor +
+        // video. maxTrack:1 means whichever photo is in view plays, and it switches
+        // as you pan. Videos are lazy (preload='none') so we don't pull 10 at once.
+        // The single-photo path below is left exactly as it was.
+        if (data.album === true && Array.isArray(data.items) && data.items.length) {
+          const items     = data.items
+          const targetUrl = data.targetUrl
+          if (!targetUrl || !items.every((it) => it && it.videoUrl)) {
+            throw new Error('Album data is incomplete.')
+          }
+
+          setProgress(35, 'Downloading AR targets…')
+          const absoluteTargetUrl = new URL(targetUrl, window.location.href).href
+
+          // One <video> per item, download deferred until its photo is first seen.
+          const videos = items.map((it) => {
+            const v = document.createElement('video')
+            v.crossOrigin = 'anonymous'
+            v.src         = it.videoUrl
+            v.muted       = true
+            v.loop        = true
+            v.preload     = 'none'
+            v.setAttribute('playsinline', '')
+            v.setAttribute('webkit-playsinline', '')
+            videoDock.appendChild(v)
+            return v
+          })
+
+          // Photos are small — load them up front to size each plane correctly.
+          const photoImgs = await Promise.all(items.map((it) => new Promise((resolve) => {
+            if (!it.photoUrl) { resolve(null); return }
+            const img = new Image()
+            img.crossOrigin = 'anonymous'
+            const t = setTimeout(() => resolve(img), 5000)
+            img.onload  = () => { clearTimeout(t); resolve(img) }
+            img.onerror = () => { clearTimeout(t); resolve(null) }
+            img.src = it.photoUrl
+          })))
+
+          const targetBlob = await fetch(absoluteTargetUrl).then((r) => {
+            if (!r.ok) throw new Error('Failed to fetch AR target')
+            return r.blob()
+          })
+          targetBlobUrl = URL.createObjectURL(targetBlob)
+
+          setProgress(60, 'Building AR scene…')
+
+          mindarThree = new MindARThree({
+            container:      sceneContainer,
+            imageTargetSrc: targetBlobUrl,
+            uiScanning:     'no',
+            uiLoading:      'no',
+            maxTrack:       1,   // play the photo in view; switch as you pan the album
+            filterMinCF:     0.0001,
+            filterBeta:      0.001,
+            missTolerance:   16,
+            warmupTolerance: 5,
+          })
+
+          const { renderer, scene, camera } = mindarThree
+          scene.add(new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1))
+
+          const INSET = 0.94
+          items.forEach((it, i) => {
+            const img = photoImgs[i]
+            const pw  = (img && img.naturalWidth)  || videos[i].videoWidth  || 4
+            const ph  = (img && img.naturalHeight) || videos[i].videoHeight || 3
+            const planeW = 1 * INSET
+            const planeH = 1 * (ph / pw) * INSET
+
+            const tex      = new THREE.VideoTexture(videos[i])
+            tex.minFilter  = THREE.LinearFilter
+            tex.magFilter  = THREE.LinearFilter
+            tex.colorSpace = THREE.SRGBColorSpace
+
+            const plane = new THREE.Mesh(
+              new THREE.PlaneGeometry(planeW, planeH),
+              new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide })
+            )
+            mindarThree.addAnchor(i).group.add(plane)
+
+            mindarThree.anchors[i].onTargetFound = () => {
+              targetFound = true
+              watchBtn.classList.remove('nudge')
+              arVideo = videos[i]   // sound toggle + fullscreen player follow the active photo
+              const v = videos[i]
+              v.muted = false
+              v.play().then(() => syncSoundIcon()).catch(() => {
+                v.muted = true
+                v.play().catch((e) => console.warn('[AR] Video play failed:', e))
+                syncSoundIcon()
+              })
+              soundBtn.style.display = 'flex'
+              syncSoundIcon()
+              hintEl.style.opacity = '0'
+            }
+            mindarThree.anchors[i].onTargetLost = () => {
+              videos[i].pause()
+              hintEl.style.opacity = '1'
+            }
+          })
+
+          // ── Start camera (mirrors the single-photo path) ──
+          setStep('step-camera', 'active')
+          setProgress(70, 'Opening your camera…')
+          const hardTimeout = setTimeout(() => {
+            stopAR()
+            showError('AR timed out.', 'Camera or tracker took too long. Tap "Try again".')
+          }, 120000)
+
+          await cameraPrewarm
+          await mindarThree.start()
+          clearTimeout(hardTimeout)
+
+          setProgress(100)
+          clearInterval(captionTimer)
+          loadingEl.style.display = 'none'
+          hintEl.style.display    = 'block'
+          hintEl.style.opacity    = '1'
+          hintEl.textContent      = 'Point your camera at any photo in the album'
+
+          arActive = true
+          watchBtn.style.display = 'flex'
+          setTimeout(() => {
+            if (!targetFound && arActive) {
+              watchBtn.classList.add('nudge')
+              hintEl.textContent = 'Trouble scanning? Tap “Play as video” below'
+            }
+          }, 12000)
+
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+          renderer.setAnimationLoop(() => { renderer.render(scene, camera) })
+          return
+        }
+
+        const { videoUrl, targetUrl, photoUrl, links: payloadLinks } = data
         if (!videoUrl || !targetUrl) throw new Error('Frame data is incomplete.')
 
         setProgress(35, 'Downloading AR target…')

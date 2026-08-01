@@ -7,7 +7,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const { data, error } = await supabaseAdmin
       .from('frames')
-      .select('video_url, target_url, photo_url, customer_name, status, scan_count')
+      .select('video_url, target_url, photo_url, customer_name, status, scan_count, plan, items')
       .eq('frame_id', id)
       .single()
 
@@ -44,16 +44,32 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       .eq('frame_id', id)
       .then(() => {}, () => {})
 
+    // Album: one combined .mind target + N photo/video pairs (order = target index).
+    // Single frames leave `items` NULL and fall through to the original shape below.
+    const isAlbum = data.plan === 'album' && Array.isArray(data.items) && data.items.length > 0
+
+    const body = isAlbum
+      ? {
+          album: true,
+          targetUrl: data.target_url,
+          items: (data.items as { photoUrl: string; videoUrl: string }[]).map((it) => ({
+            videoUrl: it.videoUrl,
+            photoUrl: it.photoUrl,
+          })),
+          name: data.customer_name,
+        }
+      : {
+          // Serve video directly from R2 public URL — R2 sends CORS headers so
+          // the AR viewer can use crossOrigin="anonymous" with WebGL VideoTexture.
+          // Avoids the Vercel proxy hop on every scan.
+          videoUrl:  data.video_url,
+          targetUrl: data.target_url,
+          photoUrl:  data.photo_url,
+          name: data.customer_name,
+        }
+
     return NextResponse.json(
-      {
-        // Serve video directly from R2 public URL — R2 sends CORS headers so
-        // the AR viewer can use crossOrigin="anonymous" with WebGL VideoTexture.
-        // Avoids the Vercel proxy hop on every scan.
-        videoUrl:  data.video_url,
-        targetUrl: data.target_url,
-        photoUrl:  data.photo_url,
-        name: data.customer_name,
-      },
+      body,
       {
         headers: {
           // Cache at edge/CDN for 60 s, browser for 30 s.

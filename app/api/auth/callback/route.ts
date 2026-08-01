@@ -6,7 +6,9 @@ import { createServerSupabase } from '@/lib/supabase/server'
 export async function GET(req: NextRequest) {
   const { searchParams, origin } = new URL(req.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') || '/account'
+  // Only allow same-site relative paths (guard against //evil.com open redirects).
+  const rawNext = searchParams.get('next')
+  const next = rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/account'
 
   if (code) {
     const supabase = await createServerSupabase()

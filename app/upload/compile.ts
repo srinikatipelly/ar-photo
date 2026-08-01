@@ -86,6 +86,20 @@ function fileToImageElement(file: File): Promise<HTMLImageElement> {
 }
 
 export async function compileImageTarget(photoFile: File): Promise<ArrayBuffer> {
+  return compileImageTargets([photoFile])
+}
+
+/**
+ * Compile one OR MANY photos into a single `.mind` target file. The order of
+ * `photoFiles` is preserved and becomes the MindAR target index order — anchor `i`
+ * in the viewer maps to `photoFiles[i]`. Used by album mode (one QR, many photos).
+ */
+export async function compileImageTargets(
+  photoFiles: File[],
+  onProgress?: (progress: number) => void,
+): Promise<ArrayBuffer> {
+  if (!photoFiles.length) throw new Error('At least one photo is required to compile a target.')
+
   // Self-hosted from /public so it loads from our own domain — no dependency on
   // a third-party CDN (jsDelivr 503s were hanging the compile on fresh origins).
   // The 266-byte loader pulls its sibling chunks relative to this path.
@@ -95,10 +109,11 @@ export async function compileImageTarget(photoFile: File): Promise<ArrayBuffer> 
     throw new Error('MindAR image compiler is not available in this browser.')
   }
 
-  const image = await fileToImageElement(photoFile)
+  const images = await Promise.all(photoFiles.map(fileToImageElement))
   const compiler = new window.MINDAR.IMAGE.Compiler()
 
-  await compiler.compileImageTargets([image], (progress) => {
+  await compiler.compileImageTargets(images, (progress) => {
+    onProgress?.(progress)
     console.log(`Compiling: ${Math.round(progress * 100)}%`)
   })
 
