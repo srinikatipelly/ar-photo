@@ -407,3 +407,19 @@ Thanks for supporting our small business. Your order means the world to us.
 — Shiva & Sankeerthana 
 Luxe Magics
    ==================================================
+
+
+Bugs:01/08/2026
+
+STATUS: all 7 fixed — see branch `fix/partner-bugs-2026-08-01`.
+Note on #4: the partner-facing "QR pending payment" email uses the WhatsApp/email
+from lib/site-content.ts (`brand.whatsapp` / `brand.email`). Override the WhatsApp
+link with NEXT_PUBLIC_WHATSAPP_URL if that number is wrong.
+
+#1. The customer must share this folder with the service-account email -provide the email ID.
+#2. Analysing AR tracking is incrementing like 1200% etc shouldn't be less than 100%?
+#3.An email with QR should be sent to the admin when album is uploaded same as normal path for partner path.
+#4, when partner uploads the album, then email with QR should be sent to only admin, provide info to partner please contact us on whatsapp or email for payment details also sent an email QR is ready to be sent please pay the amount and recieve QR code for album contact whatsapp and email. once payment is confirmed then admin manually will send the email with QR to the customer, but draft it to be sent with all details (this is for partner path only)
+#5.for partner path, dont provide QR code under "Your albums" 
+#6.when email recieved by partenr then when partner clicks "Sign in to the partner portal" its not direclty taking them to the import googledrive page, instead its taking to the login page
+#7. instaed of giving "Create your first album →" provide 3 options like Bulk import via google drive or zip or upload photos and vidoes one by one

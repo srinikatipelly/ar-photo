@@ -112,9 +112,13 @@ export async function compileImageTargets(
   const images = await Promise.all(photoFiles.map(fileToImageElement))
   const compiler = new window.MINDAR.IMAGE.Compiler()
 
-  await compiler.compileImageTargets(images, (progress) => {
-    onProgress?.(progress)
-    console.log(`Compiling: ${Math.round(progress * 100)}%`)
+  // MindAR reports a PERCENT (0-100), not a 0-1 fraction — its compileTrack does
+  // `progressCallback(basePercent + percent * basePercent / 100)`. Callers here
+  // expect a 0-1 fraction, so scale it down; clamp because the two compile phases
+  // can overshoot slightly on the last tick.
+  await compiler.compileImageTargets(images, (percent) => {
+    const fraction = Math.min(1, Math.max(0, percent / 100))
+    onProgress?.(fraction)
   })
 
   return compiler.exportData()

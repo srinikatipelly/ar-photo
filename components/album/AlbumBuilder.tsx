@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { compileImageTargets } from '@/app/upload/compile'
 import { uploadFileToR2 } from '@/lib/client-upload'
+import { AlbumQrPending } from '@/components/album/AlbumQrPending'
 
 // Shared album builder: assemble N photo+video pairs → compile one MindAR .mind
 // (browser-only) → upload assets → POST to `endpoint` → show the one QR.
@@ -29,12 +30,15 @@ export function AlbumBuilder({
   eyebrow = 'Album',
   title = 'Build an AR album',
   backHref = '/',
+  showQr = true,
 }: {
   endpoint: string
   maxItems: number
   eyebrow?: string
   title?: string
   backHref?: string
+  /** Partners don't see the QR — it's released by an admin after payment. */
+  showQr?: boolean
 }) {
   const [pairs, setPairs]       = useState<Pair[]>([emptyPair(), emptyPair()])
   const [name, setName]         = useState('')
@@ -120,23 +124,35 @@ export function AlbumBuilder({
         <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gold-brand/15 text-3xl">🎉</div>
         <h1 className="font-display text-3xl text-cream">Album created</h1>
         <p className="mt-2 text-cream/70">
-          One QR for all {result.count} photos. Print the photos, then scan this and pan from photo to photo.
+          {showQr
+            ? `One QR for all ${result.count} photos. Print the photos, then scan this and pan from photo to photo.`
+            : `All ${result.count} photos are linked to one album.`}
         </p>
 
-        <div className="mt-8 rounded-3xl border border-cream/15 bg-green-mid/40 p-6 text-center">
-          {result.qrDataUrl && (
-            <div className="mx-auto w-fit rounded-2xl bg-white p-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={result.qrDataUrl} alt="Album QR code" className="h-52 w-52" />
+        {showQr ? (
+          <div className="mt-8 rounded-3xl border border-cream/15 bg-green-mid/40 p-6 text-center">
+            {result.qrDataUrl && (
+              <div className="mx-auto w-fit rounded-2xl bg-white p-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={result.qrDataUrl} alt="Album QR code" className="h-52 w-52" />
+              </div>
+            )}
+            <p className="mt-4 break-all font-mono text-sm text-cream/60">{result.arUrl}</p>
+            <div className="mt-4 flex flex-wrap justify-center gap-3">
+              <a href={result.arUrl} target="_blank" rel="noopener noreferrer" className={primaryBtn}>Open AR viewer</a>
+              <Link href={backHref} className={ghostBtn}>Done</Link>
             </div>
-          )}
-          <p className="mt-4 break-all font-mono text-sm text-cream/60">{result.arUrl}</p>
-          <div className="mt-4 flex flex-wrap justify-center gap-3">
-            <a href={result.arUrl} target="_blank" rel="noopener noreferrer" className={primaryBtn}>Open AR viewer</a>
-            <Link href={backHref} className={ghostBtn}>Done</Link>
+            <p className="mt-4 text-xs text-cream/40">Reference: {result.frameId}</p>
           </div>
-          <p className="mt-4 text-xs text-cream/40">Reference: {result.frameId}</p>
-        </div>
+        ) : (
+          <div className="mt-8">
+            <AlbumQrPending frameId={result.frameId} count={result.count} />
+            <div className="mt-4 flex flex-wrap gap-3">
+              <a href={result.arUrl} target="_blank" rel="noopener noreferrer" className={ghostBtn}>Preview the AR album</a>
+              <Link href={backHref} className={ghostBtn}>Done</Link>
+            </div>
+          </div>
+        )}
       </div>
     )
   }

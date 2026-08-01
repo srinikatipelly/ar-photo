@@ -12,6 +12,31 @@ type AlbumRow = {
   items: unknown[] | null
 }
 
+// The three ways to build an album, shown when a partner has none yet.
+const startOptions = [
+  {
+    href: '/partners/albums/import',
+    icon: '📁',
+    title: 'Bulk import from Google Drive',
+    body: 'Share a folder with us — one subfolder per photo, each with its photo and video. Best for whole events.',
+    cta: 'Import from Drive',
+  },
+  {
+    href: '/partners/albums/import?mode=zip',
+    icon: '🗂️',
+    title: 'Upload a ZIP',
+    body: 'Same folder structure, zipped up. Unpacked in your browser — no Google account needed.',
+    cta: 'Upload a ZIP',
+  },
+  {
+    href: '/partners/albums/new',
+    icon: '🖼️',
+    title: 'Add photos one by one',
+    body: 'Pair each photo with its video by hand. Best for a handful of frames.',
+    cta: 'Build manually',
+  },
+] as const
+
 export default async function PartnerDashboard() {
   // The layout already gated this; getPartner is cheap (cached request) and gives us the id.
   const { partner } = await getPartner()
@@ -55,17 +80,31 @@ export default async function PartnerDashboard() {
       </div>
 
       {albums.length === 0 ? (
-        <div className="mt-10 rounded-3xl border border-dashed border-cream/20 bg-green-mid/30 p-12 text-center">
-          <p className="text-cream/60">No albums yet.</p>
-          <Link href="/partners/albums/new" className="mt-4 inline-block font-semibold text-gold-brand hover:underline">
-            Create your first album →
-          </Link>
+        <div className="mt-10 rounded-3xl border border-dashed border-cream/20 bg-green-mid/30 p-8 sm:p-12">
+          <div className="text-center">
+            <p className="font-display text-2xl text-cream">No albums yet</p>
+            <p className="mt-2 text-sm text-cream/60">Pick whichever way suits the job — all three end up as one QR per album.</p>
+          </div>
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            {startOptions.map((o) => (
+              <Link key={o.href} href={o.href}
+                className="flex flex-col rounded-2xl border border-cream/15 bg-green-deep/40 p-5 text-left transition hover:border-gold-brand/60">
+                <span className="text-2xl" aria-hidden="true">{o.icon}</span>
+                <span className="mt-3 font-semibold text-cream">{o.title}</span>
+                <span className="mt-1 text-xs leading-relaxed text-cream/55">{o.body}</span>
+                <span className="mt-3 text-sm font-semibold text-gold-brand">{o.cta} →</span>
+              </Link>
+            ))}
+          </div>
         </div>
       ) : (
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {albums.map((a) => (
             <div key={a.frame_id} className="flex flex-col rounded-2xl border border-cream/15 bg-green-mid/40 p-5">
-              {a.qr_url && (
+              {/* Partners don't get the QR here — it's released by us once payment
+                  for the album is confirmed. Admins are the ones who send it, so
+                  they still see it. */}
+              {isAdmin && a.qr_url && (
                 <div className="mx-auto w-fit rounded-xl bg-white p-2">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={a.qr_url} alt="Album QR" className="h-28 w-28" />

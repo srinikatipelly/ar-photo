@@ -5,7 +5,7 @@ import { createServerSupabase } from '@/lib/supabase/server'
 // ADMIN_EMAILS / ADMIN_EMAIL (comma-separated) env vars; all are merged.
 const DEFAULT_ADMIN_EMAILS = ['srini.k2608@gmail.com', 'thegoldenframecreations@gmail.com']
 
-function adminEmails(): string[] {
+export function adminEmails(): string[] {
   const list = [process.env.ADMIN_EMAILS ?? '', process.env.ADMIN_EMAIL ?? '']
     .flatMap((s) => s.split(','))
     .concat(DEFAULT_ADMIN_EMAILS)

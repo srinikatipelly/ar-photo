@@ -46,13 +46,50 @@ export function getDrive(): drive_v3.Drive {
   if (!email || !rawKey) {
     throw new Error('Google Drive is not configured (GOOGLE_SERVICE_ACCOUNT_EMAIL / _PRIVATE_KEY).')
   }
-  const privateKey = rawKey.replace(/\\n/g, '\n')
+  const privateKey = normalizePem(rawKey)
   const auth = new google.auth.JWT({
     email,
     key: privateKey,
     scopes: ['https://www.googleapis.com/auth/drive.readonly'],
   })
   return google.drive({ version: 'v3', auth })
+}
+
+/**
+ * Rebuild a PEM from however a dashboard mangled it. Env-var editors take the
+ * value literally, so a pasted key can arrive wrapped in quotes, with CRLFs,
+ * with literal \n instead of newlines, or — Trigger.dev's field does this —
+ * with every newline flattened to a space. Any of those makes Node throw the
+ * opaque "error:1E08010C:DECODER routines::unsupported", which names neither
+ * the variable nor the problem.
+ *
+ * We keep only the header, the base64 body, and the footer, then re-wrap the
+ * body at the canonical 64 chars.
+ */
+export function normalizePem(raw: string): string {
+  const cleaned = raw
+    .trim()
+    .replace(/^['"]|['"]$/g, '') // stray wrapping quotes
+    .replace(/\\n/g, '\n') // literal backslash-n
+    .replace(/\r/g, '')
+
+  const m = cleaned.match(/-----BEGIN ([A-Z0-9 ]+)-----([\s\S]*?)-----END \1-----/)
+  if (!m) {
+    throw new Error(
+      'GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY is malformed — it must contain "-----BEGIN PRIVATE KEY-----" … "-----END PRIVATE KEY-----". Re-paste it from the service-account JSON without the wrapping quotes.',
+    )
+  }
+
+  const [, label, rawBody] = m
+  const body = rawBody.replace(/\s+/g, '') // drop spaces/newlines the editor left behind
+  if (!body || /[^A-Za-z0-9+/=]/.test(body)) {
+    throw new Error(
+      'GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY is malformed — the key body is not valid base64. Copy the "private_key" value straight from the service-account JSON.',
+    )
+  }
+
+  const wrapped = body.match(/.{1,64}/g)!.join('\n')
+  return `-----BEGIN ${label}-----\n${wrapped}\n-----END ${label}-----\n`
 }
 
 const SHARED = { supportsAllDrives: true, includeItemsFromAllDrives: true } as const
