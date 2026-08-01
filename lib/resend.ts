@@ -271,6 +271,86 @@ export async function sendContactEnquiry({
   if (error) throw new Error(`Resend contact email failed: ${error.name} - ${error.message}`)
 }
 
+// ── Admin: new partner application ──────────────────────────────────────────
+export async function sendPartnerRequestAdminEmail({
+  name, email, mobile, city, company, message,
+}: { name: string; email: string; mobile?: string; city?: string; company?: string; message?: string }) {
+  const adminEmail = process.env.ADMIN_EMAIL
+  if (!resend || !adminEmail) return
+
+  const reviewUrl = `${appUrl()}/admin/partners`
+  const { error } = await resend.emails.send({
+    from: `${fromName()} <${fromEmail()}>`,
+    to: adminEmail,
+    replyTo: email,
+    subject: `New partner application - ${name || email}`,
+    html: `
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /></head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 16px;"><tr><td align="center">
+    <table width="100%" style="max-width:520px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+      <tr><td style="background:#0F3535;padding:28px 36px;">
+        <p style="margin:0;color:#C9A24B;font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;">The Golden Frame - Partner application</p>
+      </td></tr>
+      <tr><td style="padding:32px 36px 0;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;border-radius:12px;padding:20px 24px;margin:0 0 24px;"><tr><td>
+          <p style="margin:0 0 6px;font-size:13px;color:#52525b;"><strong style="color:#18181b;">Name:</strong> ${escapeHtml(name) || '-'}</p>
+          <p style="margin:0 0 6px;font-size:13px;color:#52525b;"><strong style="color:#18181b;">Email:</strong> ${escapeHtml(email)}</p>
+          <p style="margin:0 0 6px;font-size:13px;color:#52525b;"><strong style="color:#18181b;">Mobile:</strong> ${escapeHtml(mobile || '') || '-'}</p>
+          <p style="margin:0 0 6px;font-size:13px;color:#52525b;"><strong style="color:#18181b;">City:</strong> ${escapeHtml(city || '') || '-'}</p>
+          <p style="margin:0;font-size:13px;color:#52525b;"><strong style="color:#18181b;">Company:</strong> ${escapeHtml(company || '') || '-'}</p>
+        </td></tr></table>
+        ${message ? `<p style="margin:0 0 8px;font-size:14px;font-weight:600;color:#18181b;">Message</p><p style="margin:0 0 24px;font-size:14px;color:#3f3f46;line-height:1.6;white-space:pre-wrap;">${escapeHtml(message)}</p>` : ''}
+        <div style="text-align:center;margin:0 0 28px;">
+          <a href="${reviewUrl}" style="display:inline-block;background:#C9A24B;color:#0F3535;font-size:14px;font-weight:700;text-decoration:none;padding:12px 28px;border-radius:999px;">Review &amp; approve →</a>
+        </div>
+      </td></tr>
+      <tr><td style="padding:20px 36px 32px;border-top:1px solid #f4f4f5;">
+        <p style="margin:0;font-size:12px;color:#a1a1aa;">Approve or reject at ${reviewUrl}</p>
+      </td></tr>
+    </table>
+  </td></tr></table>
+</body></html>`,
+  })
+  if (error) throw new Error(`Resend partner-request email failed: ${error.name} - ${error.message}`)
+}
+
+// ── Partner: application approved ────────────────────────────────────────────
+export async function sendPartnerApprovedEmail({ to, name }: { to: string; name?: string }) {
+  if (!resend) return
+  const loginUrl = `${appUrl()}/account/login?next=/partners`
+  const { error } = await resend.emails.send({
+    from: `${fromName()} <${fromEmail()}>`,
+    to,
+    subject: `You're approved - welcome to The Golden Frame partners`,
+    html: `
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /></head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 16px;"><tr><td align="center">
+    <table width="100%" style="max-width:520px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+      <tr><td style="background:#0F3535;padding:28px 36px;">
+        <p style="margin:0;color:#ffffff;font-size:18px;font-weight:600;">The Golden Frame</p>
+      </td></tr>
+      <tr><td style="padding:36px 36px 0;">
+        <h1 style="margin:0 0 8px;font-size:24px;font-weight:600;color:#18181b;">You're approved 🎉</h1>
+        <p style="margin:0 0 24px;font-size:16px;color:#71717a;line-height:1.6;">
+          Hi ${escapeHtml(name || 'there')}, your partner account is active. Sign in to create AR albums for your customers - upload photo &amp; video pairs, or bulk-import from Google Drive or a ZIP.
+        </p>
+        <div style="text-align:center;margin:0 0 28px;">
+          <a href="${loginUrl}" style="display:inline-block;background:#C9A24B;color:#0F3535;font-size:14px;font-weight:700;text-decoration:none;padding:13px 30px;border-radius:999px;">Sign in to the partner portal</a>
+        </div>
+        <p style="margin:0 0 24px;font-size:13px;color:#a1a1aa;">We'll email you a secure sign-in link - no password needed.</p>
+      </td></tr>
+      <tr><td style="padding:20px 36px 32px;border-top:1px solid #f4f4f5;">
+        <p style="margin:0;font-size:12px;color:#a1a1aa;">© ${new Date().getFullYear()} The Golden Frame</p>
+      </td></tr>
+    </table>
+  </td></tr></table>
+</body></html>`,
+  })
+  if (error) throw new Error(`Resend partner-approved email failed: ${error.name} - ${error.message}`)
+}
+
 // Escape user-supplied text before interpolating into the enquiry email HTML.
 function escapeHtml(s: string) {
   return s

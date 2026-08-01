@@ -61,11 +61,11 @@ export default async function PartnersLayout({ children }: { children: React.Rea
         <h1 className="font-display text-3xl text-cream">Partner access required</h1>
         <p className="mt-3 text-cream/70">
           You&apos;re signed in as <span className="font-medium text-cream">{email}</span>, but this account
-          isn&apos;t set up as a partner yet. Contact us to be added.
+          isn&apos;t set up as a partner yet. Apply and we&apos;ll review your request.
         </p>
-        <a href="mailto:hello@thegoldenframe.com.au"
+        <a href="/landing/partners"
           className="mt-6 inline-block rounded-full bg-gold-brand px-6 py-3 text-sm font-bold text-green-deep transition hover:bg-cream">
-          Request partner access
+          Apply to become a partner
         </a>
       </div>,
     )
