@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { brand } from '@/lib/site-content'
+import { REGIONS } from '@/lib/regions'
 import { Section, Eyebrow } from '@/components/site/Section'
 import { PartnerApplyForm } from '@/components/site/PartnerApplyForm'
 
@@ -103,6 +105,34 @@ export default function PartnersLandingPage() {
 
         <div className="mt-10">
           <PartnerApplyForm />
+        </div>
+
+        {/* Need help during the process */}
+        <div className="mx-auto mt-10 max-w-xl rounded-3xl border border-cream/15 bg-green-mid/40 p-6 text-center">
+          <p className="font-display text-lg text-cream">Hit a snag? We&apos;re here to help</p>
+          <p className="mt-1.5 text-sm leading-relaxed text-cream/70">
+            Any issue during the process — reach out on any channel and our team responds almost instantly.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm">
+            <a href={`tel:${REGIONS.au.contact.phoneIntl}`} className="text-cream/80 transition hover:text-gold-brand">
+              📞 Australia: {REGIONS.au.contact.phone}
+            </a>
+            <a href={`https://wa.me/${REGIONS.in.contact.whatsappNumber}`} target="_blank" rel="noopener noreferrer" className="text-cream/80 transition hover:text-gold-brand">
+              💬 India: WhatsApp
+            </a>
+            <a href={`mailto:${brand.email}`} className="break-all text-cream/80 transition hover:text-gold-brand">
+              ✉️ {brand.email}
+            </a>
+          </div>
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm">
+            <a href={brand.instagram} target="_blank" rel="noopener noreferrer" className="text-cream/70 transition hover:text-gold-brand">
+              Instagram @{brand.instagramHandle}
+            </a>
+            <span aria-hidden="true" className="text-cream/25">·</span>
+            <a href={brand.facebook} target="_blank" rel="noopener noreferrer" className="text-cream/70 transition hover:text-gold-brand">
+              Facebook
+            </a>
+          </div>
         </div>
       </Section>
     </>

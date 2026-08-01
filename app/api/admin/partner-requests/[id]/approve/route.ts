@@ -19,18 +19,23 @@ async function getOrCreateUserId(email: string): Promise<string> {
   throw new Error(created.error?.message || 'Could not create or find the user account.')
 }
 
-export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  const { token } = await req.json().catch(() => ({}))
   const { email: adminEmail, isAdmin } = await getAdmin()
-  if (!isAdmin) return NextResponse.json({ error: 'Admins only.' }, { status: 403 })
 
   try {
     const { data: reqRow, error } = await supabaseAdmin
       .from('partner_requests')
-      .select('id, name, email, mobile, city, company, status')
+      .select('id, name, email, mobile, city, company, status, token')
       .eq('id', id)
       .single()
     if (error || !reqRow) return NextResponse.json({ error: 'Application not found.' }, { status: 404 })
+
+    // Authorize via an admin session OR the per-request token from the email link.
+    const tokenOk = !!token && !!reqRow.token && token === reqRow.token
+    if (!isAdmin && !tokenOk) return NextResponse.json({ error: 'Not authorized.' }, { status: 403 })
+
     if (reqRow.status !== 'pending') return NextResponse.json({ error: `Already ${reqRow.status}.` }, { status: 409 })
 
     const userId = await getOrCreateUserId(reqRow.email)
@@ -55,7 +60,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
 
     await supabaseAdmin
       .from('partner_requests')
-      .update({ status: 'approved', reviewed_at: new Date().toISOString(), reviewed_by: adminEmail })
+      .update({ status: 'approved', reviewed_at: new Date().toISOString(), reviewed_by: adminEmail ?? 'email-link' })
       .eq('id', id)
 
     // Welcome email — best-effort.

@@ -30,17 +30,23 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { error } = await supabaseAdmin.from('partner_requests').insert({
-      name, email, mobile, city, company, message, status: 'pending',
-    })
-    if (error) {
+    const { data: created, error } = await supabaseAdmin
+      .from('partner_requests')
+      .insert({ name, email, mobile, city, company, message, status: 'pending' })
+      .select('id, token')
+      .single()
+    if (error || !created) {
       console.error('partner_requests insert error:', error)
       return NextResponse.json({ error: 'Could not submit your application right now.' }, { status: 500 })
     }
 
     // Notify the admin — best-effort, don't fail the submission if email hiccups.
+    // requestId + token let the admin approve/reject from the email without signing in.
     try {
-      await sendPartnerRequestAdminEmail({ name, email, mobile, city, company, message })
+      await sendPartnerRequestAdminEmail({
+        requestId: created.id, token: created.token,
+        name, email, mobile, city, company, message,
+      })
     } catch (mailErr) {
       console.error('Partner request admin email failed:', mailErr)
     }
