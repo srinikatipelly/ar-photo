@@ -62,7 +62,30 @@ export async function GET(req: NextRequest) {
           updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
         );
         ALTER TABLE public.import_jobs ENABLE ROW LEVEL SECURITY;
+        DROP POLICY IF EXISTS "partner reads own jobs" ON public.import_jobs;
         CREATE POLICY "partner reads own jobs" ON public.import_jobs FOR SELECT USING (partner_id = auth.uid());
+
+        -- Phase 3: partner applications (self-serve apply → admin approve → activate).
+        CREATE TABLE IF NOT EXISTS public.partner_requests (
+          id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          name        TEXT NOT NULL,
+          email       TEXT NOT NULL,
+          mobile      TEXT,
+          city        TEXT,
+          company     TEXT,
+          message     TEXT,
+          status      TEXT NOT NULL DEFAULT 'pending',
+          reviewed_at TIMESTAMP WITH TIME ZONE,
+          reviewed_by TEXT,
+          created_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+        );
+        -- No policies: all access is server-side via the service role. RLS on + no
+        -- policy = locked to service role, so applicant PII is never client-readable.
+        ALTER TABLE public.partner_requests ENABLE ROW LEVEL SECURITY;
+
+        ALTER TABLE public.partners ADD COLUMN IF NOT EXISTS name   TEXT;
+        ALTER TABLE public.partners ADD COLUMN IF NOT EXISTS mobile TEXT;
+        ALTER TABLE public.partners ADD COLUMN IF NOT EXISTS city   TEXT;
 
         CREATE INDEX IF NOT EXISTS frames_frame_id_idx ON public.frames(frame_id);
         CREATE INDEX IF NOT EXISTS frames_customer_email_idx ON public.frames(customer_email);

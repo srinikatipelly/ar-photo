@@ -28,6 +28,7 @@ export const navItems: NavItem[] = [
   { label: 'Demo', href: '/landing/demo' },
   { label: 'Pricing', href: '/landing/pricing' },
   { label: 'Testimonials', href: '/landing#testimonials' },
+  { label: 'Partners', href: '/landing/partners' },
   { label: 'Contact', href: '/landing/contact' },
 ]
 

@@ -221,7 +221,44 @@ CREATE POLICY "partner reads own jobs" ON public.import_jobs FOR SELECT USING (p
 Vercel's function limits). It must be running (`trigger:dev`) or deployed. ZIP has no such
 dependency.
 
-## Phase 3 — polish
+## Phase 3 — self-serve onboarding (IMPLEMENTED)
+
+Replaces "admin-inserts-a-row" with **apply → admin approve → auto-activate → welcome email**.
+
+**Flow:**
+1. **Partners** tab on the landing nav → `/landing/partners` (pitch + "talk to us" + apply form).
+2. Applicant submits name/email/mobile/city/company → `POST /api/partner/apply` → row in
+   `partner_requests` (status `pending`) → **admin email** (to `ADMIN_EMAIL`) with a link to the
+   approvals page. Applicant sees "Partner request sent."
+3. Admin opens **`/admin/partners`** (gated to `ADMIN_EMAILS`/`ADMIN_EMAIL`) → **Approve**:
+   creates the Supabase auth user (magic-link, no password) → upserts an **active** `partners`
+   row → marks the request approved → **welcome email** to the partner with a sign-in link.
+   **Reject** just marks it.
+4. Partner clicks the email → magic-link login → lands in `/partners`.
+
+**Security choice:** approve/reject happen on the gated admin page (requires an admin session),
+not via raw tokenised links in the email (which can be forwarded or pre-fetched). The admin
+email links you straight to the page.
+
+**Migration (run once, Supabase SQL):**
+```sql
+CREATE TABLE IF NOT EXISTS public.partner_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL, email TEXT NOT NULL, mobile TEXT, city TEXT, company TEXT, message TEXT,
+  status TEXT NOT NULL DEFAULT 'pending', reviewed_at TIMESTAMPTZ, reviewed_by TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+ALTER TABLE public.partner_requests ENABLE ROW LEVEL SECURITY; -- no policy = service-role only
+ALTER TABLE public.partners ADD COLUMN IF NOT EXISTS name   TEXT;
+ALTER TABLE public.partners ADD COLUMN IF NOT EXISTS mobile TEXT;
+ALTER TABLE public.partners ADD COLUMN IF NOT EXISTS city   TEXT;
+```
+
+**Env:** `ADMIN_EMAIL` (already used for order notifications) gates the admin area and receives
+application emails; optional `ADMIN_EMAILS` (comma-separated) for multiple admins. Emails use
+the existing Resend config.
+
+## Phase 3 — polish (later)
 
 Partner dashboard niceties (search, scan analytics per album), re-import / idempotency (skip
 already-mirrored files by Drive fileId), a partner-admin onboarding UI (replacing admin-inserts-
