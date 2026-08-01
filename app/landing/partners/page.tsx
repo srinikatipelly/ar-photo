@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { getBrand } from '@/lib/regions'
 import { getRegion } from '@/lib/region-server'
 import { Section, Eyebrow } from '@/components/site/Section'
 import { WhatsAppButton } from '@/components/site/WhatsAppButton'
@@ -20,7 +19,6 @@ const benefits = [
 
 export default async function PartnersLandingPage() {
   const region = await getRegion()
-  const brand = getBrand(region)
 
   return (
     <>
@@ -34,9 +32,9 @@ export default async function PartnersLandingPage() {
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <WhatsAppButton message="Hi! I'd like to become a Golden Frame partner." region={region} />
-            <a href={`mailto:${brand.email}`}
+            <a href="#apply"
               className="inline-flex items-center gap-2 rounded-full border border-cream/25 px-6 py-3 text-sm font-semibold text-cream transition hover:border-gold-brand hover:text-gold-brand">
-              ✉️ Email us
+              📝 Fill in the form
             </a>
           </div>
         </div>
@@ -52,7 +50,7 @@ export default async function PartnersLandingPage() {
         </div>
       </Section>
 
-      <Section tone="mid">
+      <Section tone="mid" id="apply">
         <div className="mx-auto max-w-2xl text-center">
           <Eyebrow>Apply</Eyebrow>
           <h2 className="mt-3 font-display text-3xl text-cream sm:text-4xl">Send a partner request</h2>
