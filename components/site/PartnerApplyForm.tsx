@@ -4,6 +4,9 @@ import { useState } from 'react'
 
 const field = 'mt-1.5 block w-full rounded-xl border border-cream/20 bg-green-deep/60 px-4 py-3 text-sm text-cream outline-none transition placeholder:text-cream/30 focus:border-gold-brand'
 const labelCls = 'block text-sm font-medium text-cream/80'
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+// Phone must include a country code, e.g. +61 4XX XXX XXX (E.164-ish after stripping formatting).
+const PHONE_RE = /^\+[1-9]\d{6,14}$/
 
 export function PartnerApplyForm() {
   const [form, setForm] = useState({ name: '', email: '', mobile: '', city: '', company: '', message: '' })
@@ -17,8 +20,17 @@ export function PartnerApplyForm() {
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    if (!form.name.trim() || !form.email.trim()) {
-      setError('Please add your name and email.')
+    const phone = form.mobile.trim()
+    if (!form.name.trim() || !form.email.trim() || !phone) {
+      setError('Please add your name, email and phone number.')
+      return
+    }
+    if (!EMAIL_RE.test(form.email.trim())) {
+      setError('Please enter a valid email address.')
+      return
+    }
+    if (!PHONE_RE.test(phone.replace(/[\s()\-.]/g, ''))) {
+      setError('Please enter your phone number with country code, e.g. +61 4XX XXX XXX.')
       return
     }
     setLoading(true)
@@ -65,8 +77,8 @@ export function PartnerApplyForm() {
           <input type="email" value={form.email} onChange={set('email')} placeholder="jane@studio.com" className={field} />
         </div>
         <div>
-          <label className={labelCls}>Mobile</label>
-          <input type="tel" value={form.mobile} onChange={set('mobile')} placeholder="+61 4xx xxx xxx" className={field} />
+          <label className={labelCls}>Phone <span className="text-gold-brand">*</span> <span className="text-cream/40">(with country code)</span></label>
+          <input type="tel" value={form.mobile} onChange={set('mobile')} placeholder="+61 4XX XXX XXX" className={field} />
         </div>
         <div>
           <label className={labelCls}>City</label>
@@ -84,7 +96,7 @@ export function PartnerApplyForm() {
 
       <button type="submit" disabled={loading}
         className="mt-6 w-full rounded-full bg-gold-brand px-5 py-3.5 text-sm font-bold text-green-deep transition hover:bg-cream disabled:opacity-60">
-        {loading ? 'Sending…' : 'Send partner request →'}
+        {loading ? 'Sending…' : 'Apply now →'}
       </button>
     </form>
   )
