@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { getPartner } from '@/lib/partner'
+import { getAdmin } from '@/lib/admin'
 
 type AlbumRow = {
   frame_id: string
@@ -14,6 +15,7 @@ type AlbumRow = {
 export default async function PartnerDashboard() {
   // The layout already gated this; getPartner is cheap (cached request) and gives us the id.
   const { partner } = await getPartner()
+  const { isAdmin } = await getAdmin()
   const supabase = await createServerSupabase()
 
   const { data } = await supabase
@@ -35,6 +37,12 @@ export default async function PartnerDashboard() {
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
+          {isAdmin && (
+            <Link href="/admin/partners"
+              className="rounded-full border border-cream/25 px-6 py-3 text-sm font-semibold text-cream transition hover:border-gold-brand hover:text-gold-brand">
+              Approvals
+            </Link>
+          )}
           <Link href="/partners/albums/import"
             className="rounded-full border border-cream/25 px-6 py-3 text-sm font-semibold text-cream transition hover:border-gold-brand hover:text-gold-brand">
             Import (Drive / ZIP)

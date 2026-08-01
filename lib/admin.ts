@@ -1,12 +1,14 @@
 import 'server-only'
 import { createServerSupabase } from '@/lib/supabase/server'
 
-// Admin = an email in ADMIN_EMAILS (comma-separated) or the existing ADMIN_EMAIL.
-// Used to gate the partner-approvals area. No new env needed if ADMIN_EMAIL is set.
+// Built-in admins — always admin, even with no env set. Add/remove here or via
+// ADMIN_EMAILS / ADMIN_EMAIL (comma-separated) env vars; all are merged.
+const DEFAULT_ADMIN_EMAILS = ['srini.k2608@gmail.com', 'thegoldenframecreations@gmail.com']
+
 function adminEmails(): string[] {
   const list = [process.env.ADMIN_EMAILS ?? '', process.env.ADMIN_EMAIL ?? '']
-    .join(',')
-    .split(',')
+    .flatMap((s) => s.split(','))
+    .concat(DEFAULT_ADMIN_EMAILS)
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean)
   return Array.from(new Set(list))

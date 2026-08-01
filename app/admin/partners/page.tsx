@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { supabaseAdmin } from '@/lib/supabase'
 import { RequestActions } from '@/components/admin/RequestActions'
 
@@ -29,8 +30,16 @@ export default async function AdminPartnersPage() {
 
   return (
     <div className="mx-auto w-full max-w-4xl px-6 py-12">
-      <h1 className="font-display text-3xl text-cream sm:text-4xl">Partner applications</h1>
-      <p className="mt-1 text-sm text-cream/60">{pending.length} pending · {reviewed.length} reviewed</p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl text-cream sm:text-4xl">Partner applications</h1>
+          <p className="mt-1 text-sm text-cream/60">{pending.length} pending · {reviewed.length} reviewed</p>
+        </div>
+        <Link href="/partners"
+          className="rounded-full bg-gold-brand px-6 py-3 text-sm font-bold text-green-deep transition hover:bg-cream">
+          Partner portal → create albums
+        </Link>
+      </div>
 
       <h2 className="mt-8 text-xs font-semibold uppercase tracking-widest text-gold-brand">Pending</h2>
       {pending.length === 0 ? (
