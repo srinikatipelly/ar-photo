@@ -191,8 +191,12 @@ CREATE TABLE IF NOT EXISTS public.import_jobs (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ALTER TABLE public.import_jobs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "partner reads own jobs" ON public.import_jobs;
 CREATE POLICY "partner reads own jobs" ON public.import_jobs FOR SELECT USING (partner_id = auth.uid());
 ```
+
+> Policies have no `CREATE ... IF NOT EXISTS`, so re-running plain `CREATE POLICY` errors with
+> "already exists". The `DROP POLICY IF EXISTS` guard above makes the whole block idempotent.
 
 **Google Cloud (one-time, for Drive import only — ZIP works without it):**
 1. Create/choose a GCP project → **enable the Google Drive API**.

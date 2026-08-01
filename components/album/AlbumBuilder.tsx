@@ -7,8 +7,8 @@ import { uploadFileToR2 } from '@/lib/client-upload'
 
 // Shared album builder: assemble N photo+video pairs → compile one MindAR .mind
 // (browser-only) → upload assets → POST to `endpoint` → show the one QR.
-// Used by the public /album test tool and the partner-gated builder; they differ
-// only by `endpoint` (which sets ownership/source server-side). Brand dark theme.
+// Used by the partner-gated builder (/partners/albums/new). `endpoint` sets
+// ownership/source server-side. Brand dark theme.
 
 type Pair = { id: number; photo: File | null; video: File | null }
 type Step = 'form' | 'compiling' | 'uploading' | 'done' | 'error'

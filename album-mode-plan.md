@@ -41,8 +41,9 @@ combined .mind + N videos → N anchors, maxTrack 1 → pan-and-play`
 - **`public/ar-viewer.html`** — detect album → build N anchors, lazy-load each video
   (`preload='none'`, play on found), `maxTrack:1`. **The single-frame path is left byte-for-byte
   as-is** to avoid regressing the live product; album is a separate branch.
-- **`app/album/page.tsx`** (new) — internal builder: add up to 10 photo+video pairs → compile
-  one `.mind` → upload all assets → create album → show the one QR + link.
+- **`app/album/page.tsx`** — was the initial ungated test builder; **removed before prod**
+  (superseded by the gated `/partners/albums/new`). The `/api/albums` endpoint was removed with
+  it; album creation now goes through the partner-gated `/api/partner/albums`.
 
 ## Database migration (run once in Supabase SQL editor)
 
@@ -58,7 +59,8 @@ fresh install creates the column.)
 ## How to test
 
 1. Run the migration SQL above.
-2. `npm run dev`, open **`/album`**.
+2. `npm run dev`, sign in as a partner and open **`/partners/albums/new`** (the ungated
+   `/album` tester has been removed).
 3. Add 2–3 photo+video pairs first (fast), print the photos (matte, textured — same tracking
    rules as the single product). Click **Create album**.
 4. Scan the single QR (or open the link) on your phone → point at photo 1 (its video plays) →
@@ -76,7 +78,8 @@ fresh install creates the column.)
   10 videos at once).
 - **Trackability still rules** — a weak (low-texture / plain-background) photo tracks poorly in
   an album just as it does solo; see the printing guidelines.
-- **Creation tool only** — `/album` is an internal builder for testing the experience. Wiring
+- **Creation is partner-gated** — albums are built via `/partners/albums/new` (the ungated
+  `/album` tester was removed before prod). Wiring
   albums into the paid order flow (pricing, checkout, emails) is a later step.
 - **Carries to native** — ARKit/ARCore also track multiple images at once, so this isn't a
   web-only dead end.
