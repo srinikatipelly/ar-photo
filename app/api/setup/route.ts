@@ -79,6 +79,9 @@ export async function GET(req: NextRequest) {
           reviewed_by TEXT,
           created_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
         );
+        -- Per-request secret so the admin can approve/reject from the email link
+        -- without signing in (see /partner-review/[id]?token=...).
+        ALTER TABLE public.partner_requests ADD COLUMN IF NOT EXISTS token UUID DEFAULT gen_random_uuid();
         -- No policies: all access is server-side via the service role. RLS on + no
         -- policy = locked to service role, so applicant PII is never client-readable.
         ALTER TABLE public.partner_requests ENABLE ROW LEVEL SECURITY;

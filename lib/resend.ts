@@ -273,12 +273,13 @@ export async function sendContactEnquiry({
 
 // ── Admin: new partner application ──────────────────────────────────────────
 export async function sendPartnerRequestAdminEmail({
-  name, email, mobile, city, company, message,
-}: { name: string; email: string; mobile?: string; city?: string; company?: string; message?: string }) {
+  requestId, token, name, email, mobile, city, company, message,
+}: { requestId: string; token: string; name: string; email: string; mobile?: string; city?: string; company?: string; message?: string }) {
   const adminEmail = process.env.ADMIN_EMAIL
   if (!resend || !adminEmail) return
 
-  const reviewUrl = `${appUrl()}/admin/partners`
+  // Token-protected review page — approve/reject without signing in.
+  const reviewUrl = `${appUrl()}/partner-review/${requestId}?token=${token}`
   const { error } = await resend.emails.send({
     from: `${fromName()} <${fromEmail()}>`,
     to: adminEmail,
@@ -301,12 +302,14 @@ export async function sendPartnerRequestAdminEmail({
           <p style="margin:0;font-size:13px;color:#52525b;"><strong style="color:#18181b;">Company:</strong> ${escapeHtml(company || '') || '-'}</p>
         </td></tr></table>
         ${message ? `<p style="margin:0 0 8px;font-size:14px;font-weight:600;color:#18181b;">Message</p><p style="margin:0 0 24px;font-size:14px;color:#3f3f46;line-height:1.6;white-space:pre-wrap;">${escapeHtml(message)}</p>` : ''}
-        <div style="text-align:center;margin:0 0 28px;">
-          <a href="${reviewUrl}" style="display:inline-block;background:#C9A24B;color:#0F3535;font-size:14px;font-weight:700;text-decoration:none;padding:12px 28px;border-radius:999px;">Review &amp; approve →</a>
+        <div style="text-align:center;margin:0 0 12px;">
+          <a href="${reviewUrl}&action=approve" style="display:inline-block;background:#C9A24B;color:#0F3535;font-size:14px;font-weight:700;text-decoration:none;padding:12px 26px;border-radius:999px;margin:0 6px 8px;">✓ Approve</a>
+          <a href="${reviewUrl}&action=reject" style="display:inline-block;background:#ffffff;color:#3f3f46;border:1px solid #d4d4d8;font-size:14px;font-weight:700;text-decoration:none;padding:11px 26px;border-radius:999px;margin:0 6px 8px;">✕ Reject</a>
         </div>
+        <p style="margin:0 0 24px;font-size:12px;color:#a1a1aa;text-align:center;">Opens a secure review page — no sign-in needed.</p>
       </td></tr>
       <tr><td style="padding:20px 36px 32px;border-top:1px solid #f4f4f5;">
-        <p style="margin:0;font-size:12px;color:#a1a1aa;">Approve or reject at ${reviewUrl}</p>
+        <p style="margin:0;font-size:12px;color:#a1a1aa;">Or manage all applications at ${appUrl()}/admin/partners</p>
       </td></tr>
     </table>
   </td></tr></table>
