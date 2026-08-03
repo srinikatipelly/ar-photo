@@ -1,7 +1,5 @@
 
 phase2 enhancements:
-Ui reference:
-https://www.luxemagics.com/?srsltid=AfmBOopp2jt96U6IfVFdC4FhpcZQoKJ7ryUuRosmNUjrN3rGO9r0eeXh
 UI page Structure reference:
      example website -> Similar to    [<add >](https://augdepot.com/#)
 

@@ -1,7 +1,6 @@
 idea1:
 Create a ecom website ask the user upload a photo and a video, then generate a QR code that links to the AR experience. The website should have a simple and intuitive interface, allowing users to easily upload their files and customize their AR experience.
 we will ship the physical product with the QR code printed on it, so that the recipient can scan the code and view the AR experience on their phone.
-example: https://www.luxemagics.com/?srsltid=AfmBOoocLlD0NxiG6adn4loOIS-RZWDsi2eoTeZsqcyRibx6bmzpU2C1
 
 idea2:
 

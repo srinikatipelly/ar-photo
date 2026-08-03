@@ -9,7 +9,7 @@ The Golden Frame currently runs as a single Next.js app on `thegoldenframe.co`: 
 light/amber landing page (`app/page.tsx`), a manual-payment upload flow
 (`app/upload/page.tsx`), and an AR viewer (`public/ar-viewer.html`). The business bought a
 new domain `thegoldenframe.com.au` and wants a **premium, luxury-feel marketing site**
-(reference: luxemagics.com) that reflects the real brand — **deep green `#0F3535` + gold +
+that reflects the real brand — **deep green `#0F3535` + gold +
 cream `#F9E6C2`**, Montserrat/serif typography — visually distinct from the current MVP.
 
 ### Decisions locked with the user
