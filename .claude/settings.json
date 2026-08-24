@@ -47,7 +47,13 @@
       "Bash(curl -s -o /dev/null -w \"landing -> status %{http_code}\\\\n\" --max-time 8 \"http://[::1]:3000/landing\")",
       "Bash(curl -s -o /dev/null -w \"root -> status %{http_code}, location: %{redirect_url}\\\\n\" --max-time 45 \"http://[::1]:3000/\")",
       "Bash(tail -30 /tmp/dev.log)",
-      "Bash(curl -sk -o /dev/null -w \"root -> status %{http_code}, location: %{redirect_url}\\\\n\" --max-time 45 \"https://localhost:3000/\")"
+      "Bash(curl -sk -o /dev/null -w \"root -> status %{http_code}, location: %{redirect_url}\\\\n\" --max-time 45 \"https://localhost:3000/\")",
+      "WebFetch(domain:www.paddle.com)",
+      "Bash(echo \"=== TSC EXIT: $? ===\")",
+      "Bash(echo \"=== EXIT $? ===\")",
+      "Bash(echo \"=== LINT EXIT $? ===\")",
+      "Bash(npx tsx *)",
+      "WebFetch(domain:www.thegoldenframe.com.au)"
     ],
     "additionalDirectories": [
       "C:\\Users\\latha\\.claude"
