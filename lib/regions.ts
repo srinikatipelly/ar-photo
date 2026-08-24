@@ -114,9 +114,11 @@ export const REGIONS: Record<Region, RegionConfig> = {
       siteUrl: 'https://www.thegoldenframe.com',
     },
     prices: {
-      // TODO(region): confirm real USD prices (these are the plan's example figures).
-      frame: { price: '$29' },
+      // TODO(region): confirm the real USD price (this is the plan's example figure).
       digital: { price: 'From $15' },
+      // US is a digital-only market (no physical shipping), same as India.
+      // Frame/realEstate kept for type completeness but hidden - see TIER_VISIBILITY.
+      frame: { price: 'From $15' },
       realEstate: { price: 'Custom' },
     },
   },
@@ -167,15 +169,14 @@ export type RegionalBrand = ReturnType<typeof getBrand>
 
 /**
  * Which tiers each region actually sells. Export markets are digital-only (no
- * physical shipping - see the "Global expansion direction" note), so India shows
- * just the digital product.
+ * physical shipping - see the "Global expansion direction" note), so India and
+ * the US both show just the digital product. Australia is the only market with
+ * the physical frame.
  */
 export const TIER_VISIBILITY: Record<Region, PricingKey[]> = {
   au: ['frame', 'digital', 'realEstate'],
   in: ['digital'],
-  // TODO(region): confirm US lineup - strategy implies digital-only too, but US was
-  // deferred ("fine for now"), so all tiers stay visible with placeholder USD prices.
-  us: ['frame', 'digital', 'realEstate'],
+  us: ['digital'],
 }
 
 /** Pricing tiers this region sells, with its price/currency display strings merged in. */

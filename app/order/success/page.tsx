@@ -1,26 +1,39 @@
 import { brand } from '@/lib/site-content'
 import { stripe } from '@/lib/stripe'
+import { getPaddle, readCustomData } from '@/lib/paddle'
 
-// Look up the Stripe Checkout session to tell a physical-frame order apart from
-// a Digital AR Only order, so the confirmation copy matches what the customer
-// actually bought (no "QR emailed" wording for physical frames).
-async function getOrderKind(sessionId?: string): Promise<'digital' | 'frame'> {
-  if (!sessionId) return 'frame'
+// Look up the order to tell a physical-frame order apart from a Digital AR Only
+// order, so the confirmation copy matches what the customer actually bought (no
+// "QR emailed" wording for physical frames).
+//
+// Which param arrives depends on who took the payment: Paddle returns `_ptxn`,
+// Stripe returns `session_id`. Neither is required — the webhook does the real
+// work, so an unknown order just falls back to the physical-frame copy.
+async function getOrderKind(params: {
+  _ptxn?: string
+  session_id?: string
+}): Promise<'digital' | 'frame'> {
   try {
-    const session = await stripe.checkout.sessions.retrieve(sessionId)
-    return session.metadata?.kind === 'digital' ? 'digital' : 'frame'
+    if (params._ptxn) {
+      const transaction = await getPaddle().transactions.get(params._ptxn)
+      return readCustomData(transaction.customData).kind === 'digital' ? 'digital' : 'frame'
+    }
+    if (params.session_id) {
+      const session = await stripe.checkout.sessions.retrieve(params.session_id)
+      return session.metadata?.kind === 'digital' ? 'digital' : 'frame'
+    }
   } catch {
-    return 'frame'
+    /* provider unreachable / unknown id — fall through to the default */
   }
+  return 'frame'
 }
 
 export default async function OrderSuccessPage({
   searchParams,
 }: {
-  searchParams: Promise<{ session_id?: string }>
+  searchParams: Promise<{ session_id?: string; _ptxn?: string }>
 }) {
-  const { session_id } = await searchParams
-  const kind = await getOrderKind(session_id)
+  const kind = await getOrderKind(await searchParams)
   const isDigital = kind === 'digital'
 
   const intro = isDigital

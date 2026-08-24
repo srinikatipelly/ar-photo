@@ -3,18 +3,35 @@
 import { useState, useRef, useEffect } from 'react'
 import { compileImageTarget } from '@/app/upload/compile'
 import { createBrowserSupabase } from '@/lib/supabase/client'
+import {
+  DEFAULT_REGION,
+  REGIONS,
+  REGION_COOKIE,
+  TIER_VISIBILITY,
+  isActiveRegion,
+  type Region,
+} from '@/lib/regions'
 
 type Step = 'form' | 'compiling' | 'uploading' | 'error'
 
 const MAX_VIDEO_BYTES = 200 * 1024 * 1024
 const MAX_VIDEO_SECONDS = 60
 
+// Physical frames are an Australia-only product (export markets are digital —
+// no shipping), so the frame/delivery figures stay AUD. The digital price is
+// read from the region config because that tier is sold in every market.
 const FRAME_PRICE = 39.0
 const FRAME_WAS = 79.0
 const DELIVERY_PRICE = 9.95
 const TOTAL = (FRAME_PRICE + DELIVERY_PRICE).toFixed(2)
 const TOTAL_WAS = (FRAME_WAS + DELIVERY_PRICE).toFixed(2)
-const DIGITAL_PRICE = 19.0
+
+/** The region the proxy resolved for this visitor (cookie), for price display. */
+function readRegionCookie(): Region {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${REGION_COOKIE}=([^;]*)`))
+  const value = match ? decodeURIComponent(match[1]) : undefined
+  return isActiveRegion(value) ? value : DEFAULT_REGION
+}
 
 // Friendly labels for the error summary at the top of the form.
 const FIELD_LABELS: Record<string, string> = {
@@ -160,6 +177,7 @@ export default function OrderPage() {
   const [cancelled, setCancelled] = useState(false)
   const [signedIn, setSignedIn] = useState(false)
   const [isDigital, setIsDigital] = useState(false)
+  const [region, setRegion] = useState<Region>(DEFAULT_REGION)
 
   const [delivery, setDelivery] = useState<Address>(emptyAddr())
   const [postalSameAsDelivery, setPostalSame] = useState(true)
@@ -196,7 +214,13 @@ export default function OrderPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('cancelled') === '1') setCancelled(true)
-    if (params.get('kind') === 'digital') setIsDigital(true)
+
+    // Markets we don't ship to sell the digital product only, so there's no
+    // physical option to choose there — and no delivery address to collect.
+    const visitorRegion = readRegionCookie()
+    setRegion(visitorRegion)
+    const sellsFrames = TIER_VISIBILITY[visitorRegion].includes('frame')
+    if (params.get('kind') === 'digital' || !sellsFrames) setIsDigital(true)
   }, [])
 
   useEffect(() => {
@@ -437,7 +461,7 @@ export default function OrderPage() {
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-gold-brand">Digital AR Only</p>
             <p className="mt-0.5 text-sm text-cream/80">
-              <span className="text-lg font-bold text-cream">From ${DIGITAL_PRICE.toFixed(0)}</span>
+              <span className="text-lg font-bold text-cream">{REGIONS[region].prices.digital.price}</span>
             </p>
           </div>
           <div className="h-8 w-px bg-cream/15" />
@@ -667,7 +691,11 @@ export default function OrderPage() {
         >
           Continue to secure payment →
         </button>
-        <p className="mt-3 text-center text-xs text-cream/40">🔒 Payment is processed securely by Stripe.</p>
+        <p className="mt-3 text-center text-xs text-cream/40">
+          🔒 Payment is processed securely by{' '}
+          {process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN ? 'Paddle' : 'Stripe'}. Taxes are calculated
+          at checkout.
+        </p>
       </section>
 
       <div className="mt-6 flex flex-wrap justify-center gap-6 text-xs text-cream/40">

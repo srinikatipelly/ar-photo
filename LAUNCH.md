@@ -83,7 +83,37 @@ Cloudflare Routing can't send, so to reply from Gmail branded as `hello@thegolde
 3. SMTP `smtp.resend.com`, port `465` (SSL), username `resend`, password = your Resend API key.
 4. Confirm via the link Gmail sends (arrives through the 3b forwarding).
 
-## 4. Stripe (payments) 🧑‍💻
+## 4. Paddle (payments — domestic + international) 🧑‍💻
+Paddle is the **Merchant of Record**: it is the legal seller, so it collects and remits AU GST,
+India GST/OIDAR and US sales tax for us, and offers local methods (UPI in India) that Stripe
+can't from an AU account. Once `PADDLE_API_KEY` is set, checkout switches to Paddle automatically
+(override with `PAYMENT_PROVIDER=stripe|paddle`).
+
+1. **Account:** create it at paddle.com, complete **AU seller verification** + payout bank, and
+   the tax forms (incl. **W-8BEN-E** for US treaty status). Confirm **India UPI** is enabled on
+   the account — it was early-access.
+2. **Catalogue:** run `npm run seed-paddle` (sandbox) — it creates the products + prices and
+   prints the `PADDLE_PRICE_*` vars to paste in. It's re-runnable; existing products/prices are
+   reused, not duplicated. `digital` sells in every market with explicit **AUD / INR / USD**
+   amounts (deliberate local pricing, not FX conversion); `frame` + `delivery` are **AUD only**,
+   since Australia is the one market with physical shipping — India and the US are digital-only.
+   Add a `_AU` / `_IN` / `_US` suffixed var only if a market later needs its own separate price.
+3. **Webhook:** Paddle → Developer tools → Notifications → add endpoint
+   `https://www.thegoldenframe.com.au/api/webhooks/paddle`, event `transaction.completed`.
+   Copy the secret key → `PADDLE_WEBHOOK_SECRET=pdl_ntfset_…`.
+4. **Default payment link:** Paddle → Checkout → set it to
+   `https://www.thegoldenframe.com.au/checkout` (the page that opens Paddle.js).
+5. **Client token:** Paddle → Authentication → client-side token →
+   `NEXT_PUBLIC_PADDLE_CLIENT_TOKEN`. Set `PADDLE_ENV` **and** `NEXT_PUBLIC_PADDLE_ENV` to
+   `sandbox` first, then `production` at cutover.
+6. **Database:** run `supabase/migrations/20260807000000_paddle_payment_columns.sql`.
+7. **Test in sandbox** before flipping: one transaction per market (AU card, India UPI), checking
+   the tax-inclusive display and that the webhook creates the frame + sends both emails.
+
+## 4b. Stripe (legacy AUD/card checkout) 🧑‍💻
+Still wired up and used whenever `PADDLE_API_KEY` is absent, so payments keep working until
+Paddle onboarding is finished. Retire these env vars after cutover.
+
 1. Switch to **live keys**: `STRIPE_SECRET_KEY=sk_live_…` (+ `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
    if you ever add Elements — not needed for hosted Checkout).
 2. **Webhook:** Dashboard → Developers → Webhooks → add endpoint
@@ -118,10 +148,19 @@ Cloudflare Routing can't send, so to reply from Gmail branded as `hello@thegolde
 | `R2_SECRET_ACCESS_KEY` | **secret** | Cloudflare R2 |
 | `R2_BUCKET_NAME` | — | `ar-frames` |
 | `R2_PUBLIC_URL` | public | custom CDN domain (section 2) |
-| `STRIPE_SECRET_KEY` | **secret** | `sk_live_…` |
-| `STRIPE_WEBHOOK_SECRET` | **secret** | from the live webhook endpoint |
-| `FRAME_PRICE_CENTS` | — | `3900` |
-| `DELIVERY_PRICE_CENTS` | — | `995` |
+| `PADDLE_API_KEY` | **secret** | Paddle → Authentication |
+| `PADDLE_WEBHOOK_SECRET` | **secret** | Paddle → Notifications endpoint |
+| `PADDLE_ENV` | — | `production` at cutover, `sandbox` while testing |
+| `NEXT_PUBLIC_PADDLE_CLIENT_TOKEN` | public | Paddle client-side token |
+| `NEXT_PUBLIC_PADDLE_ENV` | public | must match `PADDLE_ENV` |
+| `PADDLE_PRICE_DIGITAL` | — | Paddle price ID (all markets) |
+| `PADDLE_PRICE_FRAME` | — | Paddle price ID (Australia only) |
+| `PADDLE_PRICE_DELIVERY` | — | optional; omit if shipping is included |
+| `PAYMENT_PROVIDER` | — | optional override: `paddle` or `stripe` |
+| `STRIPE_SECRET_KEY` | **secret** | `sk_live_…` (legacy — retire after cutover) |
+| `STRIPE_WEBHOOK_SECRET` | **secret** | from the live webhook endpoint (legacy) |
+| `FRAME_PRICE_CENTS` | — | `3900` (Stripe only) |
+| `DELIVERY_PRICE_CENTS` | — | `995` (Stripe only) |
 | `RESEND_API_KEY` | **secret** | Resend |
 | `EMAIL_FROM_ADDRESS` | — | `hello@thegoldenframe.com.au` |
 | `EMAIL_FROM_NAME` | — | `The Golden Frame` |

@@ -1,8 +1,35 @@
 # Phase 3 — Global launch plan (Paddle MoR + country localization)
 
-Status: **Workstream A (localization) scaffolded 2026-07-27** — see "Progress" below.
-Workstream B (Paddle) not started. Decisions behind this plan live in the memory note
+Status: **Workstream A (localization) scaffolded 2026-07-27**; **Workstream B (Paddle) code
+complete 2026-08-07** — B1–B6 are built, only **B0 (Paddle account + catalogue)** is outstanding,
+and it's the user's step. See "Progress" below. Decisions behind this plan live in the memory note
 "Global expansion direction".
+
+## Progress (2026-08-07) — Workstream B implemented
+
+- `lib/paddle.ts` — server Paddle client (lazy, so a Stripe-only deploy doesn't throw),
+  `getPaymentProvider()`, region→price-ID resolution, customer find-or-create, and the
+  `custom_data` contract shared with the webhook.
+- `app/api/checkout/route.ts` — creates a **Paddle transaction** (region resolved server-side,
+  no hardcoded currency or payment methods) and returns the checkout URL. The Stripe path is
+  still present as `createStripeCheckout`.
+- `app/checkout/` — server page + `PaddleCheckout` client component that opens the Paddle.js
+  **overlay** for `?_ptxn=`.
+- `app/api/webhooks/paddle/route.ts` — verifies `Paddle-Signature`, handles
+  `transaction.completed`, idempotent on the transaction ID.
+- `lib/fulfil-order.ts` — **new**: the QR → R2 → Supabase → emails flow, extracted so the Paddle
+  and Stripe webhooks share one implementation instead of two copies drifting apart.
+- `supabase/migrations/20260807000000_paddle_payment_columns.sql` — `paddle_transaction_id`
+  (unique where not null) + `currency` (price_paid is minor units and was AUD-by-definition).
+- `app/order/success/page.tsx` — reads Paddle's `_ptxn` or Stripe's `session_id`.
+- `app/landing/order/page.tsx` — digital price now comes from the region config (India was
+  showing `$19` for a ₹499 product), and regions that don't sell frames force digital mode.
+
+**Deviation from the plan below:** B6 said "clean cut to Paddle, not a dual-run". Shipped instead
+as an **auto-cutover**: Paddle takes over as soon as `PADDLE_API_KEY` exists, Stripe handles
+checkout until then, and `PAYMENT_PROVIDER` forces either. Reason: B0 is not done, so a literal
+clean cut would land a deploy that cannot take payments at all. Delete the Stripe path once
+Paddle is live in production.
 
 ## Progress (2026-07-27)
 
@@ -37,10 +64,13 @@ Workstream B (Paddle) not started. Decisions behind this plan live in the memory
 - India WhatsApp = **917259453806** (+91 7259453806).
 - India = **digital-only at ₹499** — `TIER_VISIBILITY.in = ['digital']` hides the physical
   frame + real-estate tiers for India. Pricing grids adapt to the tier count.
+- US = **digital-only too** (decided 2026-08-24) — `TIER_VISIBILITY.us = ['digital']`.
+  Australia is the only market with the physical frame, so it's the only one with a
+  frame/delivery price in the Paddle catalogue.
 
 **⚠️ Deferred until US is switched on** (grep `TODO(region)` in `lib/regions.ts`):
-- US prices (placeholder $29 / $15), US lineup (`TIER_VISIBILITY.us`), and US contact
-  channel. None of these render while US is inactive.
+- The US digital price (placeholder $15) and US contact channel. Neither renders while
+  US is inactive. The US lineup itself is now settled: digital-only.
 
 **Not yet done from Workstream A:** A5 (hreflang/domains) — still low priority; layout
 metadata `locale` is still hardcoded `en_AU`.
