@@ -84,6 +84,13 @@ Cloudflare Routing can't send, so to reply from Gmail branded as `hello@thegolde
 4. Confirm via the link Gmail sends (arrives through the 3b forwarding).
 
 ## 4. Stripe (payments) 🧑‍💻
+> **Scope:** Stripe charges **AUD, card, Australia**. Self-serve checkout is offered to
+> Australian visitors only. **India** is a live market but orders go through **WhatsApp
+> concierge** — `/landing/order` branches on region and shows Indian visitors a WhatsApp CTA
+> instead of the form, so nobody is ever quoted ₹499 and then charged in AUD. US is off.
+> Paddle was evaluated as a global merchant of record and rejected: it prohibits physical
+> goods, so it can't sell the frame. See `phase3-global-plan.md`.
+
 1. Switch to **live keys**: `STRIPE_SECRET_KEY=sk_live_…` (+ `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
    if you ever add Elements — not needed for hosted Checkout).
 2. **Webhook:** Dashboard → Developers → Webhooks → add endpoint

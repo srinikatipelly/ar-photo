@@ -1,8 +1,35 @@
 # Phase 3 — Global launch plan (Paddle MoR + country localization)
 
 Status: **Workstream A (localization) scaffolded 2026-07-27** — see "Progress" below.
-Workstream B (Paddle) not started. Decisions behind this plan live in the memory note
-"Global expansion direction".
+**Workstream B (Paddle) built, then parked 2026-08-24** — see the box below.
+Decisions behind this plan live in the memory note "Global expansion direction".
+
+## ⛔ Workstream B is parked — Paddle cannot sell the frame (2026-08-24)
+
+**Paddle prohibits physical goods outright.** The first entry in their Acceptable Use
+Policy is *"Physical products or products that require physical delivery"*, and there is
+no enhanced-due-diligence or approval path for it — unlike some other restricted
+categories, it's simply forbidden. Their intro is explicit: *"If your company's primary
+offering is human services… or the sale of physical goods, Paddle is not a good fit for
+your needs."* Source:
+<https://www.paddle.com/help/start/intro-to-paddle/what-am-i-not-allowed-to-sell-on-paddle>
+
+This kills Paddle for the A$39 frame — the flagship AU product. It does **not** rule
+Paddle out for the digital tier, where the MoR tax benefit (India GST/OIDAR, US
+multi-state) is exactly what we'd want.
+
+**The full Paddle implementation is preserved on the `feature/paddle-mor` branch** —
+client, region→price resolution, checkout, overlay page, webhook, shared fulfilment,
+catalogue seed script. Roughly 1,080 lines across 17 files. Don't rebuild it; branch off
+that when India/US payments get picked up again.
+
+**Decision:** go live on **Stripe** (AUD, card, Australia). India stays visible as a
+market but orders run through **WhatsApp concierge**, not self-serve checkout — see
+`app/landing/order/page.tsx`. US stays off.
+
+**If Paddle is revisited:** it can only ever handle the digital tier, so the provider
+switch has to be per-order-`kind`, not global. `getPaymentProvider()` on the branch is
+global and would need that change first.
 
 ## Progress (2026-07-27)
 
