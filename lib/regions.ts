@@ -89,8 +89,11 @@ export const REGIONS: Record<Region, RegionConfig> = {
     contact: {
       // India is WhatsApp-first - no local phone line needed.
       whatsappNumber: '917259453806',
-      email: 'hello@thegoldenframe.com',
-      siteUrl: 'https://www.thegoldenframe.com',
+      // TODO(region): thegoldenframe.com is NOT registered yet (see phase3-global-plan
+      // A5). Both of these pointed at it, so the India order page was showing customers
+      // an address that bounces. Using the domain we actually own until .com exists.
+      email: 'hello@thegoldenframe.com.au',
+      siteUrl: 'https://www.thegoldenframe.com.au',
     },
     prices: {
       digital: { price: '₹499' },
@@ -110,8 +113,10 @@ export const REGIONS: Record<Region, RegionConfig> = {
       // TODO(region): confirm US contact channel - defaulting to email + global WhatsApp,
       // no US phone line. Swap whatsappNumber for a US number if one is set up.
       whatsappNumber: '61427649892',
-      email: 'hello@thegoldenframe.com',
-      siteUrl: 'https://www.thegoldenframe.com',
+      // TODO(region): same unregistered-.com problem as India above. US is inactive so
+      // this never renders today, but it would ship broken the moment US is switched on.
+      email: 'hello@thegoldenframe.com.au',
+      siteUrl: 'https://www.thegoldenframe.com.au',
     },
     prices: {
       // TODO(region): confirm real USD prices (these are the plan's example figures).
