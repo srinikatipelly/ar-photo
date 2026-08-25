@@ -200,7 +200,32 @@ creation? Album pricing? Editing after creation? **Pin this down before starting
 
 ---
 
-## W4. Collection links — QR → customer uploads their own media
+## W4. ✅ DONE (commit `6228b3f`) — collection links
+
+Built: `collections` table (**with** a migration, unlike `partners`/`import_jobs`),
+`lib/collections.ts`, the public `/collect/[token]` page, token-scoped upload URLs, the
+submit handler, and `/api/admin/collections` to mint links + QR.
+
+**Intake only**, as designed below — submitting stores the pairs and emails admin; admin
+builds the album afterwards.
+
+**⚠️ Requires the migration to be run** — every `/collect/*` request 404s until then.
+
+**Security model** (the token is the only credential): uploads namespaced under
+`collect/<token>/` and re-validated on submit, so a tampered client can't attach another
+collection's files; separate upload route because `/api/upload-url` takes its key prefix
+from the request body; content types allowlisted with the extension derived from the
+validated type; single-use enforced by filtering the `UPDATE` on `status='pending'` rather
+than a check-then-write; 30-day expiry; `noindex`; vague copy for unknown tokens.
+
+**⚠️ Pre-existing issue found, NOT fixed:** `app/api/upload-url/route.ts` is
+unauthenticated and takes its key prefix from the request body, so anyone can upload
+arbitrary content into R2 under a prefix of their choosing, served from the CDN domain.
+Needs its own fix.
+
+<details><summary>Original design</summary>
+
+### Collection links — QR → customer uploads their own media
 
 **The idea:** stop chasing customers for files. Give them a QR. They scan, land on an upload
 page, add up to ten photo+video pairs, get a success message. Shareable over WhatsApp. We
@@ -245,7 +270,35 @@ Highest-value item here — it removes the manual back-and-forth gating every or
 
 ---
 
-## W5. Partners — page updates + end-to-end workflow
+</details>
+
+---
+
+## W5. ✅ DONE (commit `9ee8837`) — partners
+
+**Most of this was already built.** W5c (QR withheld until payment) shipped in `a278da6`:
+the partner album API mails the QR to admins only, sends the partner a payment-pending
+note with no QR, and `AlbumQrPending` renders the held state. W5b's QR upload route is
+W4's collection link with `kind='partner'`, whose success copy already promises contact
+about payment.
+
+Two genuine gaps closed:
+
+- **W5a** — `/landing/partners` offered only "Apply now"; an existing partner had no route
+  to their albums and could easily re-apply instead. Added an "Already a partner? Log in"
+  CTA alongside it.
+- **Admin visibility** — links could be minted but not listed, making them effectively
+  invisible beyond an easily-lost email. Added `/admin/collections` (create with QR, copy,
+  WhatsApp share, QR download; review submissions) plus nav in the admin layout, which had
+  none at all.
+
+**Still open** (unchanged from the notes): how payment confirmation gets recorded — it's a
+manual admin judgement today, with no field for it — and whether partners need a dashboard
+view of payment status.
+
+<details><summary>Original design</summary>
+
+### Partners — page updates + end-to-end workflow
 
 ### W5a. `/landing/partners` page
 
@@ -282,9 +335,25 @@ leaks the deliverable before payment is confirmed.
 - Does the existing `partners` / `partner_requests` schema cover payment state, or does it
   need new columns? (No migration files exist for those tables — see W4.)
 
+</details>
+
 ---
 
-## Suggested order
+## Remaining work
+
+1. **Run the `collections` migration** — W4/W5 are inert until then.
+2. **W1** — settle whether the reported spill was the distortion (fixed) or the safe-border
+   margin, using `?inset=` on a real printed frame.
+3. **W3b** — blocked: what's actually missing about albums?
+4. **Fix `/api/upload-url`** — unauthenticated, caller-chosen key prefix (see W4).
+5. Payment-confirmation recording for partners (see W5).
+
+Nothing below this line has been retested since these items were built — none of W1, W2,
+W3a, W4 or W5 has run on a real device or against the live database.
+
+<details><summary>Original suggested order</summary>
+
+### Suggested order
 
 1. **B0** — live bug, one-line fix, Indian customers currently have a dead email address.
 2. **W1** — visible defect on product already in customers' homes. Get the sample first.
@@ -296,6 +365,10 @@ leaks the deliverable before payment is confirmed.
 
 W4 before W5 matters: partners and customers want the same upload page with different
 post-submit behaviour. Building W5's version standalone means writing it twice.
+
+---
+
+</details>
 
 ---
 
