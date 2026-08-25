@@ -27,6 +27,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <span className="text-sm font-semibold uppercase tracking-widest text-gold-brand">Admin</span>
           </a>
           <div className="flex items-center gap-4">
+            {isAdmin && (
+              <nav className="flex items-center gap-3 text-sm">
+                <a href="/admin/partners" className="text-cream/70 transition hover:text-gold-brand">Partners</a>
+                <a href="/admin/collections" className="text-cream/70 transition hover:text-gold-brand">Collections</a>
+              </nav>
+            )}
             {email && <span className="hidden text-sm text-cream/60 sm:inline">{email}</span>}
             <form action="/api/auth/signout" method="post">
               <button type="submit" className="rounded-full border border-cream/25 px-4 py-2 text-sm font-semibold text-cream transition hover:border-gold-brand hover:text-gold-brand">Sign out</button>

@@ -44,10 +44,17 @@ export default function PartnersLandingPage() {
             AR albums, and add a new, high-margin revenue stream to your business. Apply once, then create
             albums whenever you like.
           </p>
-          <div className="mt-6 flex justify-center">
+          {/* Two doors, not one. The page previously offered only "Apply now", so an
+              existing partner arriving here had no route to their albums and could
+              easily re-apply instead. */}
+          <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <a href="#apply"
               className="inline-flex items-center gap-2 rounded-full bg-gold-brand px-7 py-3.5 text-sm font-bold text-green-deep transition hover:bg-cream">
               Apply now →
+            </a>
+            <a href="/partners"
+              className="inline-flex items-center gap-2 rounded-full border border-cream/25 px-7 py-3.5 text-sm font-semibold text-cream transition hover:border-gold-brand hover:text-gold-brand">
+              Already a partner? Log in
             </a>
           </div>
         </div>
