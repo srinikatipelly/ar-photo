@@ -375,7 +375,11 @@
       playerBack.textContent = arActive ? '‹ Back to camera' : '‹ Back'
       playerStage.appendChild(arVideo)
       arVideo.setAttribute('controls', '')
+      // Tapping through to the full-screen player is a deliberate "show me this
+      // properly", so un-mute — and remember it, or closing the player and panning
+      // to the next album photo would silently drop back to the old preference.
       arVideo.muted = false
+      soundPreference = 'on'
       arVideo.play().catch(() => {})
       errorEl.style.display = 'none'
       soundBtn.style.display = 'none'   // full-screen player has its own controls
@@ -442,9 +446,36 @@
       soundBtn.setAttribute('aria-label', muted ? 'Turn sound on' : 'Turn sound off')
       soundBtn.setAttribute('aria-pressed', muted ? 'false' : 'true')
     }
+
+    /**
+     * The viewer's sound choice, remembered across photos.
+     *
+     * In an album each photo is a separate <video>, and every onTargetFound used
+     * to force muted = false. So a viewer who deliberately muted — on a train,
+     * in an office — got audio blasting again the moment they panned to the next
+     * photo, with no way to make it stick.
+     *
+     * Only an explicit tap changes this. A browser autoplay block is NOT a
+     * preference: we fall back to muted so something plays, but the next photo
+     * tries with sound again, because by then the viewer has usually interacted
+     * with the page and the block no longer applies.
+     */
+    let soundPreference = 'on'   // 'on' | 'off'
+
+    /** Start a video honouring soundPreference, with the autoplay-block fallback. */
+    function playWithSound(v) {
+      v.muted = soundPreference === 'off'
+      v.play().then(syncSoundIcon).catch(() => {
+        v.muted = true
+        v.play().catch((e) => console.warn('[AR] Video play failed:', e))
+        syncSoundIcon()
+      })
+    }
+
     soundBtn.addEventListener('click', () => {
       if (!arVideo) return
       arVideo.muted = !arVideo.muted
+      soundPreference = arVideo.muted ? 'off' : 'on'   // deliberate — remember it
       if (!arVideo.muted) arVideo.play().catch(() => {})
       syncSoundIcon()
     })
@@ -713,13 +744,9 @@
               targetFound = true
               watchBtn.classList.remove('nudge')
               arVideo = videos[i]   // sound toggle + fullscreen player follow the active photo
-              const v = videos[i]
-              v.muted = false
-              v.play().then(() => syncSoundIcon()).catch(() => {
-                v.muted = true
-                v.play().catch((e) => console.warn('[AR] Video play failed:', e))
-                syncSoundIcon()
-              })
+              // Sound on by default for every photo in the album, but a viewer who
+              // muted stays muted as they pan between photos.
+              playWithSound(videos[i])
               soundBtn.style.display = 'flex'
               syncSoundIcon()
               hintEl.style.opacity = '0'
@@ -859,14 +886,7 @@
           watchBtn.classList.remove('nudge')
           // Play with sound ON by default. If the browser blocks un-muted
           // autoplay, fall back to muted — the 🔇 icon then invites one tap.
-          video.muted = false
-          video.play().then(() => {
-            syncSoundIcon()
-          }).catch(() => {
-            video.muted = true
-            video.play().catch(e => console.warn('[AR] Video play failed:', e))
-            syncSoundIcon()
-          })
+          playWithSound(video)
           soundBtn.style.display = 'flex'
           syncSoundIcon()
           hintEl.style.opacity = '0'
