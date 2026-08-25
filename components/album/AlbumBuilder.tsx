@@ -147,8 +147,7 @@ export function AlbumBuilder({
         ) : (
           <div className="mt-8">
             <AlbumQrPending frameId={result.frameId} count={result.count} />
-            <div className="mt-4 flex flex-wrap gap-3">
-              <a href={result.arUrl} target="_blank" rel="noopener noreferrer" className={ghostBtn}>Preview the AR album</a>
+            <div className="mt-4 flex flex-wrap gap-3">
               <Link href={backHref} className={ghostBtn}>Done</Link>
             </div>
           </div>

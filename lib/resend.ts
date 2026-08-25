@@ -124,7 +124,6 @@ export async function sendAdminOrderNotification({
   const base64Data = qrDataUrl.replace(/^data:image\/png;base64,/, '')
   const buffer     = Buffer.from(base64Data, 'base64')
   const shortOrder = frameId.slice(-8).toUpperCase()
-  const arUrl      = `${appUrl()}/ar?frame=${frameId}`
   const orderType  = isDigital ? 'DIGITAL AR ONLY (no frame to ship)' : 'AR Photo Frame (ship physical frame)'
 
   const { error } = await resend.emails.send({
@@ -188,15 +187,9 @@ export async function sendAdminOrderNotification({
               style="width:200px;height:200px;border-radius:12px;border:1px solid #e4e4e7;" />
           </div>
 
-          <!-- AR link -->
-          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 24px;margin:0 0 24px;">
-            <tr><td>
-              <p style="margin:0;font-size:13px;color:#166534;">
-                <strong>AR viewer link:</strong><br />
-                <a href="${arUrl}" style="color:#166534;word-break:break-all;">${arUrl}</a>
-              </p>
-            </td></tr>
-          </table>
+          <!-- No raw AR link. The QR above is the way in: a bare URL invites
+               forwarding the experience around, and it reads as a technical
+               detail in what should be a keepsake email. -->
         </td></tr>
 
         <tr><td style="padding:24px 36px 32px;border-top:1px solid #f4f4f5;">
@@ -470,12 +463,13 @@ export async function sendPartnerAlbumAdminEmail({
 }
 
 // ── Partner: album built, QR held until payment ─────────────────────────────
+// Takes no arUrl on purpose — see the note in the body. The album link is
+// withheld until payment clears.
 export async function sendPartnerAlbumPendingEmail({
-  to, frameId, arUrl, count, albumName, partnerCompany,
+  to, frameId, count, albumName, partnerCompany,
 }: {
   to: string
   frameId: string
-  arUrl: string
   count: number
   albumName?: string
   partnerCompany?: string | null
@@ -531,8 +525,11 @@ export async function sendPartnerAlbumPendingEmail({
           <p style="margin:0;font-size:13px;color:#52525b;"><strong style="color:#18181b;">Quote this reference:</strong> ${frameId}</p>
         </td></tr></table>
 
-        <p style="margin:0 0 8px;font-size:13px;color:#71717a;">Want to check it first? Preview the album here:</p>
-        <p style="margin:0 0 24px;font-size:13px;"><a href="${arUrl}" style="color:#1d4ed8;word-break:break-all;">${arUrl}</a></p>
+        <!-- The AR URL is the deliverable. This email goes to a partner who has
+             NOT paid yet, so linking it here handed over the album and made the
+             withheld QR pointless — they could open it, share it, or generate
+             their own QR from it. The reference above is enough to discuss the
+             order; the link follows once payment clears. -->
       </td></tr>
 
       <tr><td style="padding:20px 36px 32px;border-top:1px solid #f4f4f5;">

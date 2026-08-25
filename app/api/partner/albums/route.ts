@@ -50,7 +50,6 @@ export async function POST(req: NextRequest) {
         : sendPartnerAlbumPendingEmail({
             to: partner.email,
             frameId: result.frameId,
-            arUrl: result.arUrl,
             count: result.count,
             albumName: customerName,
             partnerCompany: partner.company,
