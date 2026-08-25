@@ -16,7 +16,16 @@ Nothing here is built yet.
 
 ---
 
-## 🐛 B0. Live bug — India/US contact email points at a domain we may not own
+## 🐛 B0. ✅ DONE (commit `1441fae`) — India/US contact email pointed at an unowned domain
+
+Fixed: both regions now use `hello@thegoldenframe.com.au`, with `TODO(region)` markers for
+when `.com` is registered. `siteUrl` was fixed too — it turned out **not** to be live
+(`metadataBase`, `robots.ts` and `sitemap.ts` all read the static `.com.au` brand from
+`lib/site-content.ts`, and nothing consumes `getBrand(region).siteUrl`), so it was a trap
+rather than a live fault. US had the identical bug and would have shipped broken the moment
+`'us'` joins `ACTIVE_REGIONS`.
+
+<details><summary>Original finding</summary>
 
 Found while writing this up. `lib/regions.ts` has:
 
@@ -37,13 +46,34 @@ should happen now — this is a live dead-end for Indian customers.
 This is almost certainly what the note about *"Prefer email? Write to
 hello@thegoldenframe.com.au"* on `/landing/order?kind=digital` is about — that line is on
 the India concierge page. **To reproduce:** confirm which region the browser was in (the
-`region` cookie / country switcher). Also worth noting the India page currently **ignores
+`region` cookie / country switcher). **Still open:** the India page currently **ignores
 `?kind=digital`** — India only sells the digital tier anyway, so it's arguably right, but
 it should be a deliberate decision rather than an accident.
 
+</details>
+
 ---
 
-## W1. Video must play inside the frame border
+## W1. ⚠️ PARTLY DONE (commit `f6b76a3`) — video must fit the frame border
+
+**Fixed: the video was being stretched.** The plane is sized from the photo's aspect ratio
+(correct — that's what MindAR tracks) but the texture was mapped straight on with no fit,
+so a portrait clip on a landscape 8×10 was distorted to the photo's shape.
+`fitVideoTexture` now centre-crops via a UV transform. Verified numerically: the sampled
+region always lands at the plane's aspect, `repeat` never exceeds 1, crop stays centred.
+Matching aspects produce an exact no-op, so the 82 frames already in customers' hands are
+unaffected unless they were being distorted.
+
+Also: the fit runs on `loadedmetadata` (album videos are `preload='none'`, so
+`videoWidth` is 0 at setup — applying it inline would silently no-op for every album), and
+`INSET` is now shared by both paths with an `?inset=` override (clamped 0.5–1).
+
+**⚠️ STILL OPEN — needs a real frame.** It is *not* established that the distortion was the
+reported symptom. The other candidate is the 3% safe-border margin being too small for a
+wide printed mat. **These need opposite fixes.** To settle it: scan a problem frame, then
+retry with `?inset=0.88` and `?inset=0.82`. If a smaller inset fixes it, it's the margin.
+
+<details><summary>Original analysis</summary>
 
 **Symptom:** the AR video spills outside the printed photo frame's border instead of
 sitting neatly inside it.
@@ -79,11 +109,41 @@ print run.
 **Watch out:** the fix must land in **both** the single-frame and album paths, which
 duplicate this logic. Worth extracting to one function while in there.
 
+</details>
+
 ---
 
-## W2. Video quality
+## W2. Video quality — ✅ DONE (2026-08-25, commit `d5f2b55`)
 
-**Today:** `trigger/transcode.ts` normalizes every upload with `-crf 23 -preset fast
+No AI. The wins were all in encoder settings, and the biggest was a bug.
+
+**The bug:** `scale=-2:1080` pins *height*, which silently halved portrait video —
+landscape came out 1920 long-side, a 1080x1920 phone clip came out 608x1080. Vertical
+phone video is the most common upload, so most customers were getting the worst output.
+The same filter also upscaled small sources (640x480 → 1440x1080), inventing no detail
+while costing download time.
+
+**Fixed:** one scale factor `min(1, MAX/iw, MAX/ih)` on both axes — caps the LONG side in
+either orientation, never upscales, keeps dimensions even for yuv420p. Validated against
+real ffmpeg for 4K landscape, portrait, square and sub-cap sources.
+
+Also: CRF 23→20, preset fast→medium, `-maxrate 3M`/`-bufsize 6M` to bound worst-case
+download, 30fps cap, `maxDuration` 600→900. Long side capped at **1440**, not 1920 —
+the phone downloads the whole file before AR starts, so beyond that the pixels cost more
+in load time than they return in visible quality.
+
+**Verify in production:** the task now logs `resolution: <in> -> <out>` and
+`sizeReductionPct`. Watch a real portrait upload and confirm the long side is 1440, not
+608 wide.
+
+**Not done (deliberately):** AI upscaling. It can't invent detail in blurry handheld
+footage, adds per-order cost and minutes of latency inside fulfilment, and the texture
+renders on a small plane where the ceiling on perceivable quality is low. Revisit only if
+the encoder changes above prove insufficient on real footage.
+
+<details><summary>Original analysis (pre-fix)</summary>
+
+**Was:** `trigger/transcode.ts` normalized every upload with `-crf 23 -preset fast
 -vf scale=-2:1080` — H.264, capped at 1080p.
 
 **The question that gates everything:** *what specifically looks bad?*
@@ -103,6 +163,8 @@ detail in blurry handheld footage.
 
 Remember the texture renders on a small plane on a phone. There's a hard ceiling on
 perceivable quality — measure before investing.
+
+</details>
 
 ---
 
@@ -163,6 +225,7 @@ Highest-value item here — it removes the manual back-and-forth gating every or
 2. opens an upload page needing **no login** (that's the point)
 3. accepts up to `ALBUM_MAX_ITEMS` photo+video pairs
 4. collects contact details (name, email, phone, address)
+5. Register them automatially on the system
 5. on submit shows: *"Thank you — we'll contact you if there are any issues, otherwise we'll
    deliver your AR experience."*
 6. notifies admin and marks the collection complete
