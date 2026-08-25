@@ -557,5 +557,57 @@ function escapeHtml(s: string) {
     .replace(/'/g, '&#39;')
 }
 
+// ── Admin: someone submitted a collection link (Phase 4 · W4) ───────────────
+//
+// Admin-only on purpose. The submitter already saw a confirmation in the browser,
+// and nothing is deliverable yet — the pairs still have to be turned into an
+// album, and for partners payment comes first. So this is a work queue item, not
+// a customer receipt.
+export async function sendCollectionSubmittedAdminEmail({
+  token, kind, label, count, contactName, contactEmail, contactPhone, contactAddress, note,
+}: {
+  token: string
+  kind: 'customer' | 'partner'
+  label: string
+  count: number
+  contactName: string
+  contactEmail: string
+  contactPhone: string
+  contactAddress: string
+  note: string
+}) {
+  const to = adminEmails()
+  if (!resend || to.length === 0) return
+
+  const who = kind === 'partner' ? 'Partner' : 'Customer'
+  const row = (k: string, v: string) =>
+    `<p style="margin:0 0 6px;font-size:13px;color:#52525b;"><strong style="color:#18181b;">${k}:</strong> ${escapeHtml(v) || '-'}</p>`
+
+  const html = `
+    <div style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
+      <h2 style="margin:0 0 4px;font-size:18px;color:#18181b;">${who} uploaded ${count} pair${count === 1 ? '' : 's'}</h2>
+      <p style="margin:0 0 20px;font-size:13px;color:#71717a;">${escapeHtml(label) || 'Collection link'}</p>
+      <div style="background:#fafafa;border:1px solid #e4e4e7;border-radius:10px;padding:16px;margin-bottom:20px;">
+        ${row('Name', contactName)}
+        ${row('Email', contactEmail)}
+        ${row('Phone', contactPhone)}
+        ${row('Address', contactAddress)}
+        ${note ? row('Note', note) : ''}
+      </div>
+      <p style="margin:0 0 8px;font-size:14px;color:#3f3f46;line-height:1.6;">
+        Next: build the album from these pairs${kind === 'partner' ? ', then request payment before sending the QR' : ', then deliver the AR experience'}.
+      </p>
+      <p style="margin:0;font-size:12px;color:#a1a1aa;">Link token: ${escapeHtml(token)}</p>
+    </div>`
+
+  await resend.emails.send({
+    from: `${fromName()} <${fromEmail()}>`,
+    to,
+    replyTo: contactEmail || undefined,
+    subject: `${who} upload: ${count} pair${count === 1 ? '' : 's'} — ${contactName || contactEmail || token}`,
+    html,
+  })
+}
+
 // Legacy alias kept for any existing callers
 export { sendCustomerConfirmationEmail as sendQREmail }
