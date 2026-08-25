@@ -38,15 +38,21 @@ const startOptions = [
 ] as const
 
 export default async function PartnerDashboard() {
-  // The layout already gated this; getPartner is cheap (cached request) and gives us the id.
+  // The layout gates this — it redirects when signed out and renders a "request
+  // access" screen for a non-partner. But the page body still runs alongside the
+  // layout, so `partner!` threw a TypeError on every signed-out visit. The
+  // redirect won the race, so the visitor saw the right thing, but each request
+  // logged an error and the assertion was one layout change away from a 500.
   const { partner } = await getPartner()
+  if (!partner) return null
+
   const { isAdmin } = await getAdmin()
   const supabase = await createServerSupabase()
 
   const { data } = await supabase
     .from('frames')
     .select('frame_id, customer_name, created_at, scan_count, qr_url, items')
-    .eq('partner_id', partner!.id)
+    .eq('partner_id', partner.id)
     .eq('plan', 'album')
     .order('created_at', { ascending: false })
 
