@@ -529,6 +529,59 @@
       return []
     }
 
+    // ── Video-to-photo fitting ──────────────────────────────────────────────
+    //
+    // The video plane is sized from the PHOTO's aspect ratio, because that is what
+    // MindAR tracks. The video is a separate file and often has a different shape
+    // (portrait phone clip vs a landscape 8x10). Mapping the texture straight onto
+    // the plane stretches it to fit, which distorts the footage.
+    //
+    // fitVideoTexture centre-crops instead: the video keeps its own aspect ratio and
+    // the overflowing edges are trimmed, so it fills the photo area exactly without
+    // distortion and without ever extending past the plane.
+    //
+    // Must run AFTER loadedmetadata — videoWidth/videoHeight are 0 before that, and
+    // album videos use preload='none' so they have no dimensions at setup time.
+    function fitVideoTexture(tex, video, planeAspect) {
+      const vw = video.videoWidth
+      const vh = video.videoHeight
+      if (!vw || !vh || !planeAspect) return   // unknown yet — leave 1:1, retry on metadata
+
+      const videoAspect = vw / vh
+
+      // 'cover': fill the photo area, crop the overflow. Deliberately not offering a
+      // letterbox mode — the texture wraps clamp-to-edge, so sampling outside 0..1
+      // smears the edge pixels instead of producing black bars, and bars inside a
+      // printed photo frame would read as broken anyway.
+      if (videoAspect > planeAspect) {
+        const r = planeAspect / videoAspect          // video too wide — trim sides
+        tex.repeat.set(r, 1); tex.offset.set((1 - r) / 2, 0)
+      } else {
+        const r = videoAspect / planeAspect          // video too tall — trim top/bottom
+        tex.repeat.set(1, r); tex.offset.set(0, (1 - r) / 2)
+      }
+    }
+
+    /** Apply the fit now if metadata is ready, and again once it arrives. */
+    function applyVideoFit(tex, video, planeAspect) {
+      fitVideoTexture(tex, video, planeAspect)
+      video.addEventListener(
+        'loadedmetadata',
+        () => fitVideoTexture(tex, video, planeAspect),
+        { once: true },
+      )
+    }
+
+    // Inset leaves a small margin so tracking jitter never lets the video edges spill
+    // outside the printed photo. 0.94 is ~3% each side. A frame printed with a wide
+    // mat may need more; ?inset= lets that be tuned against a real frame on a real
+    // phone before committing a number. Clamped to 0.5..1 so a bad param can't
+    // invert or balloon the plane.
+    const INSET = (() => {
+      const raw = Number(new URLSearchParams(location.search).get('inset'))
+      return Number.isFinite(raw) && raw > 0.5 && raw <= 1 ? raw : 0.94
+    })()
+
     async function loadFrame() {
       let mindarThree  = null
       let targetBlobUrl = null
@@ -635,7 +688,6 @@
           const { renderer, scene, camera } = mindarThree
           scene.add(new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1))
 
-          const INSET = 0.94
           items.forEach((it, i) => {
             const img = photoImgs[i]
             const pw  = (img && img.naturalWidth)  || videos[i].videoWidth  || 4
@@ -647,6 +699,9 @@
             tex.minFilter  = THREE.LinearFilter
             tex.magFilter  = THREE.LinearFilter
             tex.colorSpace = THREE.SRGBColorSpace
+            // preload='none' here, so dimensions only arrive when the photo is
+            // first seen — applyVideoFit re-runs on loadedmetadata.
+            applyVideoFit(tex, videos[i], pw / ph)
 
             const plane = new THREE.Mesh(
               new THREE.PlaneGeometry(planeW, planeH),
@@ -784,7 +839,6 @@
         // Invisible safe-border: inset the video slightly inside the tracked
         // photo so tracking jitter never lets the video edges spill outside the
         // printed frame. The thin margin reads as a subtle border, not a glitch.
-        const INSET = 0.94
         const planeW = 1 * INSET
         const planeH = 1 * (ph / pw) * INSET
 
@@ -792,6 +846,7 @@
         videoTex.minFilter  = THREE.LinearFilter
         videoTex.magFilter  = THREE.LinearFilter
         videoTex.colorSpace = THREE.SRGBColorSpace
+        applyVideoFit(videoTex, video, pw / ph)
 
         const plane = new THREE.Mesh(
           new THREE.PlaneGeometry(planeW, planeH),
