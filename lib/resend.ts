@@ -606,5 +606,71 @@ export async function sendCollectionSubmittedAdminEmail({
   })
 }
 
+// ── Submitter: "we've got your files" (Phase 4 · W4) ────────────────────────
+//
+// Sent to whoever uploaded through a collection link. Carries NO QR and NO AR
+// link, deliberately: at this point nothing is built yet, and for partners the
+// deliverable is withheld until payment clears anyway. Its only jobs are to
+// confirm the files arrived and to say what happens next.
+export async function sendCollectionReceivedEmail({
+  to, name, kind, count,
+}: {
+  to: string
+  name: string
+  kind: 'customer' | 'partner'
+  count: number
+}) {
+  if (!resend || !to) return
+
+  const pairs = `${count} photo${count === 1 ? '' : 's'} and video${count === 1 ? '' : 's'}`
+
+  const nextStep =
+    kind === 'partner'
+      ? `We'll be in touch shortly with the payment details. Once payment is confirmed we'll send through your AR experience, ready to share with your client.`
+      : `We'll let you know if there are any issues with your files. Otherwise we'll craft your AR experience and be in touch when it's ready.`
+
+  const { error } = await resend.emails.send({
+    from: `${fromName()} <${fromEmail()}>`,
+    to,
+    subject: `We've received your upload — ${pairs}`,
+    html: `
+<!DOCTYPE html><html lang="en">
+<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /></head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 16px;"><tr><td align="center">
+    <table width="100%" style="max-width:520px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+
+      <tr><td style="background:#18181b;padding:28px 36px;">
+        <p style="margin:0;color:#ffffff;font-size:18px;font-weight:600;letter-spacing:-0.3px;">${fromName()}</p>
+      </td></tr>
+
+      <tr><td style="padding:36px 36px 0;">
+        <h1 style="margin:0 0 8px;font-size:24px;font-weight:600;color:#18181b;letter-spacing:-0.4px;">Uploaded successfully 🎉</h1>
+        <p style="margin:0 0 24px;font-size:16px;color:#71717a;line-height:1.6;">
+          Hi ${escapeHtml(name) || 'there'}, thank you — we've received your ${pairs}.
+        </p>
+
+        <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e4e4e7;border-radius:12px;padding:20px 24px;margin:0 0 24px;">
+          <tr><td>
+            <p style="margin:0 0 8px;font-size:14px;font-weight:600;color:#18181b;">What happens next</p>
+            <p style="margin:0;font-size:13px;color:#52525b;line-height:1.6;">${nextStep}</p>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <tr><td style="padding:20px 36px 32px;border-top:1px solid #f4f4f5;">
+        <p style="margin:0;font-size:12px;color:#a1a1aa;">
+          Questions? Just reply to this email.<br />© ${new Date().getFullYear()} ${fromName()}
+        </p>
+      </td></tr>
+
+    </table>
+  </td></tr></table>
+</body></html>`,
+  })
+
+  if (error) throw new Error(`Resend collection email failed: ${error.name} - ${error.message}`)
+}
+
 // Legacy alias kept for any existing callers
 export { sendCustomerConfirmationEmail as sendQREmail }

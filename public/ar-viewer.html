@@ -107,21 +107,6 @@
       transition: width 0.5s ease;
     }
 
-    /* Deliberately large: it is the only tap in the flow, and it has to read as
-       the obvious next step rather than as an obstacle. */
-    #begin-btn {
-      margin-top: 28px; padding: 15px 38px; border: none; cursor: pointer;
-      border-radius: 999px; font-size: 16px; font-weight: 700;
-      background: linear-gradient(90deg, #d4af37, #f9e6c2); color: #0F3535;
-      box-shadow: 0 6px 24px rgba(212,175,55,0.28);
-      animation: begin-pulse 2.4s ease-in-out infinite;
-    }
-    #begin-btn:active { transform: scale(0.96); }
-    @keyframes begin-pulse {
-      0%, 100% { box-shadow: 0 6px 24px rgba(212,175,55,0.28); }
-      50%      { box-shadow: 0 6px 34px rgba(212,175,55,0.55); }
-    }
-    @media (prefers-reduced-motion: reduce) { #begin-btn { animation: none; } }
 
     /* Respect users who ask the OS to minimise motion. */
     @media (prefers-reduced-motion: reduce) {
@@ -285,10 +270,6 @@
       <span class="cap"></span>
     </div>
     <div id="progress-track"><div id="progress-fill"></div></div>
-    <!-- Shown once assets are ready. Fullscreen and un-muted audio both require a
-         user gesture, and this viewer had none — so we ask for one tap and spend
-         it on both. See waitForBegin(). -->
-    <button id="begin-btn" style="display:none;">Tap to begin ✨</button>
   </div>
 
   <button id="sound-btn" aria-label="Turn sound off" aria-pressed="true">
@@ -611,89 +592,19 @@
       if (req) Promise.resolve(req.call(el)).catch(() => {})
     }
 
-    /**
-     * Wait for one deliberate tap before opening the camera.
-     *
-     * Everything that makes this feel like an app rather than a web page needs a
-     * user gesture, and the browser will not accept one it didn't see:
-     *   - fullscreen (hides the browser chrome)
-     *   - un-muted autoplay (otherwise photo 1 is silent)
-     *
-     * The viewer used to start AR straight from page load, so no such gesture
-     * ever existed and both were lost. Assets keep loading in the background
-     * while the button is up, so the tap costs nothing in time — it usually
-     * lands during a wait the visitor already had.
-     *
-     * Resolves immediately if the button isn't in the DOM, so an older cached
-     * page can't deadlock here.
-     */
-    function waitForBegin() {
-      const btn = document.getElementById('begin-btn')
-      if (!btn) return Promise.resolve()
-
-      return new Promise((resolve) => {
-        btn.style.display = 'inline-block'
-        btn.addEventListener(
-          'click',
-          () => {
-            btn.style.display = 'none'
-            goFullscreen()   // must be inside the handler — the gesture expires
-            resolve()
-          },
-          { once: true },
-        )
-      })
-    }
-
-    // ── Video-to-photo fitting ──────────────────────────────────────────────
+    // Silent and opportunistic: no button, no extra step. The browser will only
+    // grant fullscreen inside a gesture it saw, so we take the visitor's first
+    // tap — whatever they tapped — and spend it. If they never tap, nothing
+    // happens and the experience is unchanged.
     //
-    // The plane's GEOMETRY is sized from the PHOTO, because that is what MindAR
-    // tracks. The video is a separate file and often a different shape — a
-    // portrait phone clip against a landscape 8x10, or, as reported, a small
-    // photo with a much larger video.
-    //
-    // We "contain" the video: shrink the plane to the video's own aspect ratio so
-    // the WHOLE video is visible, undistorted, and always inside the photo's
-    // bounds. Whatever margin is left over simply shows the real printed photo
-    // behind it through the camera — which reads as the video playing inside the
-    // frame, not as letterbox bars.
-    //
-    // Two rejected alternatives, for the next person:
-    //   - Stretching the texture onto a photo-shaped plane (the original) fills
-    //     the photo but distorts the footage.
-    //   - Centre-cropping via a UV transform keeps the aspect but hides the edges
-    //     of the video and effectively zooms in — which makes an already-too-big
-    //     video look bigger, the opposite of the reported problem.
-    //
-    // Scale, not geometry, so this can be re-applied when dimensions arrive late:
-    // videoWidth/videoHeight are 0 before loadedmetadata, and album videos use
-    // preload='none', so they have no dimensions at setup time.
-    function fitPlaneToVideo(plane, video, photoW, photoH) {
-      const vw = video.videoWidth
-      const vh = video.videoHeight
-      if (!vw || !vh || !photoW || !photoH) return   // unknown yet — retry on metadata
+    // Android Chrome honours this. iOS Safari does NOT: it only allows
+    // fullscreen on <video> elements, so requestFullscreen is absent on <html>
+    // and this no-ops. An iPhone in a normal tab keeps its browser chrome no
+    // matter what the page does — Add to Home Screen is the only way around it.
+    ;['click', 'touchend'].forEach((evt) =>
+      document.addEventListener(evt, goFullscreen, { once: true, passive: true }),
+    )
 
-      const videoAspect = vw / vh
-      const photoAspect = photoW / photoH
-
-      // Both branches scale DOWN one axis only, so the plane can never grow past
-      // the photo area it started at.
-      if (videoAspect > photoAspect) {
-        plane.scale.set(1, photoAspect / videoAspect, 1)   // video wider — shorten it
-      } else {
-        plane.scale.set(videoAspect / photoAspect, 1, 1)   // video taller — narrow it
-      }
-    }
-
-    /** Apply the fit now if metadata is ready, and again once it arrives. */
-    function applyPlaneFit(plane, video, photoW, photoH) {
-      fitPlaneToVideo(plane, video, photoW, photoH)
-      video.addEventListener(
-        'loadedmetadata',
-        () => fitPlaneToVideo(plane, video, photoW, photoH),
-        { once: true },
-      )
-    }
 
     // Inset leaves a small margin so tracking jitter never lets the video edges spill
     // outside the printed photo. 0.94 is ~3% each side. A frame printed with a wide
@@ -827,9 +738,6 @@
               new THREE.PlaneGeometry(planeW, planeH),
               new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide })
             )
-            // preload='none' here, so dimensions only arrive when the photo is
-            // first seen — applyPlaneFit re-runs on loadedmetadata.
-            applyPlaneFit(plane, videos[i], planeW, planeH)
             mindarThree.addAnchor(i).group.add(plane)
 
             mindarThree.anchors[i].onTargetFound = () => {
@@ -852,11 +760,6 @@
           // ── Start camera (mirrors the single-photo path) ──
           setStep('step-camera', 'active')
           setProgress(70, 'Opening your camera…')
-          // One deliberate tap buys fullscreen + un-muted audio — see
-          // waitForBegin(). Before the timeout below on purpose: a visitor who
-          // takes a while to tap must not trip the AR timeout.
-          await waitForBegin()
-
           const hardTimeout = setTimeout(() => {
             stopAR()
             showError('AR timed out.', 'Camera or tracker took too long. Tap "Try again".')
@@ -975,9 +878,6 @@
           new THREE.PlaneGeometry(planeW, planeH),
           new THREE.MeshBasicMaterial({ map: videoTex, side: THREE.DoubleSide })
         )
-        // Shrink the plane to the video's aspect so the whole video sits inside
-        // the printed photo rather than overflowing it.
-        applyPlaneFit(plane, video, planeW, planeH)
         mindarThree.addAnchor(0).group.add(plane)
 
         mindarThree.anchors[0].onTargetFound = () => {
@@ -1038,11 +938,6 @@
         // ── Step 6: Start camera ──────────────────────────────────────────
         setStep('step-camera', 'active')
         setProgress(70, 'Opening your camera…')
-
-        // One deliberate tap buys fullscreen + un-muted audio — see
-        // waitForBegin(). Before the timeout below on purpose: a visitor who
-        // takes a while to tap must not trip the AR timeout.
-        await waitForBegin()
 
         const hardTimeout = setTimeout(() => {
           stopAR()
