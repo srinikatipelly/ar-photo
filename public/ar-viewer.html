@@ -107,6 +107,22 @@
       transition: width 0.5s ease;
     }
 
+    /* Deliberately large: it is the only tap in the flow, and it has to read as
+       the obvious next step rather than as an obstacle. */
+    #begin-btn {
+      margin-top: 28px; padding: 15px 38px; border: none; cursor: pointer;
+      border-radius: 999px; font-size: 16px; font-weight: 700;
+      background: linear-gradient(90deg, #d4af37, #f9e6c2); color: #0F3535;
+      box-shadow: 0 6px 24px rgba(212,175,55,0.28);
+      animation: begin-pulse 2.4s ease-in-out infinite;
+    }
+    #begin-btn:active { transform: scale(0.96); }
+    @keyframes begin-pulse {
+      0%, 100% { box-shadow: 0 6px 24px rgba(212,175,55,0.28); }
+      50%      { box-shadow: 0 6px 34px rgba(212,175,55,0.55); }
+    }
+    @media (prefers-reduced-motion: reduce) { #begin-btn { animation: none; } }
+
     /* Respect users who ask the OS to minimise motion. */
     @media (prefers-reduced-motion: reduce) {
       #loading-caption .cap, #progress-fill { transition: none; }
@@ -269,6 +285,10 @@
       <span class="cap"></span>
     </div>
     <div id="progress-track"><div id="progress-fill"></div></div>
+    <!-- Shown once assets are ready. Fullscreen and un-muted audio both require a
+         user gesture, and this viewer had none — so we ask for one tap and spend
+         it on both. See waitForBegin(). -->
+    <button id="begin-btn" style="display:none;">Tap to begin ✨</button>
   </div>
 
   <button id="sound-btn" aria-label="Turn sound off" aria-pressed="true">
@@ -591,9 +611,39 @@
       if (req) Promise.resolve(req.call(el)).catch(() => {})
     }
 
-    ;['click', 'touchend'].forEach((evt) =>
-      document.addEventListener(evt, goFullscreen, { once: true, passive: true }),
-    )
+    /**
+     * Wait for one deliberate tap before opening the camera.
+     *
+     * Everything that makes this feel like an app rather than a web page needs a
+     * user gesture, and the browser will not accept one it didn't see:
+     *   - fullscreen (hides the browser chrome)
+     *   - un-muted autoplay (otherwise photo 1 is silent)
+     *
+     * The viewer used to start AR straight from page load, so no such gesture
+     * ever existed and both were lost. Assets keep loading in the background
+     * while the button is up, so the tap costs nothing in time — it usually
+     * lands during a wait the visitor already had.
+     *
+     * Resolves immediately if the button isn't in the DOM, so an older cached
+     * page can't deadlock here.
+     */
+    function waitForBegin() {
+      const btn = document.getElementById('begin-btn')
+      if (!btn) return Promise.resolve()
+
+      return new Promise((resolve) => {
+        btn.style.display = 'inline-block'
+        btn.addEventListener(
+          'click',
+          () => {
+            btn.style.display = 'none'
+            goFullscreen()   // must be inside the handler — the gesture expires
+            resolve()
+          },
+          { once: true },
+        )
+      })
+    }
 
     // ── Video-to-photo fitting ──────────────────────────────────────────────
     //
@@ -802,6 +852,11 @@
           // ── Start camera (mirrors the single-photo path) ──
           setStep('step-camera', 'active')
           setProgress(70, 'Opening your camera…')
+          // One deliberate tap buys fullscreen + un-muted audio — see
+          // waitForBegin(). Before the timeout below on purpose: a visitor who
+          // takes a while to tap must not trip the AR timeout.
+          await waitForBegin()
+
           const hardTimeout = setTimeout(() => {
             stopAR()
             showError('AR timed out.', 'Camera or tracker took too long. Tap "Try again".')
@@ -983,6 +1038,11 @@
         // ── Step 6: Start camera ──────────────────────────────────────────
         setStep('step-camera', 'active')
         setProgress(70, 'Opening your camera…')
+
+        // One deliberate tap buys fullscreen + un-muted audio — see
+        // waitForBegin(). Before the timeout below on purpose: a visitor who
+        // takes a while to tap must not trip the AR timeout.
+        await waitForBegin()
 
         const hardTimeout = setTimeout(() => {
           stopAR()
