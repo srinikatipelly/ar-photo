@@ -31,45 +31,131 @@ export default function BuildClient({
   const [progress, setProgress] = useState('')
   const [error, setError] = useState('')
   const [result, setResult] = useState<Result | null>(null)
+  const [diagnostics, setDiagnostics] = useState<string[]>([])
+
+  // Shown in errors and on the page: the photos come from R2_PUBLIC_URL, which
+  // differs between environments, and a wrong value there is invisible otherwise.
+  const photoHost = (() => {
+    try {
+      return new URL(photos[0]?.url ?? '').origin
+    } catch {
+      return 'the media host'
+    }
+  })()
+
+  /**
+   * Run each network dependency on its own and report which one fails.
+   *
+   * "Failed to fetch" is the same message whether the media host blocked CORS,
+   * the AR engine 404'd, or the API is unreachable — so this isolates them
+   * rather than making someone read a devtools console.
+   */
+  async function runChecks() {
+    setBusy(true)
+    setError('')
+    setDiagnostics([])
+    const out: string[] = []
+
+    try {
+      const res = await fetch(photos[0].url)
+      out.push(`${res.ok ? '✅' : '❌'} photo download — HTTP ${res.status} from ${photoHost}`)
+    } catch (e) {
+      out.push(`❌ photo download — BLOCKED (${e instanceof Error ? e.message : e}) from ${photoHost}`)
+    }
+
+    try {
+      const res = await fetch('/vendor/mind-ar/mindar-image.prod.js')
+      out.push(`${res.ok ? '✅' : '❌'} AR engine — HTTP ${res.status}`)
+    } catch (e) {
+      out.push(`❌ AR engine — ${e instanceof Error ? e.message : e}`)
+    }
+
+    try {
+      // No targetKey, so this is rejected with 400 without building anything —
+      // we only care that the route is reachable and we're authorised.
+      const res = await fetch(`/api/admin/collections/${token}/build`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      out.push(
+        `${res.status === 400 ? '✅' : '❌'} build API — HTTP ${res.status}` +
+          (res.status === 403 ? ' (not signed in as admin)' : ''),
+      )
+    } catch (e) {
+      out.push(`❌ build API — ${e instanceof Error ? e.message : e}`)
+    }
+
+    setDiagnostics(out)
+    setBusy(false)
+  }
 
   async function build() {
     setBusy(true)
     setError('')
+    setDiagnostics([])
+
+    // Every step below can fail for a different reason, and a bare "Failed to
+    // fetch" (what fetch throws on any network/CORS problem) says nothing about
+    // which one. Label each step so the message points at the actual cause.
+    const step = async <T,>(what: string, fn: () => Promise<T>): Promise<T> => {
+      try {
+        return await fn()
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e)
+        const networkish = /failed to fetch|networkerror|load failed/i.test(msg)
+        throw new Error(
+          networkish
+            ? `${what} — the request was blocked or never completed (${msg}). This is usually CORS or a bad URL, not the album itself.`
+            : `${what} — ${msg}`,
+        )
+      }
+    }
+
     try {
       // Pull the uploaded photos back down so the compiler can read them.
       setProgress('Fetching uploaded photos…')
-      const files = await Promise.all(
-        photos.map(async (p) => {
-          const res = await fetch(p.url)
-          if (!res.ok) throw new Error(`Could not fetch ${p.name} (${res.status}).`)
-          const blob = await res.blob()
-          return new File([blob], p.name, { type: blob.type || 'image/jpeg' })
-        }),
+      const files = await step(`Couldn't download the uploaded photos from ${photoHost}`, () =>
+        Promise.all(
+          photos.map(async (p) => {
+            const res = await fetch(p.url)
+            if (!res.ok) throw new Error(`${p.name} returned HTTP ${res.status}`)
+            const blob = await res.blob()
+            return new File([blob], p.name, { type: blob.type || 'image/jpeg' })
+          }),
+        ),
       )
 
       // The reason this page exists: MindAR's compiler needs a DOM, so it can't
       // run on the server. This is the slow step — a minute or two is normal.
       setProgress('Analysing photos for AR tracking…')
-      const targetBuffer = await compileImageTargets(files, (p) =>
-        setProgress(`Analysing photos for AR tracking… ${Math.round(p * 100)}%`),
+      const targetBuffer = await step('The AR compile failed', () =>
+        compileImageTargets(files, (p) =>
+          setProgress(`Analysing photos for AR tracking… ${Math.round(p * 100)}%`),
+        ),
       )
 
       setProgress('Uploading AR target…')
       const targetFile = new File([targetBuffer], 'album.mind', {
         type: 'application/octet-stream',
       })
-      const targetKey = await uploadFileToR2(targetFile, 'target', 'album.mind')
+      const targetKey = await step("Couldn't upload the compiled AR target", () =>
+        uploadFileToR2(targetFile, 'target', 'album.mind'),
+      )
 
       // Only the target key is sent. The server reads the photo/video pairs from
       // the collection row, so nothing here can change what goes in the album.
       setProgress('Creating the album…')
-      const res = await fetch(`/api/admin/collections/${token}/build`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetKey }),
+      const data = await step("Couldn't create the album", async () => {
+        const res = await fetch(`/api/admin/collections/${token}/build`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ targetKey }),
+        })
+        const payload = await res.json().catch(() => ({}))
+        if (!res.ok) throw new Error(payload.error || `HTTP ${res.status}`)
+        return payload
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Could not build the album.')
 
       setResult(data as Result)
     } catch (err) {
@@ -165,9 +251,23 @@ export default function BuildClient({
       </div>
 
       {error && (
-        <p className="mt-5 rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-          {error}
-        </p>
+        <div className="mt-5 rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          <p>{error}</p>
+          <p className="mt-2 break-all text-xs text-red-200/70">
+            Photos are served from <span className="font-mono">{photoHost}</span>
+          </p>
+        </div>
+      )}
+
+      {diagnostics.length > 0 && (
+        <div className="mt-5 rounded-xl border border-cream/15 bg-green-deep/50 px-4 py-3">
+          <p className="text-xs font-semibold uppercase tracking-widest text-gold-brand">Check results</p>
+          <ul className="mt-2 space-y-1">
+            {diagnostics.map((d, i) => (
+              <li key={i} className="font-mono text-xs text-cream/70">{d}</li>
+            ))}
+          </ul>
+        </div>
       )}
 
       <div className="mt-6 flex items-center gap-4">
@@ -179,9 +279,17 @@ export default function BuildClient({
           {busy ? progress || 'Working…' : 'Build album & email me the QR'}
         </button>
         {!busy && (
-          <Link href="/admin/collections" className="text-sm text-cream/60 underline underline-offset-2 hover:text-gold-brand">
-            Cancel
-          </Link>
+          <>
+            <button
+              onClick={runChecks}
+              className="rounded-full border border-cream/25 px-5 py-3 text-sm font-semibold text-cream transition hover:border-gold-brand hover:text-gold-brand"
+            >
+              Run checks
+            </button>
+            <Link href="/admin/collections" className="text-sm text-cream/60 underline underline-offset-2 hover:text-gold-brand">
+              Cancel
+            </Link>
+          </>
         )}
       </div>
     </div>
