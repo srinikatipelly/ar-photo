@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { supabaseAdmin } from '@/lib/supabase'
-import { getPublicUrl } from '@/lib/r2'
 import { isValidTokenFormat } from '@/lib/collections'
 import BuildClient from './BuildClient'
 
@@ -56,11 +55,14 @@ export default async function BuildAlbumPage({
 
   if (items.length === 0) return notice('No uploads', 'This collection has no photo/video pairs.')
 
-  // Public URLs so the browser can pull the photos back down to compile them.
-  // Videos stay in R2 — only the photos are needed for tracking.
+  // Served through our own origin rather than straight from R2. Media lives on
+  // cdn.thegoldenframe.co while the site runs on thegoldenframe.com.au, and that
+  // cross-site request gets blocked by privacy extensions and strict tracking
+  // protection — which surfaced only as "Failed to fetch". See the photo route.
+  // Videos stay in R2; only the photos are needed for tracking.
   const photos = items.map((it, i) => ({
     index: i,
-    url: getPublicUrl(it.photoKey),
+    url: `/api/admin/collections/${token}/photo/${i}`,
     name: it.photoKey.split('/').pop() ?? `photo-${i}.jpg`,
   }))
 

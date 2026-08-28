@@ -33,13 +33,14 @@ export default function BuildClient({
   const [result, setResult] = useState<Result | null>(null)
   const [diagnostics, setDiagnostics] = useState<string[]>([])
 
-  // Shown in errors and on the page: the photos come from R2_PUBLIC_URL, which
-  // differs between environments, and a wrong value there is invisible otherwise.
+  // Photos are proxied through our own origin (see the photo route) precisely so
+  // this is never a cross-site request. Resolve it anyway so an error still names
+  // the host it actually tried.
   const photoHost = (() => {
     try {
-      return new URL(photos[0]?.url ?? '').origin
+      return new URL(photos[0]?.url ?? '', window.location.origin).origin
     } catch {
-      return 'the media host'
+      return 'this site'
     }
   })()
 
