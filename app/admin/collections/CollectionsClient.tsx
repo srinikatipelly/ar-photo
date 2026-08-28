@@ -188,13 +188,26 @@ export default function CollectionsClient({ rows }: { rows: CollectionRow[] }) {
                       <p><span className="text-cream/50">Address:</span> {row.contact_address || '—'}</p>
                       {row.note && <p><span className="text-cream/50">Note:</span> {row.note}</p>}
                       <p><span className="text-cream/50">Submitted:</span> {fmt(row.submitted_at)}</p>
-                      <p className="pt-2 text-xs text-cream/40">
-                        {row.frame_id
-                          ? `Album built: ${row.frame_id}`
-                          : row.kind === 'partner'
-                            ? 'Next: build the album, then request payment before sending the QR.'
-                            : 'Next: build the album and deliver.'}
-                      </p>
+
+                      {row.frame_id ? (
+                        <p className="pt-2 text-xs text-cream/40">
+                          Album built: <span className="font-mono text-cream/60">{row.frame_id}</span> — QR was emailed when it was created.
+                        </p>
+                      ) : (
+                        <div className="pt-3">
+                          <p className="text-xs text-cream/40">
+                            No album yet, so there&apos;s no QR. Building one compiles the AR
+                            target and emails you the QR
+                            {row.kind === 'partner' ? ' — hold it until payment clears.' : '.'}
+                          </p>
+                          <a
+                            href={`/admin/collections/${row.token}/build`}
+                            className="mt-3 inline-block rounded-full bg-gold-brand px-5 py-2.5 text-xs font-bold text-green-deep transition hover:bg-cream"
+                          >
+                            Build album & get QR →
+                          </a>
+                        </div>
+                      )}
                     </>
                   ) : (
                     <p className="text-cream/50">
