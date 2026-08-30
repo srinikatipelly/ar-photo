@@ -235,15 +235,17 @@ export const pricingTiers: PricingTier[] = [
   {
     key: 'frame',
     name: 'AR Photo Frame',
-    price: '$39',
-    was: '$79',
-    unit: '8×10 frame',
+    // $89 delivered. No `was` price: the old strikethrough was $79, which is now
+    // below the asking price, so showing it would read as a price rise.
+    price: '$89',
+    unit: '6×8 frame, delivered',
     description: 'Our signature living memory - a premium framed photo that plays your video in AR.',
     features: [
-      'Premium 8×10 AR photo frame',
+      'Premium 6×8 AR photo frame',
+      'Free delivery anywhere in Australia',
       'Up to 1 minute of video, with sound',
       'Hidden QR code - no app needed',
-      'Dispatched in 2-3 business days',
+      'Your memories carefully handled at every step',
     ],
     cta: 'Order your frame',
     href: '/landing/order',

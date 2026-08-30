@@ -99,7 +99,7 @@ Cloudflare Routing can't send, so to reply from Gmail branded as `hello@thegolde
 3. **Branding** (so checkout reads "Pay The Golden Frame"): Settings → Business → Public business
    name = `The Golden Frame`; Settings → Branding → icon = `app/icon.png`, colour `#0F3535`;
    Settings → Payments → Statement descriptor = `THE GOLDEN FRAME`. **Set in live mode.**
-4. Prices: `FRAME_PRICE_CENTS=3900`, `DELIVERY_PRICE_CENTS=995` (override if different).
+4. Prices: `FRAME_PRICE_CENTS=8900` ($89 delivered). Delivery is bundled into the frame price, so there is no separate shipping line and `DELIVERY_PRICE_CENTS` is no longer read.
 5. (Optional) Live test bypass: run `npm run create-test-coupon` with the **live** key to create
    a 100%-off `TESTORDER` code — then **deactivate it** after testing (it's real money-off live).
 
@@ -127,8 +127,7 @@ Cloudflare Routing can't send, so to reply from Gmail branded as `hello@thegolde
 | `R2_PUBLIC_URL` | public | custom CDN domain (section 2) |
 | `STRIPE_SECRET_KEY` | **secret** | `sk_live_…` |
 | `STRIPE_WEBHOOK_SECRET` | **secret** | from the live webhook endpoint |
-| `FRAME_PRICE_CENTS` | — | `3900` |
-| `DELIVERY_PRICE_CENTS` | — | `995` |
+| `FRAME_PRICE_CENTS` | — | `8900` ($89, delivery included) |
 | `RESEND_API_KEY` | **secret** | Resend |
 | `EMAIL_FROM_ADDRESS` | — | `hello@thegoldenframe.com.au` |
 | `EMAIL_FROM_NAME` | — | `The Golden Frame` |

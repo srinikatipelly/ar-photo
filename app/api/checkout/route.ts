@@ -26,8 +26,10 @@ export async function POST(req: NextRequest) {
     const isDigital = kind === 'digital'
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://localhost:3000'
-    const framePrice = parseInt(process.env.FRAME_PRICE_CENTS ?? '3900', 10)
-    const deliveryPrice = parseInt(process.env.DELIVERY_PRICE_CENTS ?? '995', 10)
+    // $89 delivered — delivery is bundled into the frame price, so there is no
+    // separate shipping line. DELIVERY_PRICE_CENTS is deliberately no longer read;
+    // leaving it set in the environment has no effect.
+    const framePrice = parseInt(process.env.FRAME_PRICE_CENTS ?? '8900', 10)
     const digitalPrice = parseInt(process.env.DIGITAL_PRICE_CENTS ?? '1900', 10)
 
     const lineItems = isDigital
@@ -51,18 +53,10 @@ export async function POST(req: NextRequest) {
               currency: 'aud' as const,
               unit_amount: framePrice,
               product_data: {
-                name: 'Personalised AR Photo Frame',
+                name: 'Personalised AR Photo Frame (6×8, delivered)',
                 description:
-                  'Your photo frame with an embedded AR video experience. Dispatched in 2-3 business days.',
+                  'Your 6×8 photo frame with an embedded AR video experience. Delivery within Australia included. Dispatched in 2-3 business days.',
               },
-            },
-            quantity: 1,
-          },
-          {
-            price_data: {
-              currency: 'aud' as const,
-              unit_amount: deliveryPrice,
-              product_data: { name: 'Standard delivery (Australia)' },
             },
             quantity: 1,
           },

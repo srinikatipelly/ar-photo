@@ -75,7 +75,9 @@ export const REGIONS: Record<Region, RegionConfig> = {
       siteUrl: 'https://www.thegoldenframe.com.au',
     },
     prices: {
-      frame: { price: '$39', was: '$79' },
+      // Delivery is included in the price, so there is no separate shipping line
+      // at checkout. See app/api/checkout/route.ts.
+      frame: { price: '$89' },
       digital: { price: 'From $19' },
       realEstate: { price: 'Custom' },
     },

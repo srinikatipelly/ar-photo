@@ -9,11 +9,10 @@ type Step = 'form' | 'compiling' | 'uploading' | 'error'
 const MAX_VIDEO_BYTES = 200 * 1024 * 1024
 const MAX_VIDEO_SECONDS = 60
 
-const FRAME_PRICE = 39.0
-const FRAME_WAS = 79.0
-const DELIVERY_PRICE = 9.95
-const TOTAL = (FRAME_PRICE + DELIVERY_PRICE).toFixed(2)
-const TOTAL_WAS = (FRAME_WAS + DELIVERY_PRICE).toFixed(2)
+// $89 delivered. Delivery is bundled into the frame price, so there is no
+// separate delivery figure or total to show — the price IS the total. Keep in
+// step with FRAME_PRICE_CENTS in app/api/checkout/route.ts.
+const FRAME_PRICE = 89.0
 const DIGITAL_PRICE = 19.0
 
 // Friendly labels for the error summary at the top of the form.
@@ -449,23 +448,20 @@ export default function OrderForm() {
       ) : (
         <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3 rounded-2xl border border-gold-brand/30 bg-green-mid/40 p-5">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-gold-brand">AR Photo Frame 8×10</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-gold-brand">AR Photo Frame 6×8</p>
             <p className="mt-0.5 text-sm text-cream/80">
-              <span className="text-lg font-bold text-cream">${FRAME_PRICE.toFixed(0)}</span>{' '}
-              <span className="text-sm text-cream/40 line-through">${FRAME_WAS.toFixed(0)}</span>
+              <span className="text-lg font-bold text-cream">${FRAME_PRICE.toFixed(0)}</span>
             </p>
           </div>
           <div className="h-8 w-px bg-cream/15" />
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-gold-brand">Delivery</p>
-            <p className="mt-0.5 text-sm font-bold text-cream">${DELIVERY_PRICE.toFixed(2)}</p>
+            <p className="mt-0.5 text-sm font-bold text-cream">Included Australia-wide</p>
           </div>
           <div className="h-8 w-px bg-cream/15" />
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-gold-brand">Total</p>
-            <p className="mt-0.5 text-sm font-bold text-cream">
-              ${TOTAL} <span className="text-sm font-normal text-cream/40 line-through">${TOTAL_WAS}</span>
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-gold-brand">Your memories</p>
+            <p className="mt-0.5 text-sm font-bold text-cream">Carefully handled</p>
           </div>
         </div>
       )}

@@ -15,11 +15,10 @@ const BSB            = process.env.NEXT_PUBLIC_BSB            ?? ''
 const ACCOUNT_NUMBER = process.env.NEXT_PUBLIC_ACCOUNT_NUMBER ?? ''
 
 // Pricing
-const FRAME_PRICE    = 39.00
-const FRAME_WAS      = 79.00
-const DELIVERY_PRICE = 9.95
-const TOTAL          = (FRAME_PRICE + DELIVERY_PRICE).toFixed(2)   // 48.95
-const TOTAL_WAS      = (FRAME_WAS  + DELIVERY_PRICE).toFixed(2)    // 88.95
+// $89 delivered. Delivery is included, so the frame price IS the total to
+// transfer. Keep in step with FRAME_PRICE_CENTS in app/api/checkout/route.ts.
+const FRAME_PRICE    = 89.00
+const TOTAL          = FRAME_PRICE.toFixed(2)
 
 // ── Address ───────────────────────────────────────────────────────────────────
 const AU_STATES = ['ACT', 'NSW', 'NT', 'QLD', 'SA', 'TAS', 'VIC', 'WA']
@@ -359,19 +358,17 @@ export default function UploadPage() {
             <h2 className="text-base font-semibold text-amber-900">Transfer the exact amount</h2>
             <div className="mt-3 space-y-1.5 text-sm">
               <div className="flex items-center justify-between">
-                <span className="text-zinc-600">AR Photo Frame 8×10 <span className="text-xs text-amber-600 font-medium">(Promotional price)</span></span>
-                <span className="font-medium text-zinc-900">
-                  $39.00 <span className="ml-1 text-xs text-zinc-400 line-through">$79.00</span>
-                </span>
+                <span className="text-zinc-600">AR Photo Frame 6×8</span>
+                <span className="font-medium text-zinc-900">$89.00</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-zinc-600">Standard delivery (Australia)</span>
-                <span className="font-medium text-zinc-900">$9.95</span>
+                <span className="text-zinc-600">Delivery (Australia)</span>
+                <span className="font-medium text-zinc-900">Included</span>
               </div>
               <div className="flex items-center justify-between border-t border-amber-200 pt-2 text-base font-bold">
                 <span className="text-zinc-900">Total to transfer</span>
                 <span className="text-zinc-900">
-                  ${TOTAL} <span className="ml-1 text-sm font-normal text-zinc-400 line-through">${TOTAL_WAS}</span>
+                  ${TOTAL}
                 </span>
               </div>
             </div>
@@ -489,26 +486,25 @@ export default function UploadPage() {
       <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4">
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">Promotional price</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">Price</p>
             <p className="mt-0.5 text-sm text-zinc-700">
-              AR Photo Frame 8×10 -{' '}
-              <span className="text-lg font-bold text-zinc-900">$39.00</span>{' '}
-              <span className="text-sm text-zinc-400 line-through">$79.00</span>
+              AR Photo Frame 6×8 -{' '}
+              <span className="text-lg font-bold text-zinc-900">$89.00</span>
             </p>
           </div>
           <div className="h-8 w-px bg-amber-200 hidden sm:block" />
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">Standard delivery</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">Delivery</p>
             <p className="mt-0.5 text-sm text-zinc-700">
-              <span className="font-bold text-zinc-900">$9.95</span>{' '}
-              <span className="text-xs text-zinc-500">· Free on orders over $100</span>
+              <span className="font-bold text-zinc-900">Included</span>{' '}
+              <span className="text-xs text-zinc-500">· anywhere in Australia</span>
             </p>
           </div>
           <div className="h-8 w-px bg-amber-200 hidden sm:block" />
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">Total</p>
             <p className="mt-0.5 text-sm font-bold text-zinc-900">
-              ${TOTAL} <span className="text-sm font-normal text-zinc-400 line-through">${TOTAL_WAS}</span>
+              ${TOTAL}
             </p>
           </div>
         </div>
