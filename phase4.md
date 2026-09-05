@@ -421,4 +421,4 @@ then the customer should get the success message but didn't get the success mess
 7. I found an issue wth horizontal landscape video, it was not fit inside the frame border, so it should be fixed and fit inside the frame border and it  was playing outside the frame border, so it should be fixed and fit inside the frame border
 Example: when the phone roated in landscape mode, the video was playing outside the frame border, so it should be fixed and fit inside the frame border, also when cusomter scans and goes to one photo and comes back to the same photo, the video was playing outside the frame border, so it should be fixed and fit inside the frame border , attcahed 
 bug1-horizontalissue.png
-8.
+8.when rotaed the phone in landscape mode, and then back to portrait mode, the video was playing outside the frame border, so it should be fixed and fit inside the frame border, attcahed bug2-verticalissue.png

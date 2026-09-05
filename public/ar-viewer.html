@@ -377,6 +377,10 @@
 
     // Shared state so the fallback player works from both AR and error screens.
     let arVideo     = null   // the <video> used as the AR texture AND the player source
+    // Set once AR starts (see scheduleReflow in loadFrame). Lets code out here —
+    // closePlayer, for one — re-settle the AR projection after it has covered and
+    // then uncovered the viewport.
+    let arReflow    = () => {}
     let arActive    = false  // true once the live AR camera is running
     let targetFound = false  // has the printed photo been detected at least once?
 
@@ -415,6 +419,9 @@
         arVideo.play().catch(() => {})   // also resumes if they paused via the controls
         soundBtn.style.display = 'flex'   // restore the sound toggle over the camera
         syncSoundIcon()
+        // The player covered the viewport, and on iOS full-screen video changes
+        // it again on the way out. Re-settle before the camera view is trusted.
+        arReflow()
       } else {
         // Camera never started — send them back to the error screen.
         errorEl.style.display = 'flex'
@@ -633,6 +640,50 @@
         }
       }
 
+      // ── Keep the overlay locked to the photo across viewport changes ────────
+      //
+      // MindAR derives its projection from the camera feed and the container's
+      // measured size. It binds its own window 'resize' handler, but on mobile
+      // that handler runs before the browser has finished laying out — after a
+      // rotation, and whenever Safari's URL bar collapses or expands. It then
+      // caches a projection built from half-updated numbers and never revisits
+      // it, so the video renders scaled and offset from the printed photo and
+      // stays that way. That is the landscape bug, the rotate-and-rotate-back
+      // bug, and the "leave a photo, come back, now it's wrong" report: all
+      // three are a viewport change that MindAR measured at the wrong moment.
+      //
+      // Re-applying its own resize() after layout settles fixes all of them. The
+      // repeats are deliberate: iOS reflows more than once per rotation, and the
+      // last one is what sticks.
+      const reflowAR = () => {
+        if (!mindarThree) return
+        try {
+          mindarThree.resize()
+        } catch (e) {
+          // Thrown if called before start() — harmless, nothing to re-measure yet.
+        }
+      }
+
+      const scheduleReflow = () => {
+        requestAnimationFrame(reflowAR)
+        setTimeout(reflowAR, 250)
+        setTimeout(reflowAR, 700)
+      }
+
+      arReflow = scheduleReflow
+      window.addEventListener('resize', scheduleReflow)
+      window.addEventListener('orientationchange', scheduleReflow)
+      // Fires on rotation in browsers that support it, and lands earlier and more
+      // reliably than the legacy orientationchange event.
+      if (screen.orientation && screen.orientation.addEventListener) {
+        screen.orientation.addEventListener('change', scheduleReflow)
+      }
+      // Coming back from a background tab or the full-screen player can also land
+      // with a viewport that changed while we weren't rendering.
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) scheduleReflow()
+      })
+
       // Fire the camera prompt up front (don't block asset loading on it).
       setStep('step-camera', 'active')
       const cameraPrewarm = prewarmCamera()
@@ -768,6 +819,9 @@
           await cameraPrewarm
           await mindarThree.start()
           clearTimeout(hardTimeout)
+          // The loading overlay comes down right after this and Safari's URL bar
+          // settles a moment later — both change the viewport MindAR measured.
+          scheduleReflow()
 
           setProgress(100)
           clearInterval(captionTimer)
@@ -950,6 +1004,9 @@
         await mindarThree.start()
 
         clearTimeout(hardTimeout)
+        // See the album path: the loading overlay and Safari's URL bar both move
+        // the viewport just after start().
+        scheduleReflow()
 
         setStep('step-camera', 'done')
         setProgress(100)
