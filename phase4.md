@@ -405,3 +405,20 @@ on successful payment we will send them the AR experience and they can share it 
 we will send email only with success message and we will not send QR code directly to parteners email
 but the QR will be sent to admin and later admin will send the QR code to partners email or whats app or google drive
 ```
+
+improvements or bugs:
+1. the collect page fro ex: didnt follow the brand colour and font and it should be same as the website
+2. Once the albums collected from partners or customers,  I as admin didnt get the email with QR code?
+2. on Album created page remove the "Preview the AR Album""
+3. remove AR link in customer email 
+4.Can I hide the browser header and footer on the AR page so that it looks like a native app?
+5.The video on AR frame should be fit inside the frame border and not outside the frame border, I tested one video for ex: baby photo is small and video is big and it was outside the frame border, so it should be fit inside the frame border
+
+
+6. <make the email more professional and customer friendly>when the customer uploaded via the link genearated via ex: https://www.thegoldenframe.com.au/collect/Vssb7EzHcuAKfJOQAvqSswnU
+then the customer should get the success message but didn't get the success message, so it should be fixed, Dont send any QR code yet to customer, only send the success message and one of our thegoldenteam will contact if any issues and we will send the AR experience delivered to you with 24 hours after review successful, if any issue we will contact you, meanwhile you can reach out to us replying this email if questions, Our team will contact you for playment once payment cleared wiill deliver the digital copy.
+
+7. I found an issue wth horizontal landscape video, it was not fit inside the frame border, so it should be fixed and fit inside the frame border and it  was playing outside the frame border, so it should be fixed and fit inside the frame border
+Example: when the phone roated in landscape mode, the video was playing outside the frame border, so it should be fixed and fit inside the frame border, also when cusomter scans and goes to one photo and comes back to the same photo, the video was playing outside the frame border, so it should be fixed and fit inside the frame border , attcahed 
+bug1-horizontalissue.png
+8.

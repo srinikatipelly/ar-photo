@@ -562,6 +562,7 @@ function escapeHtml(s: string) {
 // a customer receipt.
 export async function sendCollectionSubmittedAdminEmail({
   token, kind, label, count, contactName, contactEmail, contactPhone, contactAddress, note,
+  receiptError = null,
 }: {
   token: string
   kind: 'customer' | 'partner'
@@ -572,6 +573,8 @@ export async function sendCollectionSubmittedAdminEmail({
   contactPhone: string
   contactAddress: string
   note: string
+  /** Set when the submitter's confirmation email failed — surfaced below. */
+  receiptError?: string | null
 }) {
   const to = adminEmails()
   if (!resend || to.length === 0) return
@@ -594,6 +597,17 @@ export async function sendCollectionSubmittedAdminEmail({
       <p style="margin:0 0 8px;font-size:14px;color:#3f3f46;line-height:1.6;">
         Next: build the album from these pairs${kind === 'partner' ? ', then request payment before sending the QR' : ', then deliver the AR experience'}.
       </p>
+      ${
+        receiptError
+          ? `<table width="100%" cellpadding="0" cellspacing="0" style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px 18px;margin:14px 0 0;"><tr><td>
+               <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#991b1b;">⚠️ They did NOT receive a confirmation email</p>
+               <p style="margin:0;font-size:13px;color:#7f1d1d;line-height:1.6;">
+                 Sending to ${escapeHtml(contactEmail)} failed: ${escapeHtml(receiptError)}.<br />
+                 Check the address for a typo and contact them another way — they're waiting to hear from us.
+               </p>
+             </td></tr></table>`
+          : ''
+      }
       <p style="margin:0;font-size:12px;color:#a1a1aa;">Link token: ${escapeHtml(token)}</p>
     </div>`
 
@@ -623,44 +637,74 @@ export async function sendCollectionReceivedEmail({
   if (!resend || !to) return
 
   const pairs = `${count} photo${count === 1 ? '' : 's'} and video${count === 1 ? '' : 's'}`
+  const who = kind === 'partner' ? 'your client’s AR experience' : 'your AR experience'
 
-  const nextStep =
-    kind === 'partner'
-      ? `We'll be in touch shortly with the payment details. Once payment is confirmed we'll send through your AR experience, ready to share with your client.`
-      : `We'll let you know if there are any issues with your files. Otherwise we'll craft your AR experience and be in touch when it's ready.`
+  // Three numbered steps rather than a paragraph: the sequence (review → payment
+  // → delivery) is the whole message, and a wall of prose buries the 24-hour
+  // commitment and the fact that payment comes before delivery.
+  const step = (n: string, title: string, body: string) => `
+            <tr><td style="padding:0 0 18px;">
+              <table cellpadding="0" cellspacing="0"><tr>
+                <td valign="top" width="32">
+                  <div style="width:24px;height:24px;border-radius:12px;background:#18181b;color:#ffffff;font-size:12px;font-weight:700;text-align:center;line-height:24px;">${n}</div>
+                </td>
+                <td valign="top" style="padding-left:12px;">
+                  <p style="margin:0 0 3px;font-size:14px;font-weight:600;color:#18181b;">${title}</p>
+                  <p style="margin:0;font-size:13px;color:#52525b;line-height:1.6;">${body}</p>
+                </td>
+              </tr></table>
+            </td></tr>`
 
   const { error } = await resend.emails.send({
     from: `${fromName()} <${fromEmail()}>`,
     to,
-    subject: `We've received your upload — ${pairs}`,
+    replyTo: fromEmail(),
+    subject: `Thank you — we've received your ${pairs}`,
     html: `
 <!DOCTYPE html><html lang="en">
 <head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /></head>
 <body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 16px;"><tr><td align="center">
-    <table width="100%" style="max-width:520px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+    <table width="100%" style="max-width:540px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);">
 
-      <tr><td style="background:#18181b;padding:28px 36px;">
-        <p style="margin:0;color:#ffffff;font-size:18px;font-weight:600;letter-spacing:-0.3px;">${fromName()}</p>
+      <tr><td style="background:#0F3535;padding:30px 36px;">
+        <p style="margin:0;color:#f9e6c2;font-size:19px;font-weight:600;letter-spacing:-0.3px;">${fromName()}</p>
+        <p style="margin:5px 0 0;color:rgba(249,230,194,0.65);font-size:12px;letter-spacing:0.09em;text-transform:uppercase;">Upload received</p>
       </td></tr>
 
-      <tr><td style="padding:36px 36px 0;">
-        <h1 style="margin:0 0 8px;font-size:24px;font-weight:600;color:#18181b;letter-spacing:-0.4px;">Uploaded successfully 🎉</h1>
-        <p style="margin:0 0 24px;font-size:16px;color:#71717a;line-height:1.6;">
-          Hi ${escapeHtml(name) || 'there'}, thank you — we've received your ${pairs}.
+      <tr><td style="padding:36px 36px 8px;">
+        <h1 style="margin:0 0 10px;font-size:24px;font-weight:600;color:#18181b;letter-spacing:-0.4px;">
+          Thank you, ${escapeHtml(name) || 'there'} 🎉
+        </h1>
+        <p style="margin:0 0 8px;font-size:16px;color:#52525b;line-height:1.65;">
+          We've safely received your <strong style="color:#18181b;">${pairs}</strong>. They're with our
+          team now, and we'll take great care of them.
+        </p>
+        <p style="margin:0 0 26px;font-size:16px;color:#52525b;line-height:1.65;">
+          Here's exactly what happens from here.
         </p>
 
-        <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e4e4e7;border-radius:12px;padding:20px 24px;margin:0 0 24px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafafa;border:1px solid #e4e4e7;border-radius:14px;padding:22px 24px 6px;margin:0 0 26px;">
+          ${step('1', 'We review your files', `Our team checks every photo and video within <strong style="color:#18181b;">24 hours</strong>. If anything needs attention, we'll contact you personally — you don't need to do a thing.`)}
+          ${step('2', 'We confirm your order', `We'll be in touch with the payment details. Nothing is charged automatically, and you can ask us anything before going ahead.`)}
+          ${step('3', `We deliver ${who}`, `Once payment clears, we'll send ${who} through, ready to scan and share.`)}
+        </table>
+
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#fefce8;border:1px solid #fde68a;border-radius:12px;padding:16px 22px;margin:0 0 8px;">
           <tr><td>
-            <p style="margin:0 0 8px;font-size:14px;font-weight:600;color:#18181b;">What happens next</p>
-            <p style="margin:0;font-size:13px;color:#52525b;line-height:1.6;">${nextStep}</p>
+            <p style="margin:0;font-size:13px;color:#92400e;line-height:1.6;">
+              <strong>Questions in the meantime?</strong><br />
+              Simply reply to this email — it comes straight to our team and we'll get back to you.
+            </p>
           </td></tr>
         </table>
       </td></tr>
 
-      <tr><td style="padding:20px 36px 32px;border-top:1px solid #f4f4f5;">
-        <p style="margin:0;font-size:12px;color:#a1a1aa;">
-          Questions? Just reply to this email.<br />© ${new Date().getFullYear()} ${fromName()}
+      <tr><td style="padding:22px 36px 32px;border-top:1px solid #f4f4f5;">
+        <p style="margin:0;font-size:12px;color:#a1a1aa;line-height:1.6;">
+          Thank you for trusting us with your memories.<br />
+          — The ${fromName()} team<br /><br />
+          © ${new Date().getFullYear()} ${fromName()}
         </p>
       </td></tr>
 

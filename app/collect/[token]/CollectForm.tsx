@@ -26,6 +26,37 @@ const newPair = (): Pair => ({
   video: null,
 })
 
+/**
+ * Common misspellings of the big mail providers.
+ *
+ * A real submission was lost to "gmai.com" — which is a live typo-squat domain
+ * with its own MX record, so the mail was accepted by someone else's server.
+ * No bounce, no error anywhere, and the customer simply never heard from us.
+ * Format validation cannot catch this; only a known-typo list can.
+ */
+const DOMAIN_TYPOS: Record<string, string> = {
+  'gmai.com': 'gmail.com',
+  'gmial.com': 'gmail.com',
+  'gmail.co': 'gmail.com',
+  'gnail.com': 'gmail.com',
+  'gmaill.com': 'gmail.com',
+  'hotmial.com': 'hotmail.com',
+  'hotmai.com': 'hotmail.com',
+  'outlok.com': 'outlook.com',
+  'yaho.com': 'yahoo.com',
+  'yahooo.com': 'yahoo.com',
+  'iclod.com': 'icloud.com',
+  'icloud.co': 'icloud.com',
+}
+
+/** Returns the likely-intended address, or null if nothing looks wrong. */
+function suggestEmailFix(email: string): string | null {
+  const [local, domain] = email.trim().toLowerCase().split('@')
+  if (!local || !domain) return null
+  const fixed = DOMAIN_TYPOS[domain]
+  return fixed ? `${local}@${fixed}` : null
+}
+
 const inputBase =
   'mt-1.5 block w-full rounded-xl border border-cream/20 bg-green-deep/60 px-4 py-3 text-sm text-cream outline-none transition placeholder:text-cream/30 focus:border-gold-brand'
 
@@ -50,6 +81,7 @@ export default function CollectForm({
   const [note, setNote] = useState('')
 
   const complete = pairs.filter((p) => p.photo && p.video)
+  const emailSuggestion = suggestEmailFix(email)
 
   function setFile(id: string, which: 'photo' | 'video', file: File | null) {
     setError('')
@@ -228,7 +260,22 @@ export default function CollectForm({
         <label className="block text-xs font-medium text-cream/70">
           Email *
           <input type="email" value={email} disabled={busy} onChange={(e) => setEmail(e.target.value)} className={inputBase} />
+          <span className="mt-1 block text-[11px] font-normal text-cream/40">
+            We send your confirmation here, so please double-check it.
+          </span>
         </label>
+
+        {/* A suggestion, not a block — the list can't be exhaustive and the
+            address might genuinely be right. One tap accepts it. */}
+        {emailSuggestion && (
+          <button
+            type="button"
+            onClick={() => setEmail(emailSuggestion)}
+            className="-mt-2 block w-full rounded-xl border border-gold-brand/40 bg-gold-brand/10 px-4 py-2.5 text-left text-xs text-cream/85 transition hover:bg-gold-brand/20"
+          >
+            Did you mean <span className="font-semibold text-gold-brand">{emailSuggestion}</span>? Tap to use it.
+          </button>
+        )}
         <label className="block text-xs font-medium text-cream/70">
           Phone
           <input type="tel" value={phone} disabled={busy} onChange={(e) => setPhone(e.target.value)} className={inputBase} />

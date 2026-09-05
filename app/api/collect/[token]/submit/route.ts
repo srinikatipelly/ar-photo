@@ -58,12 +58,29 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ token: str
     const count = Array.isArray(data?.items) ? data.items.length : 0
 
     // Two different emails on purpose:
-    //   admin     — the work queue item, with the contact details
     //   submitter — a receipt only: no QR, no AR link. Nothing is built yet, and
-    //               for partners the deliverable is withheld until payment.
-    // allSettled so one failing send can't stop the other.
-    const results = await Promise.allSettled([
-      sendCollectionSubmittedAdminEmail({
+    //               payment is arranged before anything is delivered.
+    //   admin     — the work queue item, with the contact details.
+    //
+    // Sent in that order, not in parallel, so the admin mail can report whether
+    // the customer's actually reached them. A receipt that fails silently means
+    // someone uploads their memories and then hears nothing — which is exactly
+    // how a mistyped address goes unnoticed.
+    let receiptError: string | null = null
+    try {
+      await sendCollectionReceivedEmail({
+        to: data?.contact_email ?? '',
+        name: data?.contact_name ?? '',
+        kind: collection.kind,
+        count,
+      })
+    } catch (e) {
+      receiptError = e instanceof Error ? e.message : String(e)
+      console.error('Collection receipt email failed:', collection.token, receiptError)
+    }
+
+    try {
+      await sendCollectionSubmittedAdminEmail({
         token: collection.token,
         kind: collection.kind,
         label: collection.label,
@@ -73,19 +90,10 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ token: str
         contactPhone: data?.contact_phone ?? '',
         contactAddress: data?.contact_address ?? '',
         note: data?.note ?? '',
-      }),
-      sendCollectionReceivedEmail({
-        to: data?.contact_email ?? '',
-        name: data?.contact_name ?? '',
-        kind: collection.kind,
-        count,
-      }),
-    ])
-
-    for (const r of results) {
-      if (r.status === 'rejected') {
-        console.error('Collection email failed:', collection.token, r.reason)
-      }
+        receiptError,
+      })
+    } catch (e) {
+      console.error('Collection admin email failed:', collection.token, e)
     }
   } catch (error) {
     console.error('Collection submitted but notification failed:', collection.token, error)
