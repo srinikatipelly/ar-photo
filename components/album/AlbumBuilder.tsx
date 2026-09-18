@@ -14,7 +14,10 @@ import { AlbumQrPending } from '@/components/album/AlbumQrPending'
 type Pair = { id: number; photo: File | null; video: File | null }
 type Step = 'form' | 'compiling' | 'uploading' | 'done' | 'error'
 
-const MAX_VIDEO_BYTES = 200 * 1024 * 1024
+// Default per-video cap for partners. Admins pass `maxVideoBytes={null}` to lift
+// it — uploads go straight to R2 with a presigned PUT, so nothing server-side
+// cares about the size; the cap exists to save partners a long doomed upload.
+const DEFAULT_MAX_VIDEO_BYTES = 200 * 1024 * 1024
 
 let nextId = 1
 const emptyPair = (): Pair => ({ id: nextId++, photo: null, video: null })
@@ -31,6 +34,7 @@ export function AlbumBuilder({
   title = 'Build an AR album',
   backHref = '/',
   showQr = true,
+  maxVideoBytes = DEFAULT_MAX_VIDEO_BYTES,
 }: {
   endpoint: string
   maxItems: number
@@ -39,6 +43,8 @@ export function AlbumBuilder({
   backHref?: string
   /** Partners don't see the QR — it's released by an admin after payment. */
   showQr?: boolean
+  /** Per-video size cap in bytes. `null` lifts the limit entirely (admins). */
+  maxVideoBytes?: number | null
 }) {
   const [pairs, setPairs]       = useState<Pair[]>([emptyPair(), emptyPair()])
   const [name, setName]         = useState('')
@@ -52,8 +58,8 @@ export function AlbumBuilder({
 
   function updatePair(id: number, fieldName: 'photo' | 'video', file: File | null) {
     setError('')
-    if (fieldName === 'video' && file && file.size > MAX_VIDEO_BYTES) {
-      setError('Each video must be under 200 MB.')
+    if (fieldName === 'video' && file && maxVideoBytes !== null && file.size > maxVideoBytes) {
+      setError(`Each video must be under ${Math.round(maxVideoBytes / 1024 / 1024)} MB.`)
       return
     }
     setPairs((prev) => prev.map((p) => (p.id === id ? { ...p, [fieldName]: file } : p)))
